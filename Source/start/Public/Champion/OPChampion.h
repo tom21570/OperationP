@@ -76,6 +76,11 @@ protected:
 	void Look(const struct FInputActionValue& Value);
 
 	class UOPAnimInstance* ChampionAnimInstance;
+
+	/**********************************************************************************************************/
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damaged", meta = (AllowPrivateAccess = "true")) // 평타 Animation.
+	class UAnimMontage *DamagedAnimMontage;
 	
 	/**********************************************************************************************************/
 	
@@ -161,6 +166,8 @@ protected:
 public:
 	FORCEINLINE AOPPlayerController* GetOPPlayerController() const { return OPPlayerController; }
 	FORCEINLINE FHitResult GetMouseCursorHit() { return MouseCursorHit; }
+
+	FORCEINLINE UAnimMontage* GetDamagedAnimMontage() const { return DamagedAnimMontage; }
 	
 	FORCEINLINE bool GetbMeleeAttack() const { return bMeleeAttack; }
 	FORCEINLINE float GetMeleeAttackCooltime() const { return MeleeAttackCooltime; }

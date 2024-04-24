@@ -22,6 +22,7 @@ protected:
 	
 	virtual void Passive() override;
 	virtual void MeleeAttack() override;
+	void MeleeAttackTrace();
 	virtual void Skill_1() override;
 	void Skill_1_Trace();
 	virtual void Skill_2() override;

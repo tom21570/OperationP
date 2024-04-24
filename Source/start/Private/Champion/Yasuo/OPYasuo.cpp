@@ -40,7 +40,13 @@ void AOPYasuo::MeleeAttack()
 	check(GetChampionAnimInstance());
 	check(GetMeleeAttackAnimMontage());
 
-	int32 Section = FMath::RandRange(0, 2);
+	FTimerHandle Timer;
+	GetWorldTimerManager().SetTimer(Timer, FTimerDelegate::CreateLambda([&]
+	{
+		MeleeAttackTrace();
+	}), 0.25f, false);
+	
+
 	switch (MeleeAttackComboCount)
 	{
 	case 0:
@@ -78,6 +84,26 @@ void AOPYasuo::MeleeAttack()
 
 	SetbMeleeAttack_False();
 	GetWorldTimerManager().SetTimer(MeleeAttackCooltimeTimer, this, &AOPYasuo::SetbMeleeAttack_True, GetMeleeAttackCooltime(), false);
+}
+
+void AOPYasuo::MeleeAttackTrace()
+{
+	TArray<FHitResult> HitResults;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 200.f, 80.f,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+	
+	for (auto& HitActor : HitResults)
+	{
+		AOPChampion* HitChampion = Cast<AOPChampion>(HitActor.GetActor());
+
+		if (HitChampion)
+		{
+			HitChampion->GetChampionAnimInstance()->Montage_Play(HitChampion->GetDamagedAnimMontage());
+		}
+	}
 }
 
 void AOPYasuo::Skill_1()
@@ -142,23 +168,33 @@ void AOPYasuo::Skill_1()
 
 void AOPYasuo::Skill_1_Trace()
 {
-		TArray<FHitResult> HitResults;
-		TArray<AActor*> ActorsToIgnore;
-		ActorsToIgnore.Add(this);
+	TArray<FHitResult> HitResults;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
 
-		UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 450.f, 40.f,
-			UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
-	
-		if(HitResults.Num() > 0 && Skill_1_Stack < 2)
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 450.f, 40.f,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+
+	for (auto& HitActor : HitResults)
+	{
+		AOPChampion* HitChampion = Cast<AOPChampion>(HitActor.GetActor());
+
+		if (HitChampion)
 		{
-			Skill_1_Stack++;
-			GetWorldTimerManager().ClearTimer(Skill_1_StackTimer);
-			GetWorldTimerManager().SetTimer(Skill_1_StackTimer, FTimerDelegate::CreateLambda([&]
-			{
-				Skill_1_Stack = 0;
-				UE_LOG(LogTemp, Warning, TEXT("Stack Reset"));
-			}), 6.f, false);
+			HitChampion->GetChampionAnimInstance()->Montage_Play(HitChampion->GetDamagedAnimMontage());
 		}
+	}
+	
+	if(HitResults.Num() > 0 && Skill_1_Stack < 2)
+	{
+		Skill_1_Stack++;
+		GetWorldTimerManager().ClearTimer(Skill_1_StackTimer);
+		GetWorldTimerManager().SetTimer(Skill_1_StackTimer, FTimerDelegate::CreateLambda([&]
+		{
+			Skill_1_Stack = 0;
+			UE_LOG(LogTemp, Warning, TEXT("Stack Reset"));
+		}), 6.f, false);
+	}
 }
 
 void AOPYasuo::Skill_2()
@@ -199,7 +235,6 @@ void AOPYasuo::Skill_3()
 	if (Enemy == nullptr) return;
 
 	int32 Distance = FVector::Dist(GetActorLocation(), Enemy->GetActorLocation());
-	FVector Skill_3_FinalLocation;
 	FTimerHandle Skill_3_EndTimer;
 
 	if (Distance <= 475.f)
@@ -208,7 +243,6 @@ void AOPYasuo::Skill_3()
 		Skill3Vector.Normalize();
 		Skill3Vector *= 625.f;
 		Skill3Vector.Z = 0.f;
-		Skill_3_FinalLocation = GetActorLocation() + Skill3Vector;
 		TurnCharacterToLocation(Enemy->GetActorLocation());
 		ProjectileMovementComponent->SetVelocityInLocalSpace(FVector(750.f, 0.f, 0.f));
 		SetActorEnableCollision(false);
