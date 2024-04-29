@@ -25,13 +25,14 @@ protected:
 	virtual void Skill_4();
 	virtual void Ult();
 
-	void TurnCharacterToLocation(FVector TurnPoint);
-	void TurnCharacterToCursor(FHitResult HitResult);
 
 public:	
 	virtual void Tick(float DeltaTime) override;
 	
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	
+	void TurnCharacterToLocation(FVector TurnPoint);
+	void TurnCharacterToCursor(FHitResult HitResult);
 
 protected:
 	class AOPPlayerController* OPPlayerController;
@@ -77,10 +78,15 @@ protected:
 
 	class UOPAnimInstance* ChampionAnimInstance;
 
+	TObjectPtr<AOPChampion> TestDiavolo;
+
 	/**********************************************************************************************************/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damaged", meta = (AllowPrivateAccess = "true")) // 평타 Animation.
 	class UAnimMontage *DamagedAnimMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damaged", meta = (AllowPrivateAccess = "true")) // 평타 Animation.
+	class UAnimMontage *DeadAnimMontage;
 	
 	/**********************************************************************************************************/
 	
@@ -168,6 +174,7 @@ public:
 	FORCEINLINE FHitResult GetMouseCursorHit() { return MouseCursorHit; }
 
 	FORCEINLINE UAnimMontage* GetDamagedAnimMontage() const { return DamagedAnimMontage; }
+	FORCEINLINE UAnimMontage* GetDeadAnimMontage() const { return DeadAnimMontage; }
 	
 	FORCEINLINE bool GetbMeleeAttack() const { return bMeleeAttack; }
 	FORCEINLINE float GetMeleeAttackCooltime() const { return MeleeAttackCooltime; }

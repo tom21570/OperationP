@@ -97,11 +97,51 @@ void AOPYasuo::MeleeAttackTrace()
 	
 	for (auto& HitActor : HitResults)
 	{
-		AOPChampion* HitChampion = Cast<AOPChampion>(HitActor.GetActor());
+		TestDiavolo = Cast<AOPChampion>(HitActor.GetActor());
 
-		if (HitChampion)
+		if (TestDiavolo)
 		{
-			HitChampion->GetChampionAnimInstance()->Montage_Play(HitChampion->GetDamagedAnimMontage());
+			FTimerHandle DeadTimer;
+			TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDeadAnimMontage());
+			int32 Section = FMath::RandRange(0, 5);
+			switch (Section)
+			{
+			case 0:
+				TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dying_2"));
+				GetWorldTimerManager().SetTimer(DeadTimer, FTimerDelegate::CreateLambda([&]
+				{
+					TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dead_2"));
+				}), 4.2f, false);
+				break;
+				
+			case 1:
+				TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dying_3"));
+				GetWorldTimerManager().SetTimer(DeadTimer, FTimerDelegate::CreateLambda([&]
+				{
+					TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dead_3"));
+				}), 3.3f, false);
+				break;
+				
+			case 2:
+				TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dying_4"));
+				GetWorldTimerManager().SetTimer(DeadTimer, FTimerDelegate::CreateLambda([&]
+				{
+					TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dead_4"));
+				}), 3.2f, false);
+				break;
+				
+			case 3:
+				TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dying_Backwards"));
+				GetWorldTimerManager().SetTimer(DeadTimer, FTimerDelegate::CreateLambda([&]
+				{
+					TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dead_Backwards"));
+				}), 4.3f, false);
+				break;
+
+			default:
+				break;
+			}
+			TestDiavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * MeleeAttack_Impulse, true);
 		}
 	}
 }
@@ -177,11 +217,52 @@ void AOPYasuo::Skill_1_Trace()
 
 	for (auto& HitActor : HitResults)
 	{
-		AOPChampion* HitChampion = Cast<AOPChampion>(HitActor.GetActor());
+		TestDiavolo = Cast<AOPChampion>(HitActor.GetActor());
 
-		if (HitChampion)
+		if (TestDiavolo)
 		{
-			HitChampion->GetChampionAnimInstance()->Montage_Play(HitChampion->GetDamagedAnimMontage());
+			int32 Section = FMath::RandRange(0, 5);
+			FTimerHandle DeadTimer;
+			TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDeadAnimMontage());
+			switch (Section)
+			{				
+			case 0:
+				TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dying_2"));
+				GetWorldTimerManager().SetTimer(DeadTimer, FTimerDelegate::CreateLambda([&]
+				{
+					TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dead_2"));
+				}), 4.2f, false);
+				break;
+				
+			case 1:
+				TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dying_3"));
+				GetWorldTimerManager().SetTimer(DeadTimer, FTimerDelegate::CreateLambda([&]
+				{
+					TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dead_3"));
+				}), 3.3f, false);
+				break;
+				
+			case 2:
+				TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dying_4"));
+				GetWorldTimerManager().SetTimer(DeadTimer, FTimerDelegate::CreateLambda([&]
+				{
+					TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dead_4"));
+				}), 3.2f, false);
+				break;
+				
+			case 3:
+				TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dying_Backwards"));
+				GetWorldTimerManager().SetTimer(DeadTimer, FTimerDelegate::CreateLambda([&]
+				{
+					TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dead_Backwards"));
+				}), 4.3f, false);
+				break;
+
+			default:
+				break;
+			}
+			TestDiavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * Skill_1_Impulse, true);
+			TestDiavolo->TurnCharacterToLocation(GetActorLocation());
 		}
 	}
 	
