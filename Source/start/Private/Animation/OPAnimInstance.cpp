@@ -23,6 +23,7 @@ void UOPAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		Speed = Velocity.Size();
 
 		bIsInAir = OPChampion->GetCharacterMovement()->IsFalling();
+		bIsDamaged = OPChampion->GetbIsDamaged();
 
 		if((OPChampion->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0) || Speed > 0.f)
 		{

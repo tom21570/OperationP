@@ -35,8 +35,14 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bIsAccelerating;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	bool bIsDamaged;
 	
 	FORCEINLINE float GetSpeed() const { return Speed; }
 	FORCEINLINE bool GetbIsAccelerating() const { return bIsAccelerating; }
+
+public:
+	FORCEINLINE bool GetbIsInAir() const { return bIsInAir; }
 	
 };

@@ -6,6 +6,7 @@
 #include "Champion/OPChampion.h"
 #include "OPYasuo.generated.h"
 
+class AOPYasuoWhirlWind;
 /**
  * 
  */
@@ -25,6 +26,7 @@ protected:
 	void MeleeAttackTrace();
 	virtual void Skill_1() override;
 	void Skill_1_Trace();
+	void Skill_1_WhirlWind();
 	virtual void Skill_2() override;
 	virtual void Skill_3() override;
 	virtual void Skill_4() override;
@@ -51,6 +53,12 @@ private:
 	FTimerHandle Skill_1_CastTimer;
 	FTimerHandle Skill_1_StackTimer;
 	FTimerHandle MeleeAttackComboCountTimer;
+
+	TObjectPtr<AOPYasuoWhirlWind> WhirlWind;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AOPYasuoWhirlWind> WhirlWindClass;
+
+	FTimerHandle WhirlWindSpawnTimer;
 
 	FORCEINLINE void ResetMeleeAttackComboCount() { MeleeAttackComboCount = 0; }
 	

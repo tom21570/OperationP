@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "OPChampion.generated.h"
 
+class AOPDiavolo;
+
 UCLASS()
 class START_API AOPChampion : public ACharacter
 {
@@ -78,15 +80,20 @@ protected:
 
 	class UOPAnimInstance* ChampionAnimInstance;
 
-	TObjectPtr<AOPChampion> TestDiavolo;
+	TObjectPtr<AOPDiavolo> TestDiavolo;
 
 	/**********************************************************************************************************/
 
+	bool bIsDamaged = false;
+	bool bIsDead = false;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damaged", meta = (AllowPrivateAccess = "true")) // 평타 Animation.
 	class UAnimMontage *DamagedAnimMontage;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damaged", meta = (AllowPrivateAccess = "true")) // 평타 Animation.
 	class UAnimMontage *DeadAnimMontage;
+
+	void PlayDiavoloRandomDeadMontage();
 	
 	/**********************************************************************************************************/
 	
@@ -173,6 +180,10 @@ public:
 	FORCEINLINE AOPPlayerController* GetOPPlayerController() const { return OPPlayerController; }
 	FORCEINLINE FHitResult GetMouseCursorHit() { return MouseCursorHit; }
 
+	FORCEINLINE bool GetbIsDamaged() const { return bIsDamaged; }
+	FORCEINLINE void SetbIsDamagedTrue() { bIsDamaged = true; }
+	FORCEINLINE bool GetbIsDead() const { return bIsDead; }
+	FORCEINLINE void SetbIsDeadTrue() { bIsDead = true; }
 	FORCEINLINE UAnimMontage* GetDamagedAnimMontage() const { return DamagedAnimMontage; }
 	FORCEINLINE UAnimMontage* GetDeadAnimMontage() const { return DeadAnimMontage; }
 	
