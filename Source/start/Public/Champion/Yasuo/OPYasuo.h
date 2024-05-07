@@ -23,9 +23,9 @@ protected:
 	
 	virtual void Passive() override;
 	virtual void MeleeAttack() override;
-	void MeleeAttackTrace();
+	bool MeleeAttackTrace();
 	virtual void Skill_1() override;
-	void Skill_1_Trace();
+	bool Skill_1_Trace();
 	void Skill_1_WhirlWind();
 	virtual void Skill_2() override;
 	virtual void Skill_3() override;
@@ -61,5 +61,14 @@ private:
 	FTimerHandle WhirlWindSpawnTimer;
 
 	FORCEINLINE void ResetMeleeAttackComboCount() { MeleeAttackComboCount = 0; }
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
+	USoundCue* Skill_1_Hit_SFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
+	USoundCue* Skill_1_Charged_SFX;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Melee Attack", meta = (AllowPrivateAccess = "true"))
+	USoundCue* MeleeAttack_Hit_SFX;
 	
 };

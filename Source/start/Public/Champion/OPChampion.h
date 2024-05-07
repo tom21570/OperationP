@@ -244,5 +244,8 @@ public:
 	FORCEINLINE UAnimMontage* GetUlt_AnimMontage() const { return Ult_AnimMontage; }
 
 	FORCEINLINE UOPAnimInstance* GetChampionAnimInstance() const { return ChampionAnimInstance; }
+
+	UFUNCTION(BlueprintCallable)
+	USkeletalMeshComponent* GetChampionSkeletalMeshComponent() const { return GetMesh(); }
 	
 };

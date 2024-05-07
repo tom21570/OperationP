@@ -20,6 +20,9 @@ protected:
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float AirborneRate = 500.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
+	USoundCue* WhirlWind_Hit_SFX;
 	
 	
 };

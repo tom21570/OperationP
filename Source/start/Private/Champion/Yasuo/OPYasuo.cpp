@@ -8,8 +8,10 @@
 #include "Diavolo/OPDiavolo.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Player/OPPlayerController.h"
+#include "Sound/SoundCue.h"
 
 AOPYasuo::AOPYasuo()
 {
@@ -46,7 +48,13 @@ void AOPYasuo::MeleeAttack()
 	FTimerHandle Timer;
 	GetWorldTimerManager().SetTimer(Timer, FTimerDelegate::CreateLambda([&]
 	{
-		MeleeAttackTrace();
+		if (MeleeAttackTrace())
+		{
+			if (MeleeAttack_Hit_SFX)
+			{
+				UGameplayStatics::PlaySound2D(GetWorld(), MeleeAttack_Hit_SFX);
+			}
+		};
 	}), 0.25f, false);
 	
 
@@ -89,7 +97,7 @@ void AOPYasuo::MeleeAttack()
 	GetWorldTimerManager().SetTimer(MeleeAttackCooltimeTimer, this, &AOPYasuo::SetbMeleeAttack_True, GetMeleeAttackCooltime(), false);
 }
 
-void AOPYasuo::MeleeAttackTrace()
+bool AOPYasuo::MeleeAttackTrace()
 {
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
@@ -111,8 +119,12 @@ void AOPYasuo::MeleeAttackTrace()
 			{
 				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 			}
+
+			return true;
 		}
 	}
+
+	return false;
 }
 
 void AOPYasuo::Skill_1()
@@ -143,23 +155,30 @@ void AOPYasuo::Skill_1()
 
 	else
 	{
+		GetWorldTimerManager().SetTimer(Skill_1_CastTimer, FTimerDelegate::CreateLambda([&]
+		{
+			if (Skill_1_Trace())
+			{
+				if (Skill_1_Hit_SFX)
+				{
+					UGameplayStatics::PlaySound2D(GetWorld(), Skill_1_Hit_SFX);
+				}
+
+				if (Skill_1_Stack == 2 && Skill_1_Charged_SFX)
+				{
+					UGameplayStatics::PlaySound2D(GetWorld(), Skill_1_Charged_SFX);
+				}
+			}
+		}), 0.2f, false);
 		int32 Section = FMath::RandRange(0, 1);
 		switch (Section)
 		{
 		case 0:
-			GetWorldTimerManager().SetTimer(Skill_1_CastTimer, FTimerDelegate::CreateLambda([&]
-			{
-				Skill_1_Trace();
-			}), 0.2f, false);
 			GetChampionAnimInstance()->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
 			GetChampionAnimInstance()->Montage_JumpToSection(FName("1"), GetSkill_1_AnimMontage());
 			break;
 
 		case 1:
-			GetWorldTimerManager().SetTimer(Skill_1_CastTimer, FTimerDelegate::CreateLambda([&]
-			{
-				Skill_1_Trace();
-			}), 0.2f, false);
 			GetChampionAnimInstance()->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
 			GetChampionAnimInstance()->Montage_JumpToSection(FName("2"), GetSkill_1_AnimMontage());
 			break;
@@ -169,14 +188,12 @@ void AOPYasuo::Skill_1()
 		}
 	}
 	
-
-
 	SetbSkill_1_False();
 	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimer, this, &AOPYasuo::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
 
 }
 
-void AOPYasuo::Skill_1_Trace()
+bool AOPYasuo::Skill_1_Trace()
 {
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
@@ -211,7 +228,11 @@ void AOPYasuo::Skill_1_Trace()
 			Skill_1_Stack = 0;
 			UE_LOG(LogTemp, Warning, TEXT("Stack Reset"));
 		}), 6.f, false);
+
+		return true;
 	}
+
+	return false;
 }
 
 void AOPYasuo::Skill_1_WhirlWind()
