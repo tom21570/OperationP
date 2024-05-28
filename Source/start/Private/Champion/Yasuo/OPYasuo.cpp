@@ -363,8 +363,8 @@ void AOPYasuo::Ult()
 		PlayDiavoloRandomDeadMontage();
 	}), 1.f, false);
 
-	check(GetChampionAnimInstance());
-	check(GetUlt_AnimMontage());
+	if (GetChampionAnimInstance() == nullptr) return;
+	if (GetUlt_AnimMontage() == nullptr) return;
 
 	GetChampionAnimInstance()->Montage_Play(GetUlt_AnimMontage(), 1.0f);
 	

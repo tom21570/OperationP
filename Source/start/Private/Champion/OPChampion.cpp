@@ -10,7 +10,6 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Animation/OPAnimInstance.h"
-#include "Components/CapsuleComponent.h"
 #include "Diavolo/OPDiavolo.h"
 
 // Sets default values
