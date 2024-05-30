@@ -21,6 +21,18 @@
 			"TargetAllowList": [
 				"Editor"
 			]
+		},
+		{
+			"Name": "PixelStreaming",
+			"Enabled": true
+		},
+		{
+			"Name": "PixelStreamingPlayer",
+			"Enabled": true
+		},
+		{
+			"Name": "Composure",
+			"Enabled": true
 		}
 	]
 }
