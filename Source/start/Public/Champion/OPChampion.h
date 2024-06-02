@@ -17,8 +17,10 @@ public:
 	AOPChampion();
 
 protected:
-	FHitResult MouseCursorHit;
+	FHitResult MouseCursorHit; // 마우스 커서 위치에서 Hit 했을 때 얻을 수 있는 정보
 	virtual void BeginPlay() override;
+
+	// 아래 함수들은 롤 챔피언들에게 모두 있는 기능이므로 override를 위해 virtual 함수로 설정
 	virtual void Passive();
 	virtual void MeleeAttack();
 	virtual void Skill_1();
@@ -37,7 +39,7 @@ public:
 	void TurnCharacterToCursor(FHitResult HitResult);
 
 protected:
-	class AOPPlayerController* OPPlayerController;
+	class AOPPlayerController* OPPlayerController; // 말 그대로 플레이어 컨트롤러
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpringArm", meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* SpringArm;
@@ -78,15 +80,18 @@ protected:
 	void Move(const struct FInputActionValue& Value);
 	void Look(const struct FInputActionValue& Value);
 
+	// 애님 몽타주 재생에 필요한 애니메이션 인스턴스
 	class UOPAnimInstance* ChampionAnimInstance;
 
+	// 실험체 디아블로
 	TObjectPtr<AOPDiavolo> TestDiavolo;
 
 	/**********************************************************************************************************/
 
 	bool bIsDamaged = false;
 	bool bIsDead = false;
-	
+
+	// 애님 몽타주 = 쉽게 생각하면 재생할 애니메이션이라고 생각하면 됨
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damaged", meta = (AllowPrivateAccess = "true")) // 평타 Animation.
 	class UAnimMontage *DamagedAnimMontage;
 
@@ -98,10 +103,10 @@ protected:
 	/**********************************************************************************************************/
 	
 	FTimerHandle MeleeAttackCooltimeTimer;
-	bool bMeleeAttack = true;
+	bool bMeleeAttack = true; // 평타를 사용할 수 있는지 여부
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MeleeAttack", meta = (AllowPrivateAccess = "true"))
-	float MeleeAttackCooltime = 1.f;
+	float MeleeAttackCooltime = 1.f; // 공격 속도
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Melee Attack", meta = (AllowPrivateAccess = "true")) // 평타 Animation.
 	class UAnimMontage *MeleeAttackAnimMontage;
@@ -176,7 +181,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ult", meta = (AllowPrivateAccess = "true")) 
 	class UAnimMontage *Ult_AnimMontage;
 
-public:
+public: // 주로 Setter와 Getter가 있음
 	FORCEINLINE AOPPlayerController* GetOPPlayerController() const { return OPPlayerController; }
 	FORCEINLINE FHitResult GetMouseCursorHit() { return MouseCursorHit; }
 

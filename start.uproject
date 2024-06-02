@@ -23,7 +23,15 @@
 			]
 		},
 		{
-			"Name": "LiveLink",
+			"Name": "PixelStreaming",
+			"Enabled": true
+		},
+		{
+			"Name": "PixelStreamingPlayer",
+			"Enabled": true
+		},
+		{
+			"Name": "Composure",
 			"Enabled": true
 		}
 	]

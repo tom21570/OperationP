@@ -15,7 +15,7 @@
 
 AOPYasuo::AOPYasuo()
 {
-	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component"));
+	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component")); // 투사체 움직임 포인터에 동적 할당
 }
 
 void AOPYasuo::BeginPlay()
@@ -32,19 +32,21 @@ void AOPYasuo::MeleeAttack()
 {
 	Super::MeleeAttack();
 
-	if(!GetbMeleeAttack()) return;
-	if(!GetOPPlayerController()) return;
+	if(!GetbMeleeAttack()) return; // 평타 쿨타임 시 return
+	if(!GetOPPlayerController()) return; // 플레이어 컨트롤러가 nullptr 시 return
 
+	// ECC_Visibility 채널에 대한 반응이 overlap 또는 block인 액터에 hit 했을 시 GetHitResultUnderCursor는 그 액터에 대한 HitResult를 MouseCursorHit에 저장.
 	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 
-	if(MouseCursorHit.bBlockingHit)
+	if(MouseCursorHit.bBlockingHit) // 만약 반응이 block이라면 그 Hit 방향으로 캐릭터를 돌림
 	{
 		TurnCharacterToCursor(MouseCursorHit);
 	}
 
-	check(GetChampionAnimInstance());
-	check(GetMeleeAttackAnimMontage());
+	check(GetChampionAnimInstance()); // 애니메이션 인스턴스가 없을 시 에디터 크래쉬
+	check(GetMeleeAttackAnimMontage()); // 평타 애니메이션 몽타주가 없을 시 에디터 크래쉬
 
+	// 평타 시전시간 지나면 Trace하고 디아볼로가 Trace되면 피격 사운드 재생
 	FTimerHandle Timer;
 	GetWorldTimerManager().SetTimer(Timer, FTimerDelegate::CreateLambda([&]
 	{
@@ -58,7 +60,7 @@ void AOPYasuo::MeleeAttack()
 	}), 0.25f, false);
 	
 
-	switch (MeleeAttackComboCount)
+	switch (MeleeAttackComboCount) // 4번의 연결된 평타동작
 	{
 	case 0:
 		GetChampionAnimInstance()->Montage_Play(MeleeAttackAnimMontage, 1.f);
@@ -93,29 +95,31 @@ void AOPYasuo::MeleeAttack()
 		;
 	}
 
+	// 평타 쿨타임 설정을 위한 두 줄
 	SetbMeleeAttack_False();
 	GetWorldTimerManager().SetTimer(MeleeAttackCooltimeTimer, this, &AOPYasuo::SetbMeleeAttack_True, GetMeleeAttackCooltime(), false);
 }
 
 bool AOPYasuo::MeleeAttackTrace()
 {
-	TArray<FHitResult> HitResults;
-	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
+	TArray<FHitResult> HitResults; // Hit의 결과를 저장할 배열
+	TArray<AActor*> ActorsToIgnore; // 트레이스하지 않을 액터들
+	ActorsToIgnore.Add(this); // 트레이스하지 않을 액터에 야스오 본인을 포함
 
+	// 원 모양으로 어디부터 어디까지, 어떤 채널에서 트레이스할지 정하고 트레이스하는 함수
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 200.f, 80.f,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 	
-	for (auto& HitActor : HitResults)
+	for (auto& HitActor : HitResults) // 트레이스된 여러 액터들에 적용하기 위한 반복문
 	{
-		TestDiavolo = Cast<AOPDiavolo>(HitActor.GetActor());
+		TestDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()); // 트레이스된 액터를 디아볼로로 캐스트
 
 		if (TestDiavolo)
 		{
 			TestDiavolo->SetbIsDamagedTrue();
 			PlayDiavoloRandomDeadMontage();
-			TestDiavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * MeleeAttack_Impulse, true);
-			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
+			TestDiavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * MeleeAttack_Impulse, true); // 디아볼로에 충격 가하기
+			if (!TestDiavolo->GetbCanBeTestedMultipleTimes()) // 만약 bCanBeTestedMultipleTimes가 false라면 더이상 트레이스되지 않도록 디아볼로를 설정
 			{
 				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 			}
@@ -144,7 +148,7 @@ void AOPYasuo::Skill_1()
 	check(GetChampionAnimInstance());
 	check(GetSkill_1_AnimMontage());
 
-	if(Skill_1_Stack == 2)
+	if(Skill_1_Stack == 2) // 강철폭풍 스택이 2일때 강철폭풍 사용 시 스택을 0으로 초기화하고 회오리 날리기
 	{
 		GetWorldTimerManager().SetTimer(WhirlWindSpawnTimer, this, &AOPYasuo::Skill_1_WhirlWind, 0.25f, false);
 		GetWorldTimerManager().ClearTimer(Skill_1_StackTimer);
@@ -219,7 +223,7 @@ bool AOPYasuo::Skill_1_Trace()
 		}
 	}
 	
-	if(HitResults.Num() > 0 && Skill_1_Stack < 2)
+	if(HitResults.Num() > 0 && Skill_1_Stack < 2) // 1명이라도 맞추고 스택이 2 미만이라면
 	{
 		Skill_1_Stack++;
 		GetWorldTimerManager().ClearTimer(Skill_1_StackTimer);
@@ -235,7 +239,7 @@ bool AOPYasuo::Skill_1_Trace()
 	return false;
 }
 
-void AOPYasuo::Skill_1_WhirlWind()
+void AOPYasuo::Skill_1_WhirlWind() // 회오리 발사
 {
 	if (WhirlWindClass == nullptr) return;
 	
@@ -359,8 +363,8 @@ void AOPYasuo::Ult()
 		PlayDiavoloRandomDeadMontage();
 	}), 1.f, false);
 
-	check(GetChampionAnimInstance());
-	check(GetUlt_AnimMontage());
+	if (GetChampionAnimInstance() == nullptr) return;
+	if (GetUlt_AnimMontage() == nullptr) return;
 
 	GetChampionAnimInstance()->Montage_Play(GetUlt_AnimMontage(), 1.0f);
 	
