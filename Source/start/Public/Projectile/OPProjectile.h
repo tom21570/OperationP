@@ -29,7 +29,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement Component", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UProjectileMovementComponent> OPProjectileMovementComponent;
 
-	UFUNCTION()
+
 	virtual void OnDamageCollisionBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	

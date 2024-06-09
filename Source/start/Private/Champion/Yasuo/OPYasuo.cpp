@@ -4,6 +4,7 @@
 #include "Champion/Yasuo/OPYasuo.h"
 #include "Animation/OPAnimInstance.h"
 #include "Champion/Yasuo/OPYasuoWhirlWind.h"
+#include "Champion/Yasuo/OPYasuoWindWall.h"
 #include "Components/CapsuleComponent.h"
 #include "Diavolo/OPDiavolo.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -254,6 +255,7 @@ void AOPYasuo::Skill_2()
 	if(!GetbSkill_2()) return;
 	if(!GetOPPlayerController()) return;
 
+
 	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 
 	if(MouseCursorHit.bBlockingHit)
@@ -268,6 +270,24 @@ void AOPYasuo::Skill_2()
 
 	SetbSkill_2_False();
 	GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimer, this, &AOPYasuo::SetbSkill_2_True, GetSkill_2_Cooltime(), false);
+
+	Skill_2_WindWall();
+}
+
+void AOPYasuo::Skill_2_WindWall()
+{
+	if (WindWallClass == nullptr) return;
+
+	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 100.f; // 캐릭터보다 살짝 앞에 스폰
+	FRotator SpawnRotation = GetActorRotation();
+
+	AOPYasuoWindWall* SpawnedWindWall = GetWorld()->SpawnActor<AOPYasuoWindWall>(WindWallClass, SpawnLocation, SpawnRotation);
+	if (SpawnedWindWall)
+	{
+		SpawnedWindWall->SetOwner(this);
+		FVector LaunchDirection = GetActorForwardVector();
+		SpawnedWindWall->InitProjectile(LaunchDirection, SpawnedWindWall->InitialSpeed);
+	}
 }
 
 void AOPYasuo::Skill_3()

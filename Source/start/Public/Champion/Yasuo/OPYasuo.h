@@ -7,6 +7,8 @@
 #include "OPYasuo.generated.h"
 
 class AOPYasuoWhirlWind;
+class AOPYasuoWindWall;
+
 /**
  * 
  */
@@ -28,6 +30,7 @@ protected:
 	bool Skill_1_Trace(); // 강철폭풍 발동 시 트레이스하는 함수
 	void Skill_1_WhirlWind(); // 강철폭풍 3타에서 회오리 날리기
 	virtual void Skill_2() override;
+	void Skill_2_WindWall();
 	virtual void Skill_3() override;
 	virtual void Skill_4() override;
 	virtual void Ult() override;
@@ -58,6 +61,10 @@ private:
 	TObjectPtr<AOPYasuoWhirlWind> WhirlWind; // 강철폭풍 3타 회오리를 담을 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AOPYasuoWhirlWind> WhirlWindClass; // 위 변수에 담아서 실제로 날릴 회오리
+
+	AOPYasuoWindWall* WindWall; // 바랑장벽을 담을 변수
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 2", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AOPYasuoWindWall> WindWallClass; // 바람장벽
 
 	FTimerHandle WhirlWindSpawnTimer; // 회오리 딜레이 설정을 위한 타이머
 
