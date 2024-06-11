@@ -286,7 +286,7 @@ void AOPYasuo::Skill_2_WindWall()
 	{
 		SpawnedWindWall->SetOwner(this);
 		FVector LaunchDirection = GetActorForwardVector();
-		SpawnedWindWall->InitProjectile(LaunchDirection, SpawnedWindWall->InitialSpeed);
+		// SpawnedWindWall->InitProjectile(LaunchDirection, SpawnedWindWall->InitialSpeed);
 	}
 }
 
