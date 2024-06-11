@@ -62,11 +62,13 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AOPYasuoWhirlWind> WhirlWindClass; // 위 변수에 담아서 실제로 날릴 회오리
 
+	FTimerHandle WhirlWindSpawnTimer; // 회오리 딜레이 설정을 위한 타이머
+
 	AOPYasuoWindWall* WindWall; // 바랑장벽을 담을 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 2", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AOPYasuoWindWall> WindWallClass; // 바람장벽
 
-	FTimerHandle WhirlWindSpawnTimer; // 회오리 딜레이 설정을 위한 타이머
+
 
 	FORCEINLINE void ResetMeleeAttackComboCount() { MeleeAttackComboCount = 0; }
 
