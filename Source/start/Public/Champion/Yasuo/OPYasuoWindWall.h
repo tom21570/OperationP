@@ -14,10 +14,6 @@ class START_API AOPYasuoWindWall : public AOPProjectile
 {
 	GENERATED_BODY()
 
-	public:
-	// Sets default values for this actor's properties
-	AOPYasuoWindWall();
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -38,7 +34,6 @@ protected:
 	void DestroyProjectile();
 	void ChangeSpeed();
 
-	UFUNCTION()
 	virtual void OnDamageCollisionBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
 public:
