@@ -13,33 +13,6 @@
 #include "Kismet/GameplayStatics.h"
 
 
-// Sets default values
-AOPYasuoWindWall::AOPYasuoWindWall()
-{
-	PrimaryActorTick.bCanEverTick = true;
-	
-	// RootCapsule 먼저 초기화 -> 부모 클래스에서 해주어서 불필요합니다!
-	// RootCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("RootCapsule"));
-	// RootComponent = RootCapsule;
-
-	// RootCapsule의 물리 설정 -> 여기서 해줘도 상관은 없지만 실험 용도라면 크게 건들것이 없기 때문에 BP에서 필요한 부분만 건드려도 괜찮습니다!
-	// RootCapsule->SetSimulatePhysics(true);
-	// RootCapsule->SetEnableGravity(false);
-	// RootCapsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-	// RootCapsule->SetCollisionObjectType(ECC_WorldDynamic);
-	// RootCapsule->SetCollisionResponseToAllChannels(ECR_Ignore);
-	// RootCapsule->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	// RootCapsule->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Block);
-	// RootCapsule->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
-
-	// ProjectileMovementComponent 초기화 -> 부모 클래스에서 해주어서 불필요합니다!
-	// OPProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component"));
-	// OPProjectileMovementComponent->SetUpdatedComponent(RootCapsule);
-	// OPProjectileMovementComponent->ProjectileGravityScale = 0.f; // 중력 효과 없애기
-	// OPProjectileMovementComponent->bRotationFollowsVelocity = true;
-	// OPProjectileMovementComponent->bShouldBounce = false;
-}
-
 // Called when the game starts or when spawned
 void AOPYasuoWindWall::BeginPlay()
 {

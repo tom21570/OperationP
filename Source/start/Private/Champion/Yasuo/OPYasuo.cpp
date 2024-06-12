@@ -151,6 +151,7 @@ void AOPYasuo::Skill_1()
 
 	if(Skill_1_Stack == 2) // 강철폭풍 스택이 2일때 강철폭풍 사용 시 스택을 0으로 초기화하고 회오리 날리기
 	{
+		UE_LOG(LogTemp, Log, TEXT("Skill_1_WhirlWind"));
 		GetWorldTimerManager().SetTimer(WhirlWindSpawnTimer, this, &AOPYasuo::Skill_1_WhirlWind, 0.25f, false);
 		GetWorldTimerManager().ClearTimer(Skill_1_StackTimer);
 		Skill_1_Stack = 0;
@@ -243,8 +244,15 @@ bool AOPYasuo::Skill_1_Trace()
 void AOPYasuo::Skill_1_WhirlWind() // 회오리 발사
 {
 	if (WhirlWindClass == nullptr) return;
-	
-	WhirlWind = GetWorld()->SpawnActor<AOPYasuoWhirlWind>(WhirlWindClass, GetActorLocation(), GetActorRotation());
+	// 현재 위치와 방향을 가져옵니다.
+	FVector CurrentLocation = GetActorLocation();
+	FVector ForwardVector = GetActorForwardVector();
+
+	// ForwardVector에 적절한 거리를 곱하여 정면 조금 앞의 위치를 계산합니다.
+	// 여기서 100.0f는 스폰할 거리로, 원하는 대로 조정할 수 있습니다.
+	FVector SpawnLocation = CurrentLocation + ForwardVector * 100.0f;
+
+	WhirlWind = GetWorld()->SpawnActor<AOPYasuoWhirlWind>(WhirlWindClass, SpawnLocation, GetActorRotation());
 	WhirlWind->SetOwner(this);
 }
 
