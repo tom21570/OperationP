@@ -5,6 +5,7 @@
 #include "Champion/OPChampion.h"
 #include "Components/CapsuleComponent.h"
 #include "Diavolo/OPDiavolo.h"
+#include "Projectile/OPProjectile.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -84,20 +85,21 @@ void AOPYasuoWindWall::OnDamageCollisionBeginOverlap(UPrimitiveComponent* Overla
 
 	if (OtherActor && OtherActor != this && GetOwner() != nullptr && OtherActor != GetOwner())
 	{
-		AOPDiavolo* TestDiavolo = Cast<AOPDiavolo>(OtherActor);
-		if (TestDiavolo)
+		AOPProjectile* OtherProjectile = Cast<AOPProjectile>(OtherActor);
+		if (OtherProjectile)
 		{
-			FVector ImpactDirection = (TestDiavolo->GetActorLocation() - SweepResult.ImpactPoint).GetSafeNormal();
-			ImpactDirection.Z += 1.0f;
+			FVector ImpactDirection = (OtherProjectile->GetActorLocation() - SweepResult.ImpactPoint).GetSafeNormal();
+			ImpactDirection.Z += 1.0f; // 충격 방향에 상향 성분 추가
 			ImpactDirection = ImpactDirection.GetSafeNormal();
 
-			TestDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * WindWallForce, true);
-			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
+
+			UProjectileMovementComponent* ProjectileMovement = OtherProjectile->FindComponentByClass<UProjectileMovementComponent>();
+			if (ProjectileMovement)
 			{
-				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+				ProjectileMovement->Velocity = ImpactDirection * WindWallForce; // 투사체의 속도를 충격 방향으로 설정
 			}
 		}
-		DestroyProjectile();
+		//DestroyProjectile();
 	}
 }
 
