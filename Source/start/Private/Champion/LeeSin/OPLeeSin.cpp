@@ -3,6 +3,8 @@
 
 #include "Champion/LeeSin/OPLeeSin.h"
 #include "Animation/OPAnimInstance.h"
+#include "Champion/LeeSin/OPLeeSinSonicWave.h"
+#include "Champion/LeeSin/OPLeeSinDragonsRage.h"
 #include "Components/CapsuleComponent.h"
 #include "Diavolo/OPDiavolo.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -15,8 +17,7 @@
 // Sets default values
 AOPLeeSin::AOPLeeSin()
 {
-	SonicWave = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Sonic Wave")); // 투사체 움직임 포인터에 동적 할당
-	DragonRage = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Dragon's Rage")); // 투사체 움직임 포인터에 동적 할당
+	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component")); // 투사체 움직임 포인터에 동적 할당
 }
 
 // Called when the game starts or when spawned
@@ -37,6 +38,15 @@ void AOPLeeSin::MeleeAttack()
 
 	if (!GetbMeleeAttack()) return; // 평타 쿨타임 시 return
 	if (!GetOPPlayerController()) return; // 플레이어 컨트롤러가 nullptr 시 return
+
+	// ECC_Visibility 채널에 대한 반응이 overlap 또는 block인 액터에 hit 했을 시 GetHitResultUnderCursor는 그 액터에 대한 HitResult를 MouseCursorHit에 저장.
+
+	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+
+	if (MouseCursorHit.bBlockingHit) // 만약 반응이 block이라면 그 Hit 방향으로 캐릭터를 돌림
+	{
+		TurnCharacterToCursor(MouseCursorHit);
+	}
 
 	switch (MeleeAttackComboCount) // 4번의 연결된 평타동작
 	{
@@ -84,14 +94,36 @@ void AOPLeeSin::Skill_1()
 
 	if (!GetbSkill_1()) return;
 	if (!GetOPPlayerController()) return;
+
+	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+
+	if (MouseCursorHit.bBlockingHit)
+	{
+		TurnCharacterToCursor(MouseCursorHit);
+	}
+
+	check(GetChampionAnimInstance());
+	check(GetSkill_1_AnimMontage());
+
+
+
 }
 
 void AOPLeeSin::Skill_1_SonicWave()
 {
+
 }
 
-void AOPLeeSin::Skill_2()
+void AOPLeeSin::Skill_2()//아군에게 이동해서 보호막
 {
+	Super::Skill_2();
+
+	if (!GetbSkill_2()) return;
+	if (!GetOPPlayerController()) return;
+
+	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	if (!MouseCursorHit.bBlockingHit) return;
+
 }
 
 void AOPLeeSin::Skill_3()
@@ -100,6 +132,43 @@ void AOPLeeSin::Skill_3()
 
 void AOPLeeSin::Ult()
 {
+	Super::Ult();
+
+	if (!GetbUlt()) return;
+	if (!GetOPPlayerController()) return;
+
+	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+
+	if (MouseCursorHit.bBlockingHit)
+	{
+		TurnCharacterToCursor(MouseCursorHit);
+	}
+
+	check(GetChampionAnimInstance());
+	check(GetSkill_2_AnimMontage());
+
+	GetChampionAnimInstance()->Montage_Play(GetUlt_AnimMontage(), 1.0f);
+
+	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	UE_LOG(LogTemp, Log, TEXT("Skill_Ult_DragonsRage"));
+	GetWorldTimerManager().SetTimer(DragonsRageSpawnTimer, this, &AOPLeeSin::Skill_Ult_DragonsRage, 0.25f, false);
+
+	Skill_Ult_DragonsRage();
+}
+
+void AOPLeeSin::Skill_Ult_DragonsRage()
+{
+	if (DragonsRageClass == nullptr) return;
+	// 현재 위치와 방향을 가져옵니다.
+	FVector CurrentLocation = GetActorLocation();
+	FVector ForwardVector = GetActorForwardVector();
+
+	// ForwardVector에 적절한 거리를 곱하여 정면 조금 앞의 위치를 계산합니다.
+	// 여기서 100.0f는 스폰할 거리로, 원하는 대로 조정할 수 있습니다.
+	FVector SpawnLocation = CurrentLocation + ForwardVector * 100.0f;
+
+	DragonsRage = GetWorld()->SpawnActor<AOPLeeSinDragonsRage>(DragonsRageClass, SpawnLocation, GetActorRotation());
+	DragonsRage->SetOwner(this);
 }
 
 // Called every frame
