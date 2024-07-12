@@ -22,6 +22,7 @@ AOPYasuo::AOPYasuo()
 void AOPYasuo::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 void AOPYasuo::Passive()
@@ -206,7 +207,7 @@ bool AOPYasuo::Skill_1_Trace()
 	ActorsToIgnore.Add(this);
 
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 450.f, 40.f,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+	UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 
 	for (auto& HitActor : HitResults)
 	{
@@ -314,15 +315,16 @@ void AOPYasuo::Skill_3()
 	int32 Distance = FVector::Dist(GetActorLocation(), TestDiavolo->GetActorLocation());
 	FTimerHandle Skill_3_EndTimer;
 
-	if (Distance <= 475.f)
+	if (Distance <= Skill_3_Distance)
 	{
 		FVector Skill3Vector = MouseCursorHit.Location - GetActorLocation();
 		Skill3Vector.Normalize();
-		Skill3Vector *= 625.f;
+		Skill3Vector *= Skill_3_Velocity;
 		Skill3Vector.Z = 0.f;
 		TurnCharacterToLocation(TestDiavolo->GetActorLocation());
 		ProjectileMovementComponent->SetVelocityInLocalSpace(FVector(750.f, 0.f, 0.f));
 		SetActorEnableCollision(false);
+		
 	}
 
 	GetWorldTimerManager().SetTimer(Skill_3_EndTimer, FTimerDelegate::CreateLambda([&]
@@ -350,6 +352,104 @@ void AOPYasuo::Skill_3()
 void AOPYasuo::Skill_4()
 {
 	Super::Skill_4();
+
+	if (!GetbSkill_4()) return;
+	if (!GetOPPlayerController()) return;
+
+	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	if (!MouseCursorHit.bBlockingHit) return;
+
+	TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
+	if (TestDiavolo == nullptr) return;
+
+	int32 Distance = FVector::Dist(GetActorLocation(), TestDiavolo->GetActorLocation());
+	FTimerHandle Skill_4_EndTimer;
+
+	if (Distance <= Skill_4_Distance)
+	{
+		FVector Skill4Vector = MouseCursorHit.Location - GetActorLocation();
+		Skill4Vector.Normalize();
+		Skill4Vector *= Skill_4_Velocity;
+		Skill4Vector.Z = 0.f;
+		TurnCharacterToLocation(TestDiavolo->GetActorLocation());
+		SetActorEnableCollision(true); // Ensure collision is enabled
+		// Set the velocity for the projectile movement
+		if (ProjectileMovementComponent)
+		{
+			ProjectileMovementComponent->Velocity = Skill4Vector;
+			ProjectileMovementComponent->bSweepCollision = true;
+			ProjectileMovementComponent->Activate();
+			
+			// Bind the collision event
+			GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AOPYasuo::OnProjectileHit);
+		}
+	}
+
+	GetWorldTimerManager().SetTimer(Skill_4_EndTimer, FTimerDelegate::CreateLambda([&]
+	{
+
+			if (ProjectileMovementComponent)
+			{
+				ProjectileMovementComponent->Velocity = FVector::ZeroVector;
+				ProjectileMovementComponent->Deactivate();
+			}
+			
+			TestDiavolo->SetbIsDamagedTrue();
+			PlayDiavoloRandomDeadMontage();
+			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
+			{
+				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+			}
+		}), 475.f / 750.f, false);
+
+	check(GetChampionAnimInstance());
+	check(GetSkill_3_AnimMontage());
+
+	GetChampionAnimInstance()->Montage_Play(GetSkill_3_AnimMontage(), 1.0f);
+
+	SetbSkill_4_False();
+	GetWorldTimerManager().SetTimer(Skill_4_CooltimeTimer, this, &AOPYasuo::SetbSkill_4_True, GetSkill_4_Cooltime(), false);
+
+}
+
+// Collision event handler
+void AOPYasuo::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	UE_LOG(LogTemp, Warning, TEXT("OnProjectileHit Active 1"));
+	UE_LOG(LogTemp, Warning, TEXT("HitComponent: %s / OtherActor: %s / OtherComp: %s / Hit: %s"),
+		*HitComponent->GetName(),
+		*OtherActor->GetName(),
+		*OtherComp->GetName(),
+		*Hit.ToString());
+	if (OtherActor && OtherActor != this && GetOwner() != nullptr && OtherActor != GetOwner())
+	{
+
+		UE_LOG(LogTemp, Warning, TEXT("OnProjectileHit Active 2"));
+
+		if (TestDiavolo)
+		{            // Calculate the direction of the impulse
+			FVector ImpactDirection = (TestDiavolo->GetActorLocation() - Hit.ImpactPoint).GetSafeNormal();
+
+			// Add an upward component to the impact direction
+			ImpactDirection.Z += Skill_4_Angle;
+			ImpactDirection = ImpactDirection.GetSafeNormal();
+
+			// Log the impact direction for debugging
+			UE_LOG(LogTemp, Log, TEXT("Impact Direction: %s"), *ImpactDirection.ToString());
+
+			// Apply an impulse to the Diavolo character based on the impact direction and AirborneRate
+			TestDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * Skill_4_Impulse, true);
+
+			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
+			{
+				// TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+				// TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+			}
+		}
+		
+	}
+	
 }
 
 void AOPYasuo::Ult()
@@ -400,3 +500,5 @@ void AOPYasuo::Ult()
 	GetWorldTimerManager().SetTimer(Ult_CooltimeTimer, this, &AOPYasuo::SetbUlt_True, GetUlt_Cooltime(), false);
 
 }
+
+
