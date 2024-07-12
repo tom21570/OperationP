@@ -34,7 +34,7 @@ protected:
 	virtual void Skill_3() override;
 	virtual void Skill_4() override;
 	virtual void Ult() override;
-
+	
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"));
 	class UProjectileMovementComponent* ProjectileMovementComponent; // 야스오 E 구현을 위해 야스오에 발사체 움직임을 추가해줌
@@ -49,6 +49,24 @@ private:
 	float Skill_3_Impulse = 0.f; // 스킬 3 충격량
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_3_Velocity = 0.f; // 스킬 3 속도
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_3_Distance = 0.f; // 스킬 3 거리
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_4_Impulse = 0.f; // 스킬 4 충격량
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_4_Velocity = 0.f; // 스킬 4 속도
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_4_Angle = 0.f; // 스킬 4 각도
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_4_Distance = 0.f; // 스킬 4 거리
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Ult_Impulse = 0.f; // 궁극기 충격량
 	
 	
@@ -57,6 +75,10 @@ private:
 	FTimerHandle Skill_1_CastTimer; // 강철폭풍 트레이스 시전시간을 위한 타이머
 	FTimerHandle Skill_1_StackTimer; // 강철폭풍 스택 유지를 위한 타이머
 	FTimerHandle MeleeAttackComboCountTimer; // 평타 연결된 동작 타이머
+	FVector MoveTargetLocation; //스킬4 이동 장소(디아볼로)
+	FVector Skill_4_TargetDirection; //스킬4 방향 고정;
+	FTimerHandle MoveTimerHandle; //이동 시간 타이머
+	
 
 	TObjectPtr<AOPYasuoWhirlWind> WhirlWind; // 강철폭풍 3타 회오리를 담을 변수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
@@ -68,6 +90,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 2", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AOPYasuoWindWall> WindWallClass; // 바람장벽
 
+	// 추가할 이벤트 핸들러 선언
+	UFUNCTION()
+	void OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 
 	FORCEINLINE void ResetMeleeAttackComboCount() { MeleeAttackComboCount = 0; }

@@ -11,6 +11,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "Animation/OPAnimInstance.h"
 #include "Diavolo/OPDiavolo.h"
+#include "NiagaraFunctionLibrary.h"
 
 // Sets default values
 AOPChampion::AOPChampion()
@@ -35,6 +36,11 @@ AOPChampion::AOPChampion()
 
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->JumpZVelocity = 700.f;
+
+	ShieldEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ShieldEffectComponent"));
+	ShieldEffectComponent->SetupAttachment(RootComponent);
+	ShieldEffectComponent->SetAutoActivate(false);
+
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveInput(TEXT("/Game/Input/IA_Move.IA_Move"));
 	if(MoveInput.Succeeded())
@@ -99,7 +105,34 @@ void AOPChampion::BeginPlay()
 	Subsystem->AddMappingContext(ChampionMappingContext, 0);
 
 	ChampionAnimInstance = Cast<UOPAnimInstance>(GetMesh()->GetAnimInstance());
+
+	if (ShieldEffect)
+	{
+		ShieldEffectComponent->SetAsset(ShieldEffect);
+	}
 }
+
+
+void AOPChampion::AddShield(float ShieldAmount)
+{
+	if (ShieldEffectComponent && ShieldEffect)
+	{
+		ShieldEffectComponent->Activate(true);
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &AOPChampion::DeactivateShieldEffect, 3.0f, false);
+
+	UE_LOG(LogTemp, Log, TEXT("Shield added: %f"), ShieldAmount);
+}
+
+void AOPChampion::DeactivateShieldEffect()
+{
+	if (ShieldEffectComponent)
+	{
+		ShieldEffectComponent->Deactivate();
+	}
+}
+
 
 void AOPChampion::Passive()
 {
