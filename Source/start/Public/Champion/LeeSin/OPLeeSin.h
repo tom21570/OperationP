@@ -22,7 +22,6 @@ protected:
     virtual void MeleeAttack() override;
     bool MeleeAttackTrace();
     virtual void Skill_1() override;
-    bool Skill_1_Trace();
     void Skill_1_SonicWave();
 
     virtual void Skill_2() override;

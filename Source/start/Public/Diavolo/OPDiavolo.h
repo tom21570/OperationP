@@ -14,6 +14,7 @@ class START_API AOPDiavolo : public AOPChampion
     virtual void Tick(float DeltaTime) override;
 
     void ApplySlowEffect(float SlowAmount, float Duration);
+    void ApplySlowAttackEffect(float SlowAmount, float Duration);
     void ResetSpeed();
 
 private:

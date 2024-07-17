@@ -20,6 +20,11 @@ void AOPDiavolo::ApplySlowEffect(float SlowAmount, float Duration)
     GetWorldTimerManager().SetTimer(SlowEffectTimerHandle, this, &AOPDiavolo::ResetSpeed, Duration, false);
 }
 
+void AOPDiavolo::ApplySlowAttackEffect(float SlowAttackAmount, float Duration)
+{
+    //To Do
+}
+
 void AOPDiavolo::ResetSpeed()
 {
     GetCharacterMovement()->MaxWalkSpeed = OriginalSpeed;
