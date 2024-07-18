@@ -210,59 +210,6 @@ void AOPChampion::Look(const FInputActionValue& InputActionValue)
 	}
 }
 
-void AOPChampion::PlayDiavoloRandomDeadMontage()
-{
-	if (TestDiavolo == nullptr) return;
-	int32 Section = FMath::RandRange(0, 4);
-	FTimerHandle DeadTimer;
-	TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDeadAnimMontage());
-	switch (Section)
-	{				
-	// case 0:
-	// 	TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dying_1"));
-	// 	GetWorldTimerManager().SetTimer(DeadTimer, FTimerDelegate::CreateLambda([&]
-	// 	{
-	// 		TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dead_1"));
-	// 	}), 3.9f, false);
-	// 	break;
-				
-	case 0:
-		TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dying_2"));
-		GetWorldTimerManager().SetTimer(DeadTimer, FTimerDelegate::CreateLambda([&]
-		{
-			TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dead_2"));
-		}), 4.45f, false);
-		break;
-				
-	case 1:
-		TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dying_3"));
-		GetWorldTimerManager().SetTimer(DeadTimer, FTimerDelegate::CreateLambda([&]
-		{
-			TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dead_3"));
-		}), 3.5f, false);
-		break;
-				
-	case 2:
-		TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dying_4"));
-		GetWorldTimerManager().SetTimer(DeadTimer, FTimerDelegate::CreateLambda([&]
-		{
-			TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dead_4"));
-		}), 3.4f, false);
-		break;
-
-	case 3:
-		TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dying_Backwards"));
-		GetWorldTimerManager().SetTimer(DeadTimer, FTimerDelegate::CreateLambda([&]
-		{
-			TestDiavolo->GetChampionAnimInstance()->Montage_JumpToSection(FName("Dead_Backwards"));
-		}), 3.85f, false);
-		break;
-			
-	default:
-		break;
-	}
-}
-
 // Called every frame
 void AOPChampion::Tick(float DeltaTime)
 {

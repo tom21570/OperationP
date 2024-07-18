@@ -119,7 +119,7 @@ bool AOPYasuo::MeleeAttackTrace()
 		if (TestDiavolo)
 		{
 			TestDiavolo->SetbIsDamagedTrue();
-			PlayDiavoloRandomDeadMontage();
+			TestDiavolo->PlayDiavoloRandomDeadMontage();
 			TestDiavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * MeleeAttack_Impulse, true); // 디아볼로에 충격 가하기
 			if (!TestDiavolo->GetbCanBeTestedMultipleTimes()) // 만약 bCanBeTestedMultipleTimes가 false라면 더이상 트레이스되지 않도록 디아볼로를 설정
 			{
@@ -216,7 +216,7 @@ bool AOPYasuo::Skill_1_Trace()
 		if (TestDiavolo)
 		{
 			TestDiavolo->SetbIsDamagedTrue();
-			PlayDiavoloRandomDeadMontage();
+			TestDiavolo->PlayDiavoloRandomDeadMontage();
 			TestDiavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * Skill_1_Impulse, true);
 			TestDiavolo->TurnCharacterToLocation(GetActorLocation());
 			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
@@ -332,7 +332,7 @@ void AOPYasuo::Skill_3()
 		ProjectileMovementComponent->SetVelocityInLocalSpace(FVector(0.f, 0.f, 0.f));
 		SetActorEnableCollision(true);
 		TestDiavolo->SetbIsDamagedTrue();
-		PlayDiavoloRandomDeadMontage();
+		TestDiavolo->PlayDiavoloRandomDeadMontage();
 		if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
 		{
 			TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
@@ -395,7 +395,7 @@ void AOPYasuo::Skill_4()
 			}
 			
 			TestDiavolo->SetbIsDamagedTrue();
-			PlayDiavoloRandomDeadMontage();
+			TestDiavolo->PlayDiavoloRandomDeadMontage();
 			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
 			{
 				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
@@ -488,7 +488,7 @@ void AOPYasuo::Ult()
 		TestDiavolo->GetCharacterMovement()->AddImpulse(FVector(0.f, 0.f, -Ult_Impulse), true);
 		TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 		GetCharacterMovement()->AddImpulse(FVector(0.f, 0.f, -Ult_Impulse), true);
-		PlayDiavoloRandomDeadMontage();
+		TestDiavolo->PlayDiavoloRandomDeadMontage();
 	}), 1.f, false);
 
 	if (GetChampionAnimInstance() == nullptr) return;

@@ -5,6 +5,7 @@
 #include "Champion/LeeSin/OPLeeSinSonicWave.h"
 #include "Champion/OPChampion.h"
 #include "Animation/AnimInstance.h" // 애니메이션 인스턴스 헤더 포함
+#include "Animation/OPAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Champion/LeeSin/OPLeeSin.h"
 #include "Diavolo/OPDiavolo.h"
@@ -28,12 +29,14 @@ void AOPLeeSinSonicWave::OnDamageCollisionBeginOverlap(UPrimitiveComponent* Over
             TestDiavolo->bTrueSightOn = true;
 
             // Get the animation instance from the mesh and play the AM_Diavolo_damaged montage
-            UAnimInstance* AnimInstance = TestDiavolo->GetDiavoloMesh()->GetAnimInstance();
-            if (AnimInstance && AM_Diavolo_damaged)
-            {
-                UE_LOG(LogTemp, Log, TEXT("Diavolo Damaged"));
-                AnimInstance->Montage_Play(AM_Diavolo_damaged);
-            }
+            // 그냥 Diavolo에 몽타주를 선언해서 재생하는게 더 안전할 거 같아용
+            TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinSonicWave_AnimMontage());
+            // UAnimInstance* AnimInstance = TestDiavolo->GetDiavoloMesh()->GetAnimInstance();
+            // if (AnimInstance && AM_Diavolo_damaged)
+            // {
+            //     UE_LOG(LogTemp, Log, TEXT("Diavolo Damaged"));
+            //     AnimInstance->Montage_Play(AM_Diavolo_damaged);
+            // }
             FVector ImpactDirection = (TestDiavolo->GetActorLocation() - SweepResult.ImpactPoint).GetSafeNormal();
 
             // Add an upward component to the impact direction

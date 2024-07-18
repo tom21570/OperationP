@@ -109,7 +109,7 @@ bool AOPLeeSin::MeleeAttackTrace()
         if (TestDiavolo)
         {
             TestDiavolo->SetbIsDamagedTrue();
-            PlayDiavoloRandomDeadMontage();
+            TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinMeleeAttack_AnimMontage());
             TestDiavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * MeleeAttack_Impulse, true);
             if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
             {
@@ -146,19 +146,24 @@ void AOPLeeSin::Skill_1()
         GetWorldTimerManager().ClearTimer(Skill_1_StackTimer);
         Skill_1_Stack = 0;
 
-        AOPDiavolo* TargetDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
-        if (TargetDiavolo && TargetDiavolo->bTrueSightOn)
+        TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
+        if (TestDiavolo && TestDiavolo->bTrueSightOn)
         {
             Skill_1_Stack = 0;
             GetChampionAnimInstance()->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
-            GetChampionAnimInstance()->Montage_JumpToSection(FName("dashA"), GetSkill_1_AnimMontage());
+            GetChampionAnimInstance()->Montage_JumpToSection(FName("DashB"), GetSkill_1_AnimMontage());
 
-            FVector TargetLocation = TargetDiavolo->GetActorLocation();
+            FVector TargetLocation = TestDiavolo->GetActorLocation();
             FVector Direction = TargetLocation - GetActorLocation();
             float Distance = Direction.Size();
             float LaunchSpeed = Distance * Skill_1_Velocity;
             FVector LaunchVelocity = Direction.GetSafeNormal() * LaunchSpeed;
             LaunchCharacter(LaunchVelocity, true, true);
+
+            GetWorldTimerManager().SetTimer(ResonatingStrike_DiavoloMotionTimer, FTimerDelegate::CreateLambda([&]
+            {
+                TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinResonatingStrike_AnimMontage());
+            }), Distance / LaunchSpeed, false);
         }
     }
     else
@@ -166,8 +171,8 @@ void AOPLeeSin::Skill_1()
         UE_LOG(LogTemp, Log, TEXT("Skill_1_SonicWave"));
         GetChampionAnimInstance()->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
         GetChampionAnimInstance()->Montage_JumpToSection(FName("SonicWave"), GetSkill_1_AnimMontage());
-        Skill_1_SonicWave();
-        GetWorldTimerManager().SetTimer(SonicWaveSpawnTimer, this, &AOPLeeSin::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
+        GetWorldTimerManager().SetTimer(SonicWaveSpawnTimer, this, &AOPLeeSin::Skill_1_SonicWave, 0.25f, false);
+        GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimer, this, &AOPLeeSin::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
     }
 }
 
@@ -245,32 +250,34 @@ void AOPLeeSin::Skill_3()
     Super::Skill_3();
 
     if (!GetbSkill_3()) return;
-    if (!GetOPPlayerController()) return;
 
-    GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+    GetWorldTimerManager().SetTimer(Skill_3_CastTimer, this, &AOPLeeSin::Skill_3_GroundSlam, 0.25f, false);
+    
+    SetbSkill_3_False();
+    GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimer, this, &AOPLeeSin::SetbSkill_3_True, GetSkill_3_Cooltime(), false);
 
-    if (MouseCursorHit.bBlockingHit)
-    {
-        TurnCharacterToCursor(MouseCursorHit);
-        Skill_3_GroundSlam();
-
-        SetbSkill_3_False();
-        GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimer, this, &AOPLeeSin::SetbSkill_3_True, GetSkill_3_Cooltime(), false);
-    }
-}
-
-void AOPLeeSin::Skill_3_GroundSlam()
-{
     if (ChampionAnimInstance && Skill_3_AnimMontage)
     {
         ChampionAnimInstance->Montage_Play(Skill_3_AnimMontage, 1.f);
         ChampionAnimInstance->Montage_JumpToSection(FName("GroundSlam"), Skill_3_AnimMontage);
     }
-
-    Skill_3_ApplySlowEffect();
+    
+    // 땅을 내려치는 동작이라 커서의 Hit 값은 없어도 될 거 같아요!!
+    // if (!GetOPPlayerController()) return;
+    //
+    // GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+    //
+    // if (MouseCursorHit.bBlockingHit)
+    // {
+    //     TurnCharacterToCursor(MouseCursorHit);
+    //     Skill_3_GroundSlam();
+    //
+    //     SetbSkill_3_False();
+    //     GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimer, this, &AOPLeeSin::SetbSkill_3_True, GetSkill_3_Cooltime(), false);
+    // }
 }
 
-void AOPLeeSin::Skill_3_ApplySlowEffect()
+void AOPLeeSin::Skill_3_GroundSlam()
 {
     TArray<FHitResult> HitResults;
     TArray<AActor*> ActorsToIgnore;
@@ -285,16 +292,42 @@ void AOPLeeSin::Skill_3_ApplySlowEffect()
 
     for (auto& HitActor : HitResults)
     {
-        if (AOPDiavolo* HitDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+        if (TestDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
         {
-            if (HitDiavolo)
-            {
-                HitDiavolo->SetbIsDamagedTrue();
-                PlayDiavoloRandomDeadMontage();
-                HitDiavolo->ApplySlowEffect(SlowAmount, SlowDuration);
-            }
+            TestDiavolo->SetbIsDamagedTrue();
+            TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinSkill_3_AnimMontage());
+            TestDiavolo->ApplySlowEffect(SlowAmount, SlowDuration);
         }
     }
+    // Skill_3_ApplySlowEffect();
+}
+
+void AOPLeeSin::Skill_3_ApplySlowEffect()
+{
+    // 수정 해야함
+    // TArray<FHitResult> HitResults;
+    // TArray<AActor*> ActorsToIgnore;
+    // ActorsToIgnore.Add(this);
+    //
+    // float EffectRadius = Skill_3_radious;
+    // float SlowAmount = Skill_3_slowAmount;
+    // float SlowDuration = Skill_3_slowDuration;
+    //
+    // UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * EffectRadius, EffectRadius,
+    //     UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+    //
+    // for (auto& HitActor : HitResults)
+    // {
+    //     if (AOPDiavolo* HitDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+    //     {
+    //         if (HitDiavolo)
+    //         {
+    //             HitDiavolo->SetbIsDamagedTrue();
+    //             PlayDiavoloRandomDeadMontage();
+    //             HitDiavolo->ApplySlowEffect(SlowAmount, SlowDuration);
+    //         }
+    //     }
+    // }
 }
 
 void AOPLeeSin::Ult()
@@ -318,6 +351,10 @@ void AOPLeeSin::Ult()
 
     GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
     UE_LOG(LogTemp, Log, TEXT("Skill_Ult_DragonsRage"));
+    GetWorldTimerManager().SetTimer(DragonsRageSpawnTimer, FTimerDelegate::CreateLambda([&]
+    {
+        UltTrace();
+    }), 0.25f, false);
     GetWorldTimerManager().SetTimer(Ult_CooltimeTimer, this, &AOPLeeSin::SetbUlt_True, GetUlt_Cooltime(), false);
 }
 
@@ -343,7 +380,7 @@ bool AOPLeeSin::UltTrace()
             UE_LOG(LogTemp, Log, TEXT("Impact Direction: %s"), *ImpactDirection.ToString());
 
             TestDiavolo->SetbIsDamagedTrue();
-            PlayDiavoloRandomDeadMontage();
+            TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinDragonsRage_AnimMontage());
             TestDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * Ult_Impulse, true);
             TestDiavolo->TurnCharacterToLocation(GetActorLocation());
             if (!TestDiavolo->GetbCanBeTestedMultipleTimes())

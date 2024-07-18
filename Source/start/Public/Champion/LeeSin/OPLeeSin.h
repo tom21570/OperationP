@@ -29,7 +29,7 @@ protected:
     virtual void Ult() override;
     bool UltTrace();
 
-private:
+private:    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"))
     class UProjectileMovementComponent* ProjectileMovementComponent;
 
@@ -64,6 +64,7 @@ private:
     FTimerHandle MeleeAttackComboCountTimer;
 
     FTimerHandle Skill_1_CastTimer;
+    FTimerHandle ResonatingStrike_DiavoloMotionTimer;
 
     int32 Skill_3_Stack = 0;
     FTimerHandle Skill_3_CastTimer;
@@ -72,6 +73,9 @@ private:
     TObjectPtr<AOPLeeSinSonicWave> SonicWave;
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
     TSubclassOf<AOPLeeSinSonicWave> SonicWaveClass;
+
+    // UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
+    // TObjectPtr<UCapsuleComponent> ResonatingStrikeCapsule;
 
     FTimerHandle SonicWaveSpawnTimer;
     FTimerHandle DragonsRageSpawnTimer;
@@ -95,9 +99,6 @@ private:
     float ShieldAmountValue;
 
     FTimerHandle DashCompleteTimer;
-
-
-
 
 public:
     int32 Skill_1_Stack = 0;

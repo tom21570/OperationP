@@ -90,8 +90,6 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damaged", meta = (AllowPrivateAccess = "true"))
     class UAnimMontage* DeadAnimMontage;
 
-    void PlayDiavoloRandomDeadMontage();
-
     FTimerHandle MeleeAttackCooltimeTimer;
     bool bMeleeAttack = true;
 
