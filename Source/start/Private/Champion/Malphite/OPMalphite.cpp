@@ -10,11 +10,14 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Player/OPPlayerController.h"
-#include "Champion/Malphite/OPMalphiteShardOfTheEarth.h"//\¸»ÆÄÀÌÆ® µ¹´øÁö´Â ½ºÅ³·Î ±³Ã¼
+#include "Champion/Malphite/OPMalphiteShardOfTheEarth.h"//\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½Ã¼
 
 AOPMalphite::AOPMalphite()
 {
-	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component")); // Åõ»çÃ¼ ¿òÁ÷ÀÓ Æ÷ÀÎÅÍ¿¡ µ¿Àû ÇÒ´ç
+	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component")); // ï¿½ï¿½ï¿½ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò´ï¿½
+
+	ShardSpawnLocation = CreateDefaultSubobject<USceneComponent>(TEXT("Shard Spawn Location"));
+	ShardSpawnLocation->SetupAttachment(GetRootComponent());
 }
 
 void AOPMalphite::BeginPlay()
@@ -27,7 +30,7 @@ void AOPMalphite::Passive()
 	Super::Passive();
 }
 
-void AOPMalphite::MeleeAttack() //ÆòÅ¸
+void AOPMalphite::MeleeAttack() //ï¿½ï¿½Å¸
 {
 	Super::MeleeAttack();
 
@@ -97,39 +100,46 @@ bool AOPMalphite::MeleeAttackTrace()
 	return false;
 }
 
-void AOPMalphite::Skill_1() //ÁöÁøÀÇ ÆÄµ¿ (Seismic Shard): ¼³¸í: ¸»ÆÄÀÌÆ®°¡ ÁöÁ¤ÇÑ Àû¿¡°Ô ¹ÙÀ§¸¦ ´øÁ® ¸¶¹ý ÇÇÇØ¸¦ ÀÔÈ÷°í ÀÌµ¿ ¼Óµµ¸¦ ÈÉÄ¨´Ï´Ù.
+void AOPMalphite::Skill_1() //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Äµï¿½ (Seismic Shard): ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½Ä¨ï¿½Ï´ï¿½.
 {
+	if (!GetbSkill_1()) return;
+	if (!GetOPPlayerController()) return;
+
+	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	if (!MouseCursorHit.bBlockingHit) return;
+	
+	TurnCharacterToLocation(MouseCursorHit.Location);
+	
 	UE_LOG(LogTemp, Log, TEXT("Skill_1_ShardOfTheEarth"));
 	GetChampionAnimInstance()->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
 	GetWorldTimerManager().SetTimer(ShardOfTheEarthSpawnTimer, this, &AOPMalphite::Skill_1_ShardOfTheEarth, 0.25f, false);
 	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimer, this, &AOPMalphite::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
-
 }
 
 void AOPMalphite::ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* OhterChampion)
 {
-	// »ó´ë¹æÀÇ ¿ø·¡ ÀÌµ¿ ¼Óµµ¸¦ ÀúÀåÇÕ´Ï´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
 	float OriginalSpeed = OhterChampion->GetCharacterMovement()->MaxWalkSpeed;
 
-	// »ó´ë¹æÀÇ ÀÌµ¿ ¼Óµµ¸¦ 20% °¨¼Ò½ÃÅµ´Ï´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½Óµï¿½ï¿½ï¿½ 20% ï¿½ï¿½ï¿½Ò½ï¿½Åµï¿½Ï´ï¿½.
 	float SlowedSpeed = OriginalSpeed * 0.8f;
 	OhterChampion->GetCharacterMovement()->MaxWalkSpeed = SlowedSpeed;
 
-	// ½ºÅ³À» ¹ßµ¿ÇÑ Ä³¸¯ÅÍ¸¦ Ã£½À´Ï´Ù.
+	// ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ßµï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í¸ï¿½ Ã£ï¿½ï¿½ï¿½Ï´ï¿½.
 	AOPMalphite* SourceCharacter = Cast<AOPMalphite>(SourceChampion);
 	if (SourceCharacter)
 	{
-		// ÁÖÀÎ°øÀÇ ÀÌµ¿ ¼Óµµ¸¦ °¨¼ÒµÈ ¼Óµµ¸¸Å­ Áõ°¡½ÃÅµ´Ï´Ù.
+		// ï¿½ï¿½ï¿½Î°ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Òµï¿½ ï¿½Óµï¿½ï¿½ï¿½Å­ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Åµï¿½Ï´ï¿½.
 		float SpeedIncrease = OriginalSpeed - SlowedSpeed;
 		SourceCharacter->GetCharacterMovement()->MaxWalkSpeed += SpeedIncrease;
-		// ÀÏÁ¤ ½Ã°£ ÈÄ¿¡ ¿ø·¡ ¼Óµµ·Î µÇµ¹¸®´Â Å¸ÀÌ¸Ó¸¦ ¼³Á¤ÇÕ´Ï´Ù.
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½Ä¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ì¸Ó¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
 		FTimerHandle UnusedHandle;
 		GetWorldTimerManager().SetTimer(UnusedHandle, [this, SourceCharacter, OriginalSpeed, SpeedIncrease]()
 			{
-				// »ó´ë¹æÀÇ ÀÌµ¿ ¼Óµµ¸¦ ¿ø·¡´ë·Î µÇµ¹¸³´Ï´Ù.
+				// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 				GetCharacterMovement()->MaxWalkSpeed = OriginalSpeed;
 
-				// ÁÖÀÎ°øÀÇ ÀÌµ¿ ¼Óµµ¸¦ ¿ø·¡´ë·Î µÇµ¹¸³´Ï´Ù.
+				// ï¿½ï¿½ï¿½Î°ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 				SourceCharacter->GetCharacterMovement()->MaxWalkSpeed -= SpeedIncrease;
 			}, Skill_1_SlowDuration, false);
 	}
@@ -139,15 +149,11 @@ void AOPMalphite::Skill_1_ShardOfTheEarth()
 {
 	if (ShardOfTheEarthClass == nullptr) return;
 
-	FVector CurrentLocation = GetActorLocation();
-	FVector ForwardVector = GetActorForwardVector();
-	FVector SpawnLocation = CurrentLocation + ForwardVector * 100.0f;
-
-	ShardOfTheEarth = GetWorld()->SpawnActor<AOPMalphiteShardOfTheEarth>(ShardOfTheEarthClass, SpawnLocation, GetActorRotation());
+	ShardOfTheEarth = GetWorld()->SpawnActor<AOPMalphiteShardOfTheEarth>(ShardOfTheEarthClass, ShardSpawnLocation->GetComponentLocation(), GetActorRotation());
 	ShardOfTheEarth->SetOwner(this);
 }
 
-void AOPMalphite::Skill_2() //ÃµµÕÀÇ ÆÄÆí (Thunderclap): ¼³¸í: ¸»ÆÄÀÌÆ®ÀÇ ´ÙÀ½ ±âº» °ø°ÝÀÌ Ãß°¡ ¹°¸® ÇÇÇØ¸¦ ÀÔÈ÷°í, ÁÖº¯ÀÇ Àûµé¿¡°Ô Ãß°¡ ÇÇÇØ¸¦ ÁÝ´Ï´Ù. ºÒÁÖ¸Ô// Ãß°¡ ÇÊ¿äÇÑ °Í, ¸»ÆÄÀÌÆ® ºÒ ÀÌÆåÆ®, ºÒÁÖ¸Ô ÀÌÆåÆ®
+void AOPMalphite::Skill_2() //Ãµï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (Thunderclap): ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½âº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½Öºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ß°ï¿½ ï¿½ï¿½ï¿½Ø¸ï¿½ ï¿½Ý´Ï´ï¿½. ï¿½ï¿½ï¿½Ö¸ï¿½// ï¿½ß°ï¿½ ï¿½Ê¿ï¿½ï¿½ï¿½ ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®, ï¿½ï¿½ï¿½Ö¸ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®
 {
 	Super::Skill_2();
 
@@ -160,7 +166,7 @@ void AOPMalphite::Skill_2() //ÃµµÕÀÇ ÆÄÆí (Thunderclap): ¼³¸í: ¸»ÆÄÀÌÆ®ÀÇ ´ÙÀ½ ±
 
 }
 
-void AOPMalphite::Skill_3() //ÁöÁø °­Å¸ (Ground Slam): ¼³¸í: ¸»ÆÄÀÌÆ®°¡ Áö¸éÀ» °­Å¸ÇÏ¿© ÁÖÀ§ÀÇ Àûµé¿¡°Ô ¹°¸® ÇÇÇØ¸¦ ÀÔÈ÷°í °ø°Ý ¼Óµµ¸¦ °¨¼Ò½ÃÅµ´Ï´Ù. ¿¬°ü ÇÔ¼ö Skill_3_GroundSlam, Skill_3_ApplySlowAttackEffect
+void AOPMalphite::Skill_3() //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ (Ground Slam): ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ò½ï¿½Åµï¿½Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ Skill_3_GroundSlam, Skill_3_ApplySlowAttackEffect
 {
 	Super::Skill_3();
 
@@ -213,7 +219,7 @@ void AOPMalphite::Skill_3_ApplySlowAttackEffect()
 			{
 				HitDiavolo->SetbIsDamagedTrue();
 				HitDiavolo->PlayDiavoloRandomDeadMontage();
-				HitDiavolo->ApplySlowAttackEffect(SlowAmount, SlowDuration); //µð¾Æº¼·Î¿¡ °ø°Ý¸ð¼ÇÀÌ ´À·ÁÁö´Â ÇÔ¼ö ±¸ÇöÇÊ¿ä
+				HitDiavolo->ApplySlowAttackEffect(SlowAmount, SlowDuration); //ï¿½ï¿½Æºï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½Ý¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ê¿ï¿½
 			}
 		}
 	}
@@ -223,7 +229,7 @@ void AOPMalphite::Skill_4()
 {
 }
 
-void AOPMalphite::Ult() //¸ØÃâ ¼ö ¾ø´Â Èû (Unstoppable Force): ¼³¸í: ¸»ÆÄÀÌÆ®°¡ ÁöÁ¤ÇÑ À§Ä¡·Î µ¹ÁøÇÏ¿© µµÂø ½Ã ÁÖº¯ÀÇ Àûµé¿¡°Ô ¸¶¹ý ÇÇÇØ¸¦ ÀÔÈ÷°í ³Ë¹é½ÃÅµ´Ï´Ù. //¸»ÆÄÀÌÆ®°¡ µ¹ÁøÀ» ¾ÈÇÏ´Âµ¥, ºí·çÇÁ¸°Æ®ÀÇ Ä¸½¶ÄÄÆ÷³ÍÆ®°¡ ÀÛ¾Æ¼­ ±×·±°ÇÁö..
+void AOPMalphite::Ult() //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ (Unstoppable Force): ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Öºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¹ï¿½ï¿½Åµï¿½Ï´ï¿½. //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï´Âµï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ Ä¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Û¾Æ¼ï¿½ ï¿½×·ï¿½ï¿½ï¿½ï¿½ï¿½..
 {
 	Super::Ult();
 
@@ -232,6 +238,25 @@ void AOPMalphite::Ult() //¸ØÃâ ¼ö ¾ø´Â Èû (Unstoppable Force): ¼³¸í: ¸»ÆÄÀÌÆ®°¡ 
 
 	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 	if (!MouseCursorHit.bBlockingHit) return;
+
+	GetChampionAnimInstance()->Montage_Play(GetUlt_AnimMontage(), 1.0f);
+	
+	Ult_FinalLocation = MouseCursorHit.Location;
+	TurnCharacterToLocation(Ult_FinalLocation);
+	FVector ChampionLocation = FVector(GetActorLocation().X, GetActorLocation().Y, 0.f);
+	FVector LaunchVector = Ult_FinalLocation - GetActorLocation();
+	LaunchVector.Normalize();
+	LaunchVector.Z = 0.f;
+	float FinalDistance = (Ult_FinalLocation - GetActorLocation()).Length();
+	UE_LOG(LogTemp, Warning, TEXT("Distance: %f"), FinalDistance);
+
+	ProjectileMovementComponent->Velocity = GetActorForwardVector() * 1500.f;
+	// LaunchCharacter(LaunchVector * 15000.f, true, true);
+
+	GetWorldTimerManager().SetTimer(Ult_StopTimer, FTimerDelegate::CreateLambda([&]
+	{
+		ProjectileMovementComponent->Velocity = GetActorForwardVector() * 0.f;
+	}), FinalDistance/1500.f, false);
 
 	TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
 	if (TestDiavolo == nullptr) return;
@@ -253,6 +278,7 @@ void AOPMalphite::Ult() //¸ØÃâ ¼ö ¾ø´Â Èû (Unstoppable Force): ¼³¸í: ¸»ÆÄÀÌÆ®°¡ 
 			ProjectileMovementComponent->Velocity = UltVector;
 			ProjectileMovementComponent->bSweepCollision = true;
 			ProjectileMovementComponent->Activate();
+			LaunchCharacter(UltVector, true, true);
 
 			// Bind the collision event
 			GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AOPMalphite::OnProjectileHit);
@@ -288,15 +314,15 @@ void AOPMalphite::Ult() //¸ØÃâ ¼ö ¾ø´Â Èû (Unstoppable Force): ¼³¸í: ¸»ÆÄÀÌÆ®°¡ 
 // Collision event handler
 void AOPMalphite::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	UE_LOG(LogTemp, Warning, TEXT("OnProjectileHit Active 1"));
-	UE_LOG(LogTemp, Warning, TEXT("HitComponent: %s / OtherActor: %s / OtherComp: %s / Hit: %s"),
-		*HitComponent->GetName(),
-		*OtherActor->GetName(),
-		*OtherComp->GetName(),
-		*Hit.ToString());
 	if (OtherActor && OtherActor != this && GetOwner() != nullptr && OtherActor != GetOwner())
 	{
-
+		UE_LOG(LogTemp, Warning, TEXT("OnProjectileHit Active 1"));
+		UE_LOG(LogTemp, Warning, TEXT("HitComponent: %s / OtherActor: %s / OtherComp: %s / Hit: %s"),
+			*HitComponent->GetName(),
+			*OtherActor->GetName(),
+			*OtherComp->GetName(),
+			*Hit.ToString());
+		TestDiavolo = Cast<AOPDiavolo>(OtherActor);
 		UE_LOG(LogTemp, Warning, TEXT("OnProjectileHit Active 2"));
 
 		if (TestDiavolo)

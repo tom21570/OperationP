@@ -41,6 +41,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"));
 	class UProjectileMovementComponent* ProjectileMovementComponent; //발사체 움직임을 추가해줌
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"));
+	TObjectPtr<USceneComponent> ShardSpawnLocation;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float MeleeAttack_Impulse = 0.f;
 
@@ -70,6 +73,7 @@ private:
 	float Ult_Impulse = 0.f; // 궁극기 충격량
 
 	float Skill_1_SlowDuration = 3.0f;
+	FTimerHandle Skill_1_SpawnTimerHandle;
 
 	bool bThunderClapOn = false;
 
@@ -79,6 +83,9 @@ private:
 	TSubclassOf<AOPMalphiteShardOfTheEarth> ShardOfTheEarthClass;
 
 	FTimerHandle ShardOfTheEarthSpawnTimer;
+
+	FVector Ult_FinalLocation;
+	FTimerHandle Ult_StopTimer;
 
 public:
 	void ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* OhterChampion);

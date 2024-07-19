@@ -28,3 +28,8 @@ void AOPMalphiteShardOfTheEarth::OnDamageCollisionBeginOverlap(UPrimitiveCompone
 		Destroy();
 	}
 }
+
+void AOPMalphiteShardOfTheEarth::Tick(float DeltaSeconds)
+{
+	AddActorLocalRotation(FRotator(30.f, 0.f, 0.f));
+}
