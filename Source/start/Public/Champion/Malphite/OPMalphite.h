@@ -6,9 +6,8 @@
 #include "Champion/OPChampion.h"
 #include "OPMalphite.generated.h"
 
-/**
- * 
- */
+
+class AOPMalphiteShardOfTheEarth;
 UCLASS()
 class START_API AOPMalphite : public AOPChampion
 {
@@ -24,6 +23,8 @@ protected:
 	virtual void MeleeAttack() override;
 	bool MeleeAttackTrace(); // 평타 발동 시 트레이스하는 함수
 	virtual void Skill_1() override;
+
+	void Skill_1_ShardOfTheEarth();
 
 	virtual void Skill_2() override;
 
@@ -42,6 +43,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float MeleeAttack_Impulse = 0.f;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Skill_3_Impulse = 0.f;
@@ -67,5 +69,17 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Ult_Impulse = 0.f; // 궁극기 충격량
 
+	float Skill_1_SlowDuration = 3.0f;
+
 	bool bThunderClapOn = false;
+
+
+	TObjectPtr<AOPMalphiteShardOfTheEarth> ShardOfTheEarth;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AOPMalphiteShardOfTheEarth> ShardOfTheEarthClass;
+
+	FTimerHandle ShardOfTheEarthSpawnTimer;
+
+public:
+	void ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* OhterChampion);
 };

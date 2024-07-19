@@ -10,8 +10,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Player/OPPlayerController.h"
+#include "Champion/Malphite/OPMalphiteShardOfTheEarth.h"//\말파이트 돌던지는 스킬로 교체
 
-//#include "Champion/Yasuo/OPYasuoWhirlWind.h"//\말파이트 돌던지는 스킬로 교체
 AOPMalphite::AOPMalphite()
 {
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component")); // 투사체 움직임 포인터에 동적 할당
@@ -83,7 +83,7 @@ bool AOPMalphite::MeleeAttackTrace()
 		if (TestDiavolo)
 		{
 			TestDiavolo->SetbIsDamagedTrue();
-			PlayDiavoloRandomDeadMontage();
+			TestDiavolo->PlayDiavoloRandomDeadMontage();
 			TestDiavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * MeleeAttack_Impulse, true);
 			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
 			{
@@ -99,9 +99,55 @@ bool AOPMalphite::MeleeAttackTrace()
 
 void AOPMalphite::Skill_1() //지진의 파동 (Seismic Shard): 설명: 말파이트가 지정한 적에게 바위를 던져 마법 피해를 입히고 이동 속도를 훔칩니다.
 {
+	UE_LOG(LogTemp, Log, TEXT("Skill_1_ShardOfTheEarth"));
+	GetChampionAnimInstance()->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
+	GetWorldTimerManager().SetTimer(ShardOfTheEarthSpawnTimer, this, &AOPMalphite::Skill_1_ShardOfTheEarth, 0.25f, false);
+	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimer, this, &AOPMalphite::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
+
 }
 
-void AOPMalphite::Skill_2() //천둥의 파편 (Thunderclap): 설명: 말파이트의 다음 기본 공격이 추가 물리 피해를 입히고, 주변의 적들에게 추가 피해를 줍니다. 불주먹
+void AOPMalphite::ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* OhterChampion)
+{
+	// 상대방의 원래 이동 속도를 저장합니다.
+	float OriginalSpeed = OhterChampion->GetCharacterMovement()->MaxWalkSpeed;
+
+	// 상대방의 이동 속도를 20% 감소시킵니다.
+	float SlowedSpeed = OriginalSpeed * 0.8f;
+	OhterChampion->GetCharacterMovement()->MaxWalkSpeed = SlowedSpeed;
+
+	// 스킬을 발동한 캐릭터를 찾습니다.
+	AOPMalphite* SourceCharacter = Cast<AOPMalphite>(SourceChampion);
+	if (SourceCharacter)
+	{
+		// 주인공의 이동 속도를 감소된 속도만큼 증가시킵니다.
+		float SpeedIncrease = OriginalSpeed - SlowedSpeed;
+		SourceCharacter->GetCharacterMovement()->MaxWalkSpeed += SpeedIncrease;
+		// 일정 시간 후에 원래 속도로 되돌리는 타이머를 설정합니다.
+		FTimerHandle UnusedHandle;
+		GetWorldTimerManager().SetTimer(UnusedHandle, [this, SourceCharacter, OriginalSpeed, SpeedIncrease]()
+			{
+				// 상대방의 이동 속도를 원래대로 되돌립니다.
+				GetCharacterMovement()->MaxWalkSpeed = OriginalSpeed;
+
+				// 주인공의 이동 속도를 원래대로 되돌립니다.
+				SourceCharacter->GetCharacterMovement()->MaxWalkSpeed -= SpeedIncrease;
+			}, Skill_1_SlowDuration, false);
+	}
+}
+
+void AOPMalphite::Skill_1_ShardOfTheEarth()
+{
+	if (ShardOfTheEarthClass == nullptr) return;
+
+	FVector CurrentLocation = GetActorLocation();
+	FVector ForwardVector = GetActorForwardVector();
+	FVector SpawnLocation = CurrentLocation + ForwardVector * 100.0f;
+
+	ShardOfTheEarth = GetWorld()->SpawnActor<AOPMalphiteShardOfTheEarth>(ShardOfTheEarthClass, SpawnLocation, GetActorRotation());
+	ShardOfTheEarth->SetOwner(this);
+}
+
+void AOPMalphite::Skill_2() //천둥의 파편 (Thunderclap): 설명: 말파이트의 다음 기본 공격이 추가 물리 피해를 입히고, 주변의 적들에게 추가 피해를 줍니다. 불주먹// 추가 필요한 것, 말파이트 불 이펙트, 불주먹 이펙트
 {
 	Super::Skill_2();
 
@@ -166,7 +212,7 @@ void AOPMalphite::Skill_3_ApplySlowAttackEffect()
 			if (HitDiavolo)
 			{
 				HitDiavolo->SetbIsDamagedTrue();
-				PlayDiavoloRandomDeadMontage();
+				HitDiavolo->PlayDiavoloRandomDeadMontage();
 				HitDiavolo->ApplySlowAttackEffect(SlowAmount, SlowDuration); //디아볼로에 공격모션이 느려지는 함수 구현필요
 			}
 		}
@@ -223,7 +269,7 @@ void AOPMalphite::Ult() //멈출 수 없는 힘 (Unstoppable Force): 설명: 말파이트가 
 			}
 
 			TestDiavolo->SetbIsDamagedTrue();
-			PlayDiavoloRandomDeadMontage();
+			TestDiavolo->PlayDiavoloRandomDeadMontage();
 			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
 			{
 				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
