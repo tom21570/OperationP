@@ -144,6 +144,11 @@ void AOPChampion::MeleeAttack()
 	UE_LOG(LogTemp, Warning, TEXT("MeleeAttack"));
 }
 
+void AOPChampion::LongDistanceAttack()
+{
+	UE_LOG(LogTemp, Warning, TEXT("LongDistanceAttack"));
+}
+
 void AOPChampion::Skill_1()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Skill 1"));

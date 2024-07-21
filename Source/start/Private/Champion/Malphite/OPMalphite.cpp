@@ -10,7 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Player/OPPlayerController.h"
-#include "Champion/Malphite/OPMalphiteShardOfTheEarth.h"//\������Ʈ �������� ��ų�� ��ü
+#include "Champion/Malphite/OPMalphiteShardOfTheEarth.h"
 
 AOPMalphite::AOPMalphite()
 {
@@ -165,6 +165,7 @@ void AOPMalphite::Skill_2() //õ���� ���� (Thunderclap): ���
 	}
 
 }
+
 
 void AOPMalphite::Skill_3() //���� ��Ÿ (Ground Slam): ����: ������Ʈ�� ������ ��Ÿ�Ͽ� ������ ���鿡�� ���� ���ظ� ������ ���� �ӵ��� ���ҽ�ŵ�ϴ�. ���� �Լ� Skill_3_GroundSlam, Skill_3_ApplySlowAttackEffect
 {
