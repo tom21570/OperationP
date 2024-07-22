@@ -17,12 +17,24 @@ class START_API AOPDiavolo : public AOPChampion
     void ApplySlowAttackEffect(float SlowAmount, float Duration);
     void ResetSpeed();
 
+protected:
+    void PlayDeadMontage1();
+    void PlayDeadMontage2();
+    void PlayDeadMontage3();
+    void PlayDeadMontage4();
+    
+
 private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
     bool bCanBeTestedMultipleTimes = false;
 
     FTimerHandle SlowEffectTimerHandle;
     float OriginalSpeed;
+
+    FTimerHandle DeadTimer1;
+    FTimerHandle DeadTimer2;
+    FTimerHandle DeadTimer3;
+    FTimerHandle DeadTimer4;
 
     /************* 리신 상대 애님 몽타주 **************/
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LeeSin", meta = (AllowPrivateAccess = "true"))
@@ -45,7 +57,7 @@ public:
 
     FORCEINLINE bool GetbCanBeTestedMultipleTimes() const { return bCanBeTestedMultipleTimes; }
 
-    USkeletalMeshComponent* GetDiavoloMesh() const;
+    TObjectPtr<USkeletalMeshComponent> GetDiavoloMesh() const;
 
     void PlayDiavoloRandomDeadMontage();
 

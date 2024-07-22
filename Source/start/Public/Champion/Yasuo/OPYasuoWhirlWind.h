@@ -29,7 +29,7 @@ private:
 	float ForceOfWind;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
-	USoundCue* WhirlWind_Hit_SFX;
+	TObjectPtr<USoundCue> WhirlWind_Hit_SFX;
 	
 	
 };

@@ -4,34 +4,32 @@
 
 #include "CoreMinimal.h"
 #include "Champion/OPChampion.h"
-#include "OPMalphite.generated.h"
+#include "OPVolibear.generated.h"
 
-
-class AOPMalphiteShardOfTheEarth;
+/**
+ * 
+ */
 UCLASS()
-class START_API AOPMalphite : public AOPChampion
+class START_API AOPVolibear : public AOPChampion
 {
 	GENERATED_BODY()
 
 public:
-	AOPMalphite();
+	AOPVolibear();
 
 protected:
 	virtual void BeginPlay() override;
 
 	virtual void Passive() override;
 	virtual void MeleeAttack() override;
-	bool MeleeAttackTrace(); // ��Ÿ �ߵ� �� Ʈ���̽��ϴ� �Լ�
+	bool MeleeAttackTrace();
 	virtual void Skill_1() override;
-
-	void Skill_1_ShardOfTheEarth();
 
 	virtual void Skill_2() override;
 
 	virtual void Skill_3() override;
 	
-	UFUNCTION()
-	void Skill_3_GroundSlam();
+	void Skill_3_Lightningbolt();
 	
 	virtual void Skill_4() override;
 	virtual void Ult() override;
@@ -42,13 +40,19 @@ protected:
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"));
-	TObjectPtr<class UProjectileMovementComponent> ProjectileMovementComponent; //�߻�ü �������� �߰�����
+	TObjectPtr<class UProjectileMovementComponent> ProjectileMovementComponent;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"));
 	TObjectPtr<USceneComponent> ShardSpawnLocation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float MeleeAttack_Impulse = 0.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_1_Impulse = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_2_Impulse = 0.f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Skill_3_Impulse = 0.f;
@@ -74,16 +78,18 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Ult_Impulse = 0.f; // �ñر� ��ݷ�
 
+	FTimerHandle MeleeAttackCastTimer;
+	FTimerHandle MeleeAttackComboCountTimer;
+	int32 MeleeAttackComboCount = 0;
 	float Skill_1_SlowDuration = 3.0f;
+	
 	FTimerHandle Skill_1_SpawnTimerHandle;
 
-	bool bThunderClapOn = false;
-	
-	TObjectPtr<AOPMalphiteShardOfTheEarth> ShardOfTheEarth;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<AOPMalphiteShardOfTheEarth> ShardOfTheEarthClass;
+	bool bThunderingSmash = false; // Q 강화평타가 켜져있는지에 대한 bool
+	bool bStormbringer = false; // 궁으로 변신한 상태인지
 
-	FTimerHandle ShardOfTheEarthSpawnTimer;
+	FTimerHandle LightningboltSpawnTimer;
+	FVector Skill_3_FinalLocation;
 
 	FTimerHandle Skill_3_CastTimer;
 
@@ -92,4 +98,6 @@ private:
 
 public:
 	void ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* OtherChampion);
+
+	FORCEINLINE void ResetMeleeAttackComboCount() { MeleeAttackComboCount = 0; }
 };

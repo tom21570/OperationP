@@ -4,7 +4,7 @@
 
 #include "Champion/LeeSin/OPLeeSinSonicWave.h"
 #include "Champion/OPChampion.h"
-#include "Animation/AnimInstance.h" // ¾Ö´Ï¸ŞÀÌ¼Ç ÀÎ½ºÅÏ½º Çì´õ Æ÷ÇÔ
+#include "Animation/AnimInstance.h" // ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #include "Animation/OPAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Champion/LeeSin/OPLeeSin.h"
@@ -29,7 +29,7 @@ void AOPLeeSinSonicWave::OnDamageCollisionBeginOverlap(UPrimitiveComponent* Over
             TestDiavolo->bTrueSightOn = true;
 
             // Get the animation instance from the mesh and play the AM_Diavolo_damaged montage
-            // ±×³É Diavolo¿¡ ¸ùÅ¸ÁÖ¸¦ ¼±¾ğÇØ¼­ Àç»ıÇÏ´Â°Ô ´õ ¾ÈÀüÇÒ °Å °°¾Æ¿ë
+            // ï¿½×³ï¿½ Diavoloï¿½ï¿½ ï¿½ï¿½Å¸ï¿½Ö¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¼ï¿½ ï¿½ï¿½ï¿½ï¿½Ï´Â°ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¿ï¿½
             TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinSonicWave_AnimMontage());
             // UAnimInstance* AnimInstance = TestDiavolo->GetDiavoloMesh()->GetAnimInstance();
             // if (AnimInstance && AM_Diavolo_damaged)
@@ -59,9 +59,9 @@ void AOPLeeSinSonicWave::OnDamageCollisionBeginOverlap(UPrimitiveComponent* Over
                     {
                         LeeSinOwner->SetbSkill_1_True();
                         LeeSinOwner->RemoveMarkerOnTarget(TestDiavolo);
-                    }, LeeSinOwner->Skill_1_StackTime, false); // ·çÇÁ ¿©ºÎ
+                    }, LeeSinOwner->Skill_1_StackTime, false); // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
-                // Å¸°Ù ¸Ó¸® À§¿¡ ¸¶Ä¿ »ı¼º
+                // Å¸ï¿½ï¿½ ï¿½Ó¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¿ ï¿½ï¿½ï¿½ï¿½
                 LeeSinOwner->CreateMarkerOnTarget(TestDiavolo);
             }
         }
