@@ -33,16 +33,14 @@ void AOPYasuo::MeleeAttack()
 {
 	Super::MeleeAttack();
 
-	if(!GetbMeleeAttack()) return; // 평타 쿨타임 시 return
-	if(!GetOPPlayerController()) return; // 플레이어 컨트롤러가 nullptr 시 return
+	if(!bMeleeAttack) return; // 평타 쿨타임 시 return
+	if(OPPlayerController == nullptr) return; // 플레이어 컨트롤러가 nullptr 시 return
 
 	// ECC_Visibility 채널에 대한 반응이 overlap 또는 block인 액터에 hit 했을 시 GetHitResultUnderCursor는 그 액터에 대한 HitResult를 MouseCursorHit에 저장.
-	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 
-	if(MouseCursorHit.bBlockingHit) // 만약 반응이 block이라면 그 Hit 방향으로 캐릭터를 돌림
-	{
-		TurnCharacterToCursor(MouseCursorHit);
-	}
+	if (!MouseCursorHit.bBlockingHit) return; 
+	TurnCharacterToCursor(MouseCursorHit); // 만약 반응이 block이라면 그 Hit 방향으로 캐릭터를 돌림
 
 	// 평타 쿨타임 설정을 위한 두 줄
 	SetbMeleeAttack_False();
@@ -66,31 +64,31 @@ void AOPYasuo::MeleeAttack()
 	switch (MeleeAttackComboCount) // 4번의 연결된 평타동작
 	{
 	case 0:
-		GetChampionAnimInstance()->Montage_Play(MeleeAttackAnimMontage, 1.f);
-		GetChampionAnimInstance()->Montage_JumpToSection(FName("1"), MeleeAttackAnimMontage);
+		ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+		ChampionAnimInstance->Montage_JumpToSection(FName("1"), MeleeAttackAnimMontage);
 		GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
 		MeleeAttackComboCount++;
 		break;
 
 	case 1:
-		GetChampionAnimInstance()->Montage_Play(MeleeAttackAnimMontage, 1.f);
-		GetChampionAnimInstance()->Montage_JumpToSection(FName("2"), MeleeAttackAnimMontage);
+		ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+		ChampionAnimInstance->Montage_JumpToSection(FName("2"), MeleeAttackAnimMontage);
 		GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
 		GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
 		MeleeAttackComboCount++;
 		break;
 
 	case 2:
-		GetChampionAnimInstance()->Montage_Play(MeleeAttackAnimMontage, 1.f);
-		GetChampionAnimInstance()->Montage_JumpToSection(FName("3"), MeleeAttackAnimMontage);
+		ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+		ChampionAnimInstance->Montage_JumpToSection(FName("3"), MeleeAttackAnimMontage);
 		GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
 		GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
 		MeleeAttackComboCount++;
 		break;
 
 	case 3:
-		GetChampionAnimInstance()->Montage_Play(MeleeAttackAnimMontage, 1.f);
-		GetChampionAnimInstance()->Montage_JumpToSection(FName("4"), MeleeAttackAnimMontage);
+		ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+		ChampionAnimInstance->Montage_JumpToSection(FName("4"), MeleeAttackAnimMontage);
 		MeleeAttackComboCount = 0;
 		break;
 
@@ -132,10 +130,10 @@ void AOPYasuo::Skill_1()
 {
 	Super::Skill_1();
 	
-	if(!GetbSkill_1()) return;
-	if(!GetOPPlayerController()) return;
+	if(!bSkill_1) return;
+	if(!OPPlayerController) return;
 
-	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 
 	if(!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);
@@ -148,8 +146,8 @@ void AOPYasuo::Skill_1()
 		Skill_1_Stack = 0;
 		if (ChampionAnimInstance && Skill_1_AnimMontage)
 		{
-			GetChampionAnimInstance()->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
-			GetChampionAnimInstance()->Montage_JumpToSection(FName("Wind"), GetSkill_1_AnimMontage());
+			ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("Wind"), GetSkill_1_AnimMontage());
 		}
 	}
 
@@ -177,13 +175,13 @@ void AOPYasuo::Skill_1()
 			switch (Section)
 			{
 			case 0:
-				GetChampionAnimInstance()->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
-				GetChampionAnimInstance()->Montage_JumpToSection(FName("1"), GetSkill_1_AnimMontage());
+				ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
+				ChampionAnimInstance->Montage_JumpToSection(FName("1"), GetSkill_1_AnimMontage());
 				break;
 
 			case 1:
-				GetChampionAnimInstance()->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
-				GetChampionAnimInstance()->Montage_JumpToSection(FName("2"), GetSkill_1_AnimMontage());
+				ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
+				ChampionAnimInstance->Montage_JumpToSection(FName("2"), GetSkill_1_AnimMontage());
 				break;
 
 			default:
@@ -342,10 +340,10 @@ void AOPYasuo::Skill_4()
 {
 	Super::Skill_4();
 
-	if (!GetbSkill_4()) return;
-	if (!GetOPPlayerController()) return;
+	if (!bSkill_4) return;
+	if (!OPPlayerController) return;
 
-	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 	if (!MouseCursorHit.bBlockingHit) return;
 
 	TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
@@ -390,14 +388,13 @@ void AOPYasuo::Skill_4()
 			}
 		}), 475.f / 750.f, false);
 
-	check(GetChampionAnimInstance());
-	check(GetSkill_3_AnimMontage());
-
-	GetChampionAnimInstance()->Montage_Play(GetSkill_3_AnimMontage(), 1.0f);
+	if (ChampionAnimInstance && Skill_3_AnimMontage)
+	{
+		ChampionAnimInstance->Montage_Play(Skill_3_AnimMontage, 1.0f);
+	}
 
 	SetbSkill_4_False();
 	GetWorldTimerManager().SetTimer(Skill_4_CooltimeTimer, this, &AOPYasuo::SetbSkill_4_True, GetSkill_4_Cooltime(), false);
-
 }
 
 // Collision event handler
