@@ -22,6 +22,7 @@ protected:
 
     virtual void Passive();
     virtual void MeleeAttack();
+    virtual void LongDistanceAttack();
     virtual void Skill_1();
     virtual void Skill_2();
     virtual void Skill_3();
@@ -60,6 +61,9 @@ protected:
     TObjectPtr<UInputAction> MeleeAttackAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UInputAction> LongDistanceAttackAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UInputAction> SkillAction1;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -91,6 +95,7 @@ protected:
     TObjectPtr<UAnimMontage> DeadAnimMontage;
 
     FTimerHandle MeleeAttackCooltimeTimer;
+    FTimerHandle MeleeAttackTimer;
     bool bMeleeAttack = true;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MeleeAttack", meta = (AllowPrivateAccess = "true"))
@@ -98,6 +103,18 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Melee Attack", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> MeleeAttackAnimMontage;
+
+    FTimerHandle LongDistanceAttackCooltimeTimer;
+    bool bLongDistanceAttack = true;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LongDistanceAttack", meta = (AllowPrivateAccess = "true"))
+    float LongDistanceAttackCooltime = 1.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Long DistanceAttack", meta = (AllowPrivateAccess = "true"))
+    class UAnimMontage* LongDistanceAttackAnimMontage;
+
+
+
 
     FTimerHandle PassiveTimer;
     bool bPassive = true;
@@ -185,6 +202,15 @@ public:
     FORCEINLINE void SetbMeleeAttack_False() { bMeleeAttack = false; }
     FORCEINLINE FTimerHandle GetMeleeAttackTimerHandle() { return MeleeAttackCooltimeTimer; }
     FORCEINLINE UAnimMontage* GetMeleeAttackAnimMontage() const { return MeleeAttackAnimMontage; }
+
+    FORCEINLINE bool GetbLongDistanceAttack() const { return bLongDistanceAttack; }
+    FORCEINLINE float GetLongDistanceAttackCooltime() const { return LongDistanceAttackCooltime; }
+    FORCEINLINE void SetbLongDistanceAttack(bool value) { bLongDistanceAttack = value; }
+    FORCEINLINE void SetbLongDistanceAttack_True() { bLongDistanceAttack = true; }
+    FORCEINLINE void SetbLongDistanceAttack_False() { bLongDistanceAttack = false; }
+    FORCEINLINE FTimerHandle GetLongDistanceAttackTimerHandle() { return LongDistanceAttackCooltimeTimer; }
+    FORCEINLINE UAnimMontage* GetLongDistanceAttackAnimMontage() const { return LongDistanceAttackAnimMontage; }
+
 
     FORCEINLINE bool GetbPassive() const { return bPassive; }
     FORCEINLINE float GetPassiveCooltime() const { return Passive_Cooltime; }
