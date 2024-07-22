@@ -13,7 +13,7 @@ class START_API AOPChampion : public ACharacter
 {
     GENERATED_BODY()
 
-    public:
+public:
     AOPChampion();
 
 protected:
@@ -36,48 +36,48 @@ public:
     void TurnCharacterToCursor(FHitResult HitResult);
 
 protected:
-    class AOPPlayerController* OPPlayerController;
+    TObjectPtr<class AOPPlayerController> OPPlayerController;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "SpringArm", meta = (AllowPrivateAccess = "true"))
-    class USpringArmComponent* SpringArm;
+    TObjectPtr<class USpringArmComponent> SpringArm;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-    class UCameraComponent* Camera;
+    TObjectPtr<class UCameraComponent> Camera;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    class UInputMappingContext* ChampionMappingContext;
+    TObjectPtr<class UInputMappingContext> ChampionMappingContext;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    class UInputAction* JumpAction;
+    TObjectPtr<class UInputAction> JumpAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* MoveAction;
+    TObjectPtr<UInputAction> MoveAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* LookAction;
+    TObjectPtr<UInputAction> LookAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* MeleeAttackAction;
+    TObjectPtr<UInputAction> MeleeAttackAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* SkillAction1;
+    TObjectPtr<UInputAction> SkillAction1;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* SkillAction2;
+    TObjectPtr<UInputAction> SkillAction2;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* SkillAction3;
+    TObjectPtr<UInputAction> SkillAction3;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* SkillAction4;
+    TObjectPtr<UInputAction> SkillAction4;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    UInputAction* UltAction;
+    TObjectPtr<UInputAction> UltAction;
 
     void Move(const struct FInputActionValue& Value);
     void Look(const struct FInputActionValue& Value);
 
-    class UOPAnimInstance* ChampionAnimInstance;
+    TObjectPtr<class UOPAnimInstance> ChampionAnimInstance;
 
     TObjectPtr<AOPDiavolo> TestDiavolo;
 
@@ -85,10 +85,10 @@ protected:
     bool bIsDead = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damaged", meta = (AllowPrivateAccess = "true"))
-    class UAnimMontage* DamagedAnimMontage;
+    TObjectPtr<UAnimMontage> DamagedAnimMontage;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damaged", meta = (AllowPrivateAccess = "true"))
-    class UAnimMontage* DeadAnimMontage;
+    TObjectPtr<UAnimMontage> DeadAnimMontage;
 
     FTimerHandle MeleeAttackCooltimeTimer;
     bool bMeleeAttack = true;
@@ -97,7 +97,7 @@ protected:
     float MeleeAttackCooltime = 1.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Melee Attack", meta = (AllowPrivateAccess = "true"))
-    class UAnimMontage* MeleeAttackAnimMontage;
+    TObjectPtr<UAnimMontage> MeleeAttackAnimMontage;
 
     FTimerHandle PassiveTimer;
     bool bPassive = true;
@@ -106,7 +106,7 @@ protected:
     float Passive_Cooltime = 10.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Passive", meta = (AllowPrivateAccess = "true"))
-    class UAnimMontage* Passive_AnimMontage;
+    TObjectPtr<UAnimMontage> Passive_AnimMontage;
 
     FTimerHandle Skill_1_CooltimeTimer;
     bool bSkill_1 = true;
@@ -115,7 +115,7 @@ protected:
     float Skill_1_Cooltime = 10.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
-    class UAnimMontage* Skill_1_AnimMontage;
+    TObjectPtr<UAnimMontage> Skill_1_AnimMontage;
 
     bool bSkill_2 = true;
 
@@ -125,7 +125,7 @@ protected:
     FTimerHandle Skill_2_CooltimeTimer;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 2", meta = (AllowPrivateAccess = "true"))
-    class UAnimMontage* Skill_2_AnimMontage;
+    TObjectPtr<UAnimMontage> Skill_2_AnimMontage;
 
     bool bSkill_3 = true;
 
@@ -135,7 +135,7 @@ protected:
     FTimerHandle Skill_3_CooltimeTimer;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3", meta = (AllowPrivateAccess = "true"))
-    class UAnimMontage* Skill_3_AnimMontage;
+    TObjectPtr<UAnimMontage> Skill_3_AnimMontage;
 
     bool bSkill_4 = true;
 
@@ -145,7 +145,7 @@ protected:
     FTimerHandle Skill_4_CooltimeTimer;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 4", meta = (AllowPrivateAccess = "true"))
-    class UAnimMontage* Skill_4_AnimMontage;
+    TObjectPtr<UAnimMontage> Skill_4_AnimMontage;
 
     bool bUlt = true;
 
@@ -155,18 +155,17 @@ protected:
     FTimerHandle Ult_CooltimeTimer;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ult", meta = (AllowPrivateAccess = "true"))
-    class UAnimMontage* Ult_AnimMontage;
+    TObjectPtr<UAnimMontage> Ult_AnimMontage;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects", meta = (AllowPrivateAccess = "true"))
-    class UNiagaraSystem* ShieldEffect;
+    TObjectPtr<UNiagaraSystem> ShieldEffect;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects", meta = (AllowPrivateAccess = "true"))
-    class UNiagaraComponent* ShieldEffectComponent;
+    TObjectPtr<UNiagaraComponent> ShieldEffectComponent;
 
     FTimerHandle FuzeTimerHandle;
 
 public:
-
     void DeactivateShieldEffect();
 
     FORCEINLINE AOPPlayerController* GetOPPlayerController() const { return OPPlayerController; }

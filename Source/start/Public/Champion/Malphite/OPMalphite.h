@@ -21,7 +21,7 @@ protected:
 
 	virtual void Passive() override;
 	virtual void MeleeAttack() override;
-	bool MeleeAttackTrace(); // ÆòÅ¸ ¹ßµ¿ ½Ã Æ®·¹ÀÌ½ºÇÏ´Â ÇÔ¼ö
+	bool MeleeAttackTrace(); // ï¿½ï¿½Å¸ ï¿½ßµï¿½ ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½Ì½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½
 	virtual void Skill_1() override;
 
 	void Skill_1_ShardOfTheEarth();
@@ -29,64 +29,67 @@ protected:
 	virtual void Skill_2() override;
 
 	virtual void Skill_3() override;
+	
+	UFUNCTION()
 	void Skill_3_GroundSlam();
-	void Skill_3_ApplySlowAttackEffect();
+	
 	virtual void Skill_4() override;
 	virtual void Ult() override;
 
+	UFUNCTION()
 	void OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"));
-	class UProjectileMovementComponent* ProjectileMovementComponent; //¹ß»çÃ¼ ¿òÁ÷ÀÓÀ» Ãß°¡ÇØÁÜ
+	TObjectPtr<class UProjectileMovementComponent> ProjectileMovementComponent; //ï¿½ß»ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"));
 	TObjectPtr<USceneComponent> ShardSpawnLocation;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float MeleeAttack_Impulse = 0.f;
-
-
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Skill_3_Impulse = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_3_radious = 0.f;
+	float Skill_3_Radius = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_3_slowAmount = 0.f;
+	float Skill_3_SlowAmount = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_3_slowDuration = 0.f;
+	float Skill_3_SlowDuration = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Ult_Velocity = 0.f; // ½ºÅ³ 4 ¼Óµµ
+	float Ult_Velocity = 0.f; // ï¿½ï¿½Å³ 4 ï¿½Óµï¿½
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Ult_Angle = 0.f; // ½ºÅ³ 4 °¢µµ
+	float Ult_Angle = 0.f; // ï¿½ï¿½Å³ 4 ï¿½ï¿½ï¿½ï¿½
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Ult_Distance = 0.f; // ½ºÅ³ 4 °Å¸®
+	float Ult_Distance = 0.f; // ï¿½ï¿½Å³ 4 ï¿½Å¸ï¿½
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Ult_Impulse = 0.f; // ±Ã±Ø±â Ãæ°Ý·®
+	float Ult_Impulse = 0.f; // ï¿½Ã±Ø±ï¿½ ï¿½ï¿½Ý·ï¿½
 
 	float Skill_1_SlowDuration = 3.0f;
 	FTimerHandle Skill_1_SpawnTimerHandle;
 
 	bool bThunderClapOn = false;
-
-
+	
 	TObjectPtr<AOPMalphiteShardOfTheEarth> ShardOfTheEarth;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AOPMalphiteShardOfTheEarth> ShardOfTheEarthClass;
 
 	FTimerHandle ShardOfTheEarthSpawnTimer;
 
+	FTimerHandle Skill_3_CastTimer;
+
 	FVector Ult_FinalLocation;
 	FTimerHandle Ult_StopTimer;
 
 public:
-	void ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* OhterChampion);
+	void ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* OtherChampion);
 };

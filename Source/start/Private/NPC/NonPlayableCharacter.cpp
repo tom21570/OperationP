@@ -18,7 +18,7 @@ ANonPlayableCharacter::ANonPlayableCharacter()
 void ANonPlayableCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	// 2ÃÊ °£°ÝÀ¸·Î ThrowProjectile ÇÔ¼ö¸¦ È£ÃâÇÏµµ·Ï Å¸ÀÌ¸Ó ¼³Á¤
+	// 2ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ThrowProjectile ï¿½Ô¼ï¿½ï¿½ï¿½ È£ï¿½ï¿½ï¿½Ïµï¿½ï¿½ï¿½ Å¸ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½
 	GetWorldTimerManager().SetTimer(TimerHandle, this, &ANonPlayableCharacter::ThrowProjectile, 2.0f, true);
 }
 
@@ -46,4 +46,3 @@ void ANonPlayableCharacter::ThrowProjectile()
 		GetWorld()->SpawnActor<AOPProjectile>(ProjectileClass, Location, Rotation);
 	}
 }
-

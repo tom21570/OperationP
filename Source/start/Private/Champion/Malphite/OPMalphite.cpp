@@ -34,18 +34,13 @@ void AOPMalphite::MeleeAttack() //��Ÿ
 {
 	Super::MeleeAttack();
 
-	if (!GetbMeleeAttack()) return;
-	if (!GetOPPlayerController()) return;
+	if (!bMeleeAttack) return;
+	if (!OPPlayerController) return;
 
-	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 
-	if (MouseCursorHit.bBlockingHit)
-	{
-		TurnCharacterToCursor(MouseCursorHit);
-	}
-
-	check(GetChampionAnimInstance());
-	check(GetMeleeAttackAnimMontage());
+	if (!MouseCursorHit.bBlockingHit) return;
+	TurnCharacterToCursor(MouseCursorHit);
 
 	FTimerHandle Timer;
 	GetWorldTimerManager().SetTimer(Timer, FTimerDelegate::CreateLambda([&]
@@ -53,19 +48,21 @@ void AOPMalphite::MeleeAttack() //��Ÿ
 			MeleeAttackTrace();
 	}), 0.25f, false);
 
-	if (bThunderClapOn == true)
+	if (ChampionAnimInstance && MeleeAttackAnimMontage)
 	{
-		GetChampionAnimInstance()->Montage_Play(MeleeAttackAnimMontage, 1.f);
-		GetChampionAnimInstance()->Montage_JumpToSection(FName("clap"), MeleeAttackAnimMontage);
-		bThunderClapOn = false;
+		if (bThunderClapOn == true)
+		{
+			ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("clap"), MeleeAttackAnimMontage);
+			bThunderClapOn = false;
+		}
+		else
+		{
+			ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+		}
+		
 	}
-	else
-	{
-		GetChampionAnimInstance()->Montage_Play(MeleeAttackAnimMontage, 1.f);
-	}
-
-
-	SetbMeleeAttack_False();
+	
 	SetbMeleeAttack_False();
 	GetWorldTimerManager().SetTimer(MeleeAttackCooltimeTimer, this, &AOPMalphite::SetbMeleeAttack_True, GetMeleeAttackCooltime(), false);
 }
@@ -81,16 +78,14 @@ bool AOPMalphite::MeleeAttackTrace()
 
 	for (auto& HitActor : HitResults)
 	{
-		TestDiavolo = Cast<AOPDiavolo>(HitActor.GetActor());
-
-		if (TestDiavolo)
+		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
 		{
-			TestDiavolo->SetbIsDamagedTrue();
-			TestDiavolo->PlayDiavoloRandomDeadMontage();
-			TestDiavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * MeleeAttack_Impulse, true);
-			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
+			Diavolo->SetbIsDamagedTrue();
+			Diavolo->PlayDiavoloRandomDeadMontage();
+			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * MeleeAttack_Impulse, true);
+			if (!Diavolo->GetbCanBeTestedMultipleTimes())
 			{
-				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+				Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 			}
 
 			return true;
@@ -102,32 +97,32 @@ bool AOPMalphite::MeleeAttackTrace()
 
 void AOPMalphite::Skill_1() //������ �ĵ� (Seismic Shard): ����: ������Ʈ�� ������ ������ ������ ���� ���� ���ظ� ������ �̵� �ӵ��� ��Ĩ�ϴ�.
 {
-	if (!GetbSkill_1()) return;
-	if (!GetOPPlayerController()) return;
+	if (!bSkill_1) return;
+	if (!OPPlayerController) return;
 
-	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
-	if (!MouseCursorHit.bBlockingHit) return;
+	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 	
+	if (!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToLocation(MouseCursorHit.Location);
 	
 	UE_LOG(LogTemp, Log, TEXT("Skill_1_ShardOfTheEarth"));
-	GetChampionAnimInstance()->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
+	ChampionAnimInstance->Montage_Play(Skill_1_AnimMontage, 1.0f);
+
+	SetbSkill_1_False();
 	GetWorldTimerManager().SetTimer(ShardOfTheEarthSpawnTimer, this, &AOPMalphite::Skill_1_ShardOfTheEarth, 0.25f, false);
 	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimer, this, &AOPMalphite::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
 }
 
-void AOPMalphite::ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* OhterChampion)
+void AOPMalphite::ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* OtherChampion)
 {
-	// ������ ���� �̵� �ӵ��� �����մϴ�.
-	float OriginalSpeed = OhterChampion->GetCharacterMovement()->MaxWalkSpeed;
+	float OriginalSpeed = OtherChampion->GetCharacterMovement()->MaxWalkSpeed;
 
 	// ������ �̵� �ӵ��� 20% ���ҽ�ŵ�ϴ�.
 	float SlowedSpeed = OriginalSpeed * 0.8f;
-	OhterChampion->GetCharacterMovement()->MaxWalkSpeed = SlowedSpeed;
+	OtherChampion->GetCharacterMovement()->MaxWalkSpeed = SlowedSpeed;
 
 	// ��ų�� �ߵ��� ĳ���͸� ã���ϴ�.
-	AOPMalphite* SourceCharacter = Cast<AOPMalphite>(SourceChampion);
-	if (SourceCharacter)
+	if (AOPMalphite* SourceCharacter = Cast<AOPMalphite>(SourceChampion))
 	{
 		// ���ΰ��� �̵� �ӵ��� ���ҵ� �ӵ���ŭ ������ŵ�ϴ�.
 		float SpeedIncrease = OriginalSpeed - SlowedSpeed;
@@ -135,13 +130,13 @@ void AOPMalphite::ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* O
 		// ���� �ð� �Ŀ� ���� �ӵ��� �ǵ����� Ÿ�̸Ӹ� �����մϴ�.
 		FTimerHandle UnusedHandle;
 		GetWorldTimerManager().SetTimer(UnusedHandle, [this, SourceCharacter, OriginalSpeed, SpeedIncrease]()
-			{
-				// ������ �̵� �ӵ��� ������� �ǵ����ϴ�.
-				GetCharacterMovement()->MaxWalkSpeed = OriginalSpeed;
-
-				// ���ΰ��� �̵� �ӵ��� ������� �ǵ����ϴ�.
-				SourceCharacter->GetCharacterMovement()->MaxWalkSpeed -= SpeedIncrease;
-			}, Skill_1_SlowDuration, false);
+		{
+			// ������ �̵� �ӵ��� ������� �ǵ����ϴ�.
+			GetCharacterMovement()->MaxWalkSpeed = OriginalSpeed;
+			
+			// ���ΰ��� �̵� �ӵ��� ������� �ǵ����ϴ�.
+			SourceCharacter->GetCharacterMovement()->MaxWalkSpeed -= SpeedIncrease;
+		}, Skill_1_SlowDuration, false);
 	}
 }
 
@@ -170,45 +165,39 @@ void AOPMalphite::Skill_3() //���� ��Ÿ (Ground Slam): ����:
 {
 	Super::Skill_3();
 
-	if (!GetbSkill_3()) return;
-	if (!GetOPPlayerController()) return;
+	if (!bSkill_3) return;
+	if (!OPPlayerController) return;
 
-	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 
 	if (MouseCursorHit.bBlockingHit)
 	{
 		TurnCharacterToCursor(MouseCursorHit);
-		Skill_3_GroundSlam();
-
-		SetbSkill_3_False();
-		GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimer, this, &AOPMalphite::SetbSkill_3_True, GetSkill_3_Cooltime(), false);
 	}
-}
 
+	GetWorldTimerManager().SetTimer(Skill_3_CastTimer, FTimerDelegate::CreateLambda([&]
+	{
+		Skill_3_GroundSlam();
+	}), 0.25f, false);
 
-void AOPMalphite::Skill_3_GroundSlam()
-{
 	if (ChampionAnimInstance && Skill_3_AnimMontage)
 	{
 		ChampionAnimInstance->Montage_Play(Skill_3_AnimMontage, 1.f);
 		ChampionAnimInstance->Montage_JumpToSection(FName("GroundSlam"), Skill_3_AnimMontage);
 	}
 
-	Skill_3_ApplySlowAttackEffect();
+	SetbSkill_3_False();
+	GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimer, this, &AOPMalphite::SetbSkill_3_True, GetSkill_3_Cooltime(), false);
 }
 
 
-void AOPMalphite::Skill_3_ApplySlowAttackEffect()
+void AOPMalphite::Skill_3_GroundSlam()
 {
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 
-	float EffectRadius = Skill_3_radious;
-	float SlowAmount = Skill_3_slowAmount;
-	float SlowDuration = Skill_3_slowDuration;
-
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * EffectRadius, EffectRadius,
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * Skill_3_Radius, Skill_3_Radius,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
 
 	for (auto& HitActor : HitResults)
@@ -217,9 +206,13 @@ void AOPMalphite::Skill_3_ApplySlowAttackEffect()
 		{
 			if (HitDiavolo)
 			{
+				FVector MalphiteLocation = FVector(GetActorLocation().X, GetActorLocation().Y, 0.f);
+				FVector ImpulseDirection = (HitDiavolo->GetActorLocation() - MalphiteLocation).GetSafeNormal();
 				HitDiavolo->SetbIsDamagedTrue();
 				HitDiavolo->PlayDiavoloRandomDeadMontage();
-				HitDiavolo->ApplySlowAttackEffect(SlowAmount, SlowDuration); //��ƺ��ο� ���ݸ���� �������� �Լ� �����ʿ�
+				HitDiavolo->LaunchCharacter(ImpulseDirection * Skill_3_Impulse, true, true);
+				// HitDiavolo->GetCharacterMovement()->AddImpulse(ImpulseDirection * Skill_3_Impulse, true);
+				HitDiavolo->ApplySlowAttackEffect(Skill_3_SlowAmount, Skill_3_SlowDuration); //��ƺ��ο� ���ݸ���� �������� �Լ� �����ʿ�
 			}
 		}
 	}
@@ -233,80 +226,38 @@ void AOPMalphite::Ult() //���� �� ���� �� (Unstoppable F
 {
 	Super::Ult();
 
-	if (!GetbUlt()) return;
-	if (!GetOPPlayerController()) return;
-
-	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	if (!bUlt) return;
+	if (!OPPlayerController) return;
+	
+	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 	if (!MouseCursorHit.bBlockingHit) return;
 
-	GetChampionAnimInstance()->Montage_Play(GetUlt_AnimMontage(), 1.0f);
+	if (ChampionAnimInstance && Ult_AnimMontage)
+	{
+		ChampionAnimInstance->Montage_Play(Ult_AnimMontage, 1.0f);
+	}
 	
 	Ult_FinalLocation = MouseCursorHit.Location;
 	TurnCharacterToLocation(Ult_FinalLocation);
-	FVector ChampionLocation = FVector(GetActorLocation().X, GetActorLocation().Y, 0.f);
 	FVector LaunchVector = Ult_FinalLocation - GetActorLocation();
 	LaunchVector.Normalize();
 	LaunchVector.Z = 0.f;
-	float FinalDistance = (Ult_FinalLocation - GetActorLocation()).Length();
-	UE_LOG(LogTemp, Warning, TEXT("Distance: %f"), FinalDistance);
-
-	ProjectileMovementComponent->Velocity = GetActorForwardVector() * 1500.f;
-	// LaunchCharacter(LaunchVector * 15000.f, true, true);
-
+	const float FinalDistance = (Ult_FinalLocation - GetActorLocation()).Length();
+	
+	LaunchCharacter(LaunchVector * Ult_Velocity, true, true);
+	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AOPMalphite::OnProjectileHit);
+	
 	GetWorldTimerManager().SetTimer(Ult_StopTimer, FTimerDelegate::CreateLambda([&]
 	{
-		ProjectileMovementComponent->Velocity = GetActorForwardVector() * 0.f;
-	}), FinalDistance/1500.f, false);
-
-	TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
-	if (TestDiavolo == nullptr) return;
-
-	int32 Distance = FVector::Dist(GetActorLocation(), TestDiavolo->GetActorLocation());
-	FTimerHandle Ult_EndTimer;
-
-	if (Distance <= Ult_Distance)
-	{
-		FVector UltVector = MouseCursorHit.Location - GetActorLocation();
-		UltVector.Normalize();
-		UltVector *= Ult_Velocity;
-		UltVector.Z = 0.f;
-		TurnCharacterToLocation(TestDiavolo->GetActorLocation());
-		SetActorEnableCollision(true); // Ensure collision is enabled
-		// Set the velocity for the projectile movement
-		if (ProjectileMovementComponent)
-		{
-			ProjectileMovementComponent->Velocity = UltVector;
-			ProjectileMovementComponent->bSweepCollision = true;
-			ProjectileMovementComponent->Activate();
-			LaunchCharacter(UltVector, true, true);
-
-			// Bind the collision event
-			GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AOPMalphite::OnProjectileHit);
-		}
-	}
-
-	GetWorldTimerManager().SetTimer(Ult_EndTimer, FTimerDelegate::CreateLambda([&]
-		{
-
-			if (ProjectileMovementComponent)
-			{
-				ProjectileMovementComponent->Velocity = FVector::ZeroVector;
-				ProjectileMovementComponent->Deactivate();
-			}
-
-			TestDiavolo->SetbIsDamagedTrue();
-			TestDiavolo->PlayDiavoloRandomDeadMontage();
-			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
-			{
-				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
-			}
-		}), 475.f / 750.f, false);
-
-	check(GetChampionAnimInstance());
-	check(GetUlt_AnimMontage());
-
-	GetChampionAnimInstance()->Montage_Play(GetUlt_AnimMontage(), 1.0f);
-
+		GetCapsuleComponent()->OnComponentHit.RemoveDynamic(this, &AOPMalphite::OnProjectileHit);
+		GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Cyan, FString::Printf(TEXT("Hit Done")));
+			
+	}), (Ult_FinalLocation / Ult_Velocity).Size(), false);
+	
+	UE_LOG(LogTemp, Warning, TEXT("Distance: %f"), FinalDistance);
+	
+	// ProjectileMovementComponent->Velocity = GetActorForwardVector() * Ult_Velocity;
+	
 	SetbUlt_False();
 	GetWorldTimerManager().SetTimer(Ult_CooltimeTimer, this, &AOPMalphite::SetbUlt_True, GetUlt_Cooltime(), false);
 }
@@ -322,12 +273,11 @@ void AOPMalphite::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* Oth
 			*OtherActor->GetName(),
 			*OtherComp->GetName(),
 			*Hit.ToString());
-		TestDiavolo = Cast<AOPDiavolo>(OtherActor);
 		UE_LOG(LogTemp, Warning, TEXT("OnProjectileHit Active 2"));
 
-		if (TestDiavolo)
+		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(OtherActor))
 		{            // Calculate the direction of the impulse
-			FVector ImpactDirection = (TestDiavolo->GetActorLocation() - Hit.ImpactPoint).GetSafeNormal();
+			FVector ImpactDirection = (Diavolo->GetActorLocation() - Hit.ImpactPoint).GetSafeNormal();
 
 			// Add an upward component to the impact direction
 			ImpactDirection.Z += Ult_Angle;
@@ -337,12 +287,12 @@ void AOPMalphite::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* Oth
 			UE_LOG(LogTemp, Log, TEXT("Impact Direction: %s"), *ImpactDirection.ToString());
 
 			// Apply an impulse to the Diavolo character based on the impact direction and AirborneRate
-			TestDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * Ult_Impulse, true);
+			Diavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * Ult_Impulse, true);
 
-			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
+			if (!Diavolo->GetbCanBeTestedMultipleTimes())
 			{
 				// TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
-				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+				Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 				// TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 			}
 		}
@@ -350,4 +300,3 @@ void AOPMalphite::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* Oth
 	}
 
 }
-

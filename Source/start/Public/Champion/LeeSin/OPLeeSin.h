@@ -7,6 +7,7 @@
 
 class AOPLeeSinSonicWave;
 class AOPLeeSinDragonsRage;
+
 UCLASS()
 class START_API AOPLeeSin : public AOPChampion
 {
@@ -31,7 +32,7 @@ protected:
 
 private:    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"))
-    class UProjectileMovementComponent* ProjectileMovementComponent;
+    TObjectPtr<class UProjectileMovementComponent> ProjectileMovementComponent;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
     float MeleeAttack_Impulse = 0.f;
@@ -77,6 +78,7 @@ private:
     // UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
     // TObjectPtr<UCapsuleComponent> ResonatingStrikeCapsule;
 
+    FTimerHandle MeleeAttackTimer;
     FTimerHandle SonicWaveSpawnTimer;
     FTimerHandle DragonsRageSpawnTimer;
 
@@ -85,10 +87,10 @@ private:
     TSubclassOf<AOPLeeSinDragonsRage> DragonsRageClass;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marker", meta = (AllowPrivateAccess = "true"))
-    UStaticMeshComponent* MarkerMesh;
+    TObjectPtr<UStaticMeshComponent> MarkerMesh;
 
     void ApplyShieldToAlly(AOPChampion* TargetChampion);
-    void AddShield(float ShieldAmount);
+    virtual void AddShield(float ShieldAmount) override;
     void Skill_3_GroundSlam();
     void Skill_3_ApplySlowEffect();
     void OnDashCompleted();
@@ -112,6 +114,4 @@ public:
 
     void CreateMarkerOnTarget(AOPDiavolo* Target);
     void RemoveMarkerOnTarget(AOPDiavolo* Target);
-
-
 };

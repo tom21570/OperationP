@@ -34,61 +34,60 @@ void AOPLeeSin::MeleeAttack()
 {
     Super::MeleeAttack();
 
-    if (!GetbMeleeAttack()) return;
-    if (!GetOPPlayerController()) return;
+    if (!bMeleeAttack) return;
+    if (OPPlayerController == nullptr) return;
 
-    GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+    OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 
-    if (MouseCursorHit.bBlockingHit)
-    {
-        TurnCharacterToCursor(MouseCursorHit);
-    }
-
-    check(GetChampionAnimInstance());
+    if (!MouseCursorHit.bBlockingHit) return;
+    TurnCharacterToCursor(MouseCursorHit);
+    
+    check(ChampionAnimInstance);
     check(GetMeleeAttackAnimMontage());
 
-    FTimerHandle Timer;
-    GetWorldTimerManager().SetTimer(Timer, FTimerDelegate::CreateLambda([&]
-        {
-            MeleeAttackTrace();
-        }), 0.25f, false);
-
-    switch (MeleeAttackComboCount)
+    GetWorldTimerManager().SetTimer(MeleeAttackTimer, FTimerDelegate::CreateLambda([&]
     {
-    case 0:
-        GetChampionAnimInstance()->Montage_Play(MeleeAttackAnimMontage, 1.f);
-        GetChampionAnimInstance()->Montage_JumpToSection(FName("1"), MeleeAttackAnimMontage);
-        GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPLeeSin::ResetMeleeAttackComboCount, 5.f, false);
-        MeleeAttackComboCount++;
-        break;
+        MeleeAttackTrace();
+    }), 0.25f, false);
 
-    case 1:
-        GetChampionAnimInstance()->Montage_Play(MeleeAttackAnimMontage, 1.f);
-        GetChampionAnimInstance()->Montage_JumpToSection(FName("2"), MeleeAttackAnimMontage);
-        GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
-        GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPLeeSin::ResetMeleeAttackComboCount, 5.f, false);
-        MeleeAttackComboCount++;
-        break;
+    if (ChampionAnimInstance && MeleeAttackAnimMontage)
+    {
+        switch (MeleeAttackComboCount)
+        {
+        case 0:
+            ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("1"), MeleeAttackAnimMontage);
+            GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPLeeSin::ResetMeleeAttackComboCount, 5.f, false);
+            MeleeAttackComboCount++;
+            break;
 
-    case 2:
-        GetChampionAnimInstance()->Montage_Play(MeleeAttackAnimMontage, 1.f);
-        GetChampionAnimInstance()->Montage_JumpToSection(FName("3"), MeleeAttackAnimMontage);
-        GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
-        GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPLeeSin::ResetMeleeAttackComboCount, 5.f, false);
-        MeleeAttackComboCount++;
-        break;
+        case 1:
+            ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("2"), MeleeAttackAnimMontage);
+            GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
+            GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPLeeSin::ResetMeleeAttackComboCount, 5.f, false);
+            MeleeAttackComboCount++;
+            break;
 
-    case 3:
-        GetChampionAnimInstance()->Montage_Play(MeleeAttackAnimMontage, 1.f);
-        GetChampionAnimInstance()->Montage_JumpToSection(FName("4"), MeleeAttackAnimMontage);
-        MeleeAttackComboCount = 0;
-        break;
+        case 2:
+            ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("3"), MeleeAttackAnimMontage);
+            GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
+            GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPLeeSin::ResetMeleeAttackComboCount, 5.f, false);
+            MeleeAttackComboCount++;
+            break;
 
-    default:
-        ;
+        case 3:
+            ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("4"), MeleeAttackAnimMontage);
+            MeleeAttackComboCount = 0;
+            break;
+
+        default:
+            ;
+        }
     }
 
-    SetbMeleeAttack_False();
     SetbMeleeAttack_False();
     GetWorldTimerManager().SetTimer(MeleeAttackCooltimeTimer, this, &AOPLeeSin::SetbMeleeAttack_True, GetMeleeAttackCooltime(), false);
 }
@@ -104,16 +103,14 @@ bool AOPLeeSin::MeleeAttackTrace()
 
     for (auto& HitActor : HitResults)
     {
-        TestDiavolo = Cast<AOPDiavolo>(HitActor.GetActor());
-
-        if (TestDiavolo)
+        if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
         {
-            TestDiavolo->SetbIsDamagedTrue();
-            TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinMeleeAttack_AnimMontage());
-            TestDiavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * MeleeAttack_Impulse, true);
-            if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
+            Diavolo->SetbIsDamagedTrue();
+            Diavolo->GetChampionAnimInstance()->Montage_Play(Diavolo->GetDiavolo_DamagedByLeeSinMeleeAttack_AnimMontage());
+            Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * MeleeAttack_Impulse, true);
+            if (!Diavolo->GetbCanBeTestedMultipleTimes())
             {
-                TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+                Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
             }
 
             return true;
@@ -127,18 +124,13 @@ void AOPLeeSin::Skill_1()
 {
     Super::Skill_1();
 
-    if (!GetbSkill_1()) return;
-    if (!GetOPPlayerController()) return;
+    if (!bSkill_1) return;
+    if (OPPlayerController == nullptr) return;
 
-    GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+    OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 
-    if (MouseCursorHit.bBlockingHit)
-    {
-        TurnCharacterToCursor(MouseCursorHit);
-    }
-
-    check(GetChampionAnimInstance());
-    check(GetSkill_1_AnimMontage());
+    if (!MouseCursorHit.bBlockingHit) return;
+    TurnCharacterToCursor(MouseCursorHit);
 
     if (Skill_1_Stack == 1)
     {
@@ -150,8 +142,8 @@ void AOPLeeSin::Skill_1()
         if (TestDiavolo && TestDiavolo->bTrueSightOn)
         {
             Skill_1_Stack = 0;
-            GetChampionAnimInstance()->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
-            GetChampionAnimInstance()->Montage_JumpToSection(FName("DashB"), GetSkill_1_AnimMontage());
+            ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("DashB"), GetSkill_1_AnimMontage());
 
             FVector TargetLocation = TestDiavolo->GetActorLocation();
             FVector Direction = TargetLocation - GetActorLocation();
@@ -169,8 +161,8 @@ void AOPLeeSin::Skill_1()
     else
     {
         UE_LOG(LogTemp, Log, TEXT("Skill_1_SonicWave"));
-        GetChampionAnimInstance()->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
-        GetChampionAnimInstance()->Montage_JumpToSection(FName("SonicWave"), GetSkill_1_AnimMontage());
+        ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
+        ChampionAnimInstance->Montage_JumpToSection(FName("SonicWave"), GetSkill_1_AnimMontage());
         GetWorldTimerManager().SetTimer(SonicWaveSpawnTimer, this, &AOPLeeSin::Skill_1_SonicWave, 0.25f, false);
         GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimer, this, &AOPLeeSin::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
     }
@@ -193,11 +185,11 @@ void AOPLeeSin::Skill_2()
     Super::Skill_2();
 
     if (!GetbSkill_2()) return;
-    if (!GetOPPlayerController()) return;
+    if (!OPPlayerController) return;
 
-    GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+    OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
     if (!MouseCursorHit.bBlockingHit) return;
-    if (MouseCursorHit.bBlockingHit) // ¸¸¾à ¹ÝÀÀÀÌ blockÀÌ¶ó¸é ±× Hit ¹æÇâÀ¸·Î Ä³¸¯ÅÍ¸¦ µ¹¸²
+    if (MouseCursorHit.bBlockingHit) // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ blockï¿½Ì¶ï¿½ï¿½ ï¿½ï¿½ Hit ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½
     {
         TurnCharacterToCursor(MouseCursorHit);
     }
@@ -262,10 +254,10 @@ void AOPLeeSin::Skill_3()
         ChampionAnimInstance->Montage_JumpToSection(FName("GroundSlam"), Skill_3_AnimMontage);
     }
     
-    // ¶¥À» ³»·ÁÄ¡´Â µ¿ÀÛÀÌ¶ó Ä¿¼­ÀÇ Hit °ªÀº ¾ø¾îµµ µÉ °Å °°¾Æ¿ä!!
-    // if (!GetOPPlayerController()) return;
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¶ï¿½ Ä¿ï¿½ï¿½ï¿½ï¿½ Hit ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½îµµ ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Æ¿ï¿½!!
+    // if (!OPPlayerController) return;
     //
-    // GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+    // OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
     //
     // if (MouseCursorHit.bBlockingHit)
     // {
@@ -292,11 +284,11 @@ void AOPLeeSin::Skill_3_GroundSlam()
 
     for (auto& HitActor : HitResults)
     {
-        if (TestDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+        if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
         {
-            TestDiavolo->SetbIsDamagedTrue();
-            TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinSkill_3_AnimMontage());
-            TestDiavolo->ApplySlowEffect(SlowAmount, SlowDuration);
+            Diavolo->SetbIsDamagedTrue();
+            Diavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinSkill_3_AnimMontage());
+            Diavolo->ApplySlowEffect(SlowAmount, SlowDuration);
         }
     }
     // Skill_3_ApplySlowEffect();
@@ -304,7 +296,7 @@ void AOPLeeSin::Skill_3_GroundSlam()
 
 void AOPLeeSin::Skill_3_ApplySlowEffect()
 {
-    // ¼öÁ¤ ÇØ¾ßÇÔ
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½Ø¾ï¿½ï¿½ï¿½
     // TArray<FHitResult> HitResults;
     // TArray<AActor*> ActorsToIgnore;
     // ActorsToIgnore.Add(this);
@@ -334,27 +326,25 @@ void AOPLeeSin::Ult()
 {
     Super::Ult();
 
-    if (!GetbUlt()) return;
-    if (!GetOPPlayerController()) return;
+    if (!bUlt) return;
+    if (!OPPlayerController) return;
 
-    GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+    OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 
-    if (MouseCursorHit.bBlockingHit)
-    {
-        TurnCharacterToCursor(MouseCursorHit);
-    }
+    if (!MouseCursorHit.bBlockingHit) return;
+    TurnCharacterToCursor(MouseCursorHit);
 
-    check(GetChampionAnimInstance());
-    check(GetSkill_2_AnimMontage());
-
-    GetChampionAnimInstance()->Montage_Play(GetUlt_AnimMontage(), 1.0f);
-
-    GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
-    UE_LOG(LogTemp, Log, TEXT("Skill_Ult_DragonsRage"));
     GetWorldTimerManager().SetTimer(DragonsRageSpawnTimer, FTimerDelegate::CreateLambda([&]
     {
         UltTrace();
     }), 0.25f, false);
+    
+    if (ChampionAnimInstance && Skill_2_AnimMontage)
+    {
+        ChampionAnimInstance->Montage_Play(GetUlt_AnimMontage(), 1.0f);
+    }
+
+    SetbUlt_False();
     GetWorldTimerManager().SetTimer(Ult_CooltimeTimer, this, &AOPLeeSin::SetbUlt_True, GetUlt_Cooltime(), false);
 }
 
@@ -369,23 +359,21 @@ bool AOPLeeSin::UltTrace()
 
     for (auto& HitActor : HitResults)
     {
-        TestDiavolo = Cast<AOPDiavolo>(HitActor.GetActor());
-
-        if (TestDiavolo)
+        if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
         {
-            FVector ImpactDirection = (TestDiavolo->GetActorLocation() - HitActor.ImpactPoint).GetSafeNormal();
+            FVector ImpactDirection = (Diavolo->GetActorLocation() - HitActor.ImpactPoint).GetSafeNormal();
             ImpactDirection.Z += Ult_Angle;
             ImpactDirection = ImpactDirection.GetSafeNormal();
 
             UE_LOG(LogTemp, Log, TEXT("Impact Direction: %s"), *ImpactDirection.ToString());
 
-            TestDiavolo->SetbIsDamagedTrue();
-            TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinDragonsRage_AnimMontage());
-            TestDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * Ult_Impulse, true);
-            TestDiavolo->TurnCharacterToLocation(GetActorLocation());
-            if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
+            Diavolo->SetbIsDamagedTrue();
+            Diavolo->GetChampionAnimInstance()->Montage_Play(Diavolo->GetDiavolo_DamagedByLeeSinDragonsRage_AnimMontage());
+            Diavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * Ult_Impulse, true);
+            Diavolo->TurnCharacterToLocation(GetActorLocation());
+            if (!Diavolo->GetbCanBeTestedMultipleTimes())
             {
-                TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+                Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
             }
 
             return true;
@@ -425,7 +413,7 @@ void AOPLeeSin::RemoveMarkerOnTarget(AOPDiavolo* Target)
 
 void AOPLeeSin::AddShield(float ShieldAmount)
 {
-    ShieldAmountValue = ShieldAmount; // ¸â¹ö º¯¼ö¿¡ °ªÀ» ÇÒ´ç
+    ShieldAmountValue = ShieldAmount; // ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ò´ï¿½
 
     UE_LOG(LogTemp, Log, TEXT("Shield added: %f"), ShieldAmountValue);
 
@@ -453,4 +441,3 @@ void AOPLeeSin::ResetMeleeAttackComboCount()
 {
     MeleeAttackComboCount = 0;
 }
-

@@ -236,4 +236,3 @@ void AOPChampion::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	EnhancedInputComponent->BindAction(SkillAction4, ETriggerEvent::Started, this, &AOPChampion::Skill_4);
 	EnhancedInputComponent->BindAction(UltAction, ETriggerEvent::Started, this, &AOPChampion::Ult);
 }
-
