@@ -21,8 +21,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void Passive() override;
-	virtual void LongDistanceAttack() override; //원거리 기본공격
-	bool LongDistanceAttackTrace();
+	virtual void MeleeAttack() override; //원거리 기본공격
+	void MeleeAttack_CannonBall();
 	virtual void Skill_1() override; //빠른 발사 (Rapid Fire) 효과: 일정 시간 동안 트리스타나의 공격 속도가 대폭 증가합니다.
 	virtual void Skill_2() override; //로켓 점프 (Rocket Jump) 효과: 트리스타나가 목표 지점으로 로켓을 이용해 뛰어올라, 착지 지점에서 범위 피해를 입히고 적들을 둔화시킵니다. 재사용: 로켓 점프는 적을 처치하거나 어시스트를 기록하면 재사용 대기 시간이 초기화됩니다.
 	virtual void Skill_3() override; //폭발 화약(Explosive Charge) 		효과: 패시브로, 트리스타나가 처치한 적이 폭발하여 주변 적들에게 피해를 입힙니다.		활성화 : 트리스타나가 적에게 폭발물 패키지를 설치합니다.시간이 지나거나 트리스타나가 일정 횟수 공격을 가하면 폭발하여 큰 피해를 입힙니다.
@@ -40,13 +40,15 @@ private:
 	float LongDistanceAttack_Range = 0.f;
 
 	TObjectPtr<AOPTristanaCannonBall> CannonBall; // 평타 캐논볼 담을 함수
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LongDistanceAttack", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MeleeAttack", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AOPTristanaCannonBall> CannonBallClass; // 위 변수에 담아서 실제로 날릴 캐논볼
 
-	FVector MoveTargetLocation; //이동 관련 변수
-	bool bIsMoving; //이동 관련 변수
+	FTimerHandle CannonBallClassSpawnTimer; // 캐논볼 딜레이 설정을 위한 타이머
 
-	float CalculateMinDistanceToActorEdge(FVector ActorLocation, FVector TargetLocation, float Radius);
-	void MoveToLocation(FVector TargetLocation);
+	//FVector MoveTargetLocation; //이동 관련 변수
+	//bool bIsMoving; //이동 관련 변수
+
+	//float CalculateMinDistanceToActorEdge(FVector ActorLocation, FVector TargetLocation, float Radius);
+	//void MoveToLocation(FVector TargetLocation);
 };
 

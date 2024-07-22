@@ -61,6 +61,9 @@ protected:
     TObjectPtr<UInputAction> MeleeAttackAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UInputAction> LongDistanceAttackAction;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UInputAction> SkillAction1;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -92,6 +95,7 @@ protected:
     TObjectPtr<UAnimMontage> DeadAnimMontage;
 
     FTimerHandle MeleeAttackCooltimeTimer;
+    FTimerHandle MeleeAttackTimer;
     bool bMeleeAttack = true;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MeleeAttack", meta = (AllowPrivateAccess = "true"))
@@ -108,6 +112,8 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Long DistanceAttack", meta = (AllowPrivateAccess = "true"))
     class UAnimMontage* LongDistanceAttackAnimMontage;
+
+
 
 
     FTimerHandle PassiveTimer;
