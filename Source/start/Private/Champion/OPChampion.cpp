@@ -12,6 +12,9 @@
 #include "Animation/OPAnimInstance.h"
 #include "Diavolo/OPDiavolo.h"
 #include "NiagaraFunctionLibrary.h"
+#include "GameFramework/DamageType.h" //damage
+#include "Engine/EngineTypes.h" //damage
+#include "Engine/World.h" //damage
 
 // Sets default values
 AOPChampion::AOPChampion()
@@ -187,6 +190,7 @@ void AOPChampion::TurnCharacterToCursor(FHitResult HitResult)
 {
 	TurnCharacterToLocation(HitResult.Location);
 }
+
 
 void AOPChampion::Move(const FInputActionValue& InputActionValue)
 {

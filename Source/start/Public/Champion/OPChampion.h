@@ -36,6 +36,7 @@ public:
     void TurnCharacterToLocation(FVector TurnPoint);
     void TurnCharacterToCursor(FHitResult HitResult);
 
+
 protected:
     TObjectPtr<class AOPPlayerController> OPPlayerController;
 
