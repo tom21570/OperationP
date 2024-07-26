@@ -4,31 +4,22 @@
 
 #include "CoreMinimal.h"
 #include "Projectile/OPProjectile.h"
-#include "OPTristanaCannonBall.generated.h"
+#include "OPTristanaBusterShot.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class START_API AOPTristanaCannonBall : public AOPProjectile
+class START_API AOPTristanaBusterShot : public AOPProjectile
 {
 	GENERATED_BODY()
-	
 protected:
 	virtual void OnDamageCollisionBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
-public:
-	virtual void Tick(float DeltaSeconds) override;
-
 private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
+	float InitialSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	float InitialSpeed = 200.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	float AngleOfFloating;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	float ForceOfCannonBall;
+	float ImpactForce;
 };
-
