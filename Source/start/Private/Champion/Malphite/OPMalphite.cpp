@@ -245,7 +245,7 @@ void AOPMalphite::Ult() //���� �� ���� �� (Unstoppable F
 	LaunchVector.Z = 0.f;
 	const float FinalDistance = (Ult_FinalLocation - GetActorLocation()).Length();
 	
-	LaunchCharacter(LaunchVector * Ult_Velocity, true, true);
+	// LaunchCharacter(LaunchVector * Ult_Velocity, true, true);
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AOPMalphite::OnProjectileHit);
 	
 	GetWorldTimerManager().SetTimer(Ult_StopTimer, FTimerDelegate::CreateLambda([&]
@@ -257,7 +257,7 @@ void AOPMalphite::Ult() //���� �� ���� �� (Unstoppable F
 	
 	UE_LOG(LogTemp, Warning, TEXT("Distance: %f"), FinalDistance);
 	
-	// ProjectileMovementComponent->Velocity = GetActorForwardVector() * Ult_Velocity;
+	ProjectileMovementComponent->Velocity = GetActorForwardVector() * Ult_Velocity;
 	
 	SetbUlt_False();
 	GetWorldTimerManager().SetTimer(Ult_CooltimeTimer, this, &AOPMalphite::SetbUlt_True, GetUlt_Cooltime(), false);

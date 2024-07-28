@@ -33,7 +33,7 @@ void AOPTristanaExplosiveCharge::InitializeCharge(AActor* TargetActor, float Dam
         // Attach to the target actor
         if (ExplosiveCharge_Target)
         {
-            AttachToActor(ExplosiveCharge_Target, FAttachmentTransformRules::KeepRelativeTransform);
+            AttachToActor(ExplosiveCharge_Target, FAttachmentTransformRules::KeepWorldTransform);
         }
     }
     

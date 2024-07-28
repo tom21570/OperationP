@@ -2,16 +2,18 @@
 
 
 #include "Champion/Volibear/OPVolibear.h"
-
 #include "Animation/OPAnimInstance.h"
+#include "Champion/Volibear/OPVolibearLightningbolt.h"
 #include "Components/CapsuleComponent.h"
 #include "Diavolo/OPDiavolo.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/OPPlayerController.h"
 
 AOPVolibear::AOPVolibear()
 {
+	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
 }
 
 void AOPVolibear::BeginPlay()
@@ -44,7 +46,7 @@ void AOPVolibear::MeleeAttack()
 	GetWorldTimerManager().SetTimer(MeleeAttackCooltimeTimer, this, &AOPVolibear::SetbMeleeAttack_True, GetMeleeAttackCooltime(), false);
 
 	// 평타 시전시간 지나면 Trace하고 디아볼로가 Trace되면 피격 사운드 재생
-	GetWorldTimerManager().SetTimer(MeleeAttackCastTimer, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(MeleeAttackCastTimerHandle, FTimerDelegate::CreateLambda([&]
 	{
 		if (MeleeAttackTrace())
 		{
@@ -54,40 +56,52 @@ void AOPVolibear::MeleeAttack()
 
 	if (!ChampionAnimInstance) return; // 애니메이션 인스턴스가 없을 시 return
 	if (!MeleeAttackAnimMontage) return; // 평타 애니메이션 몽타주가 없을 시 return
-	
-	switch (MeleeAttackComboCount) // 4번의 연결된 평타동작
+
+	if (ChampionAnimInstance && MeleeAttackAnimMontage)
 	{
-	case 0:
-		ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("1"), MeleeAttackAnimMontage);
-		GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
-		MeleeAttackComboCount++;
-		break;
+		if (bThunderingSmash)
+		{
+			ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("Thundering Smash"), MeleeAttackAnimMontage);
+		}
 
-	case 1:
-		ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("2"), MeleeAttackAnimMontage);
-		GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
-		GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
-		MeleeAttackComboCount++;
-		break;
+		else
+		{
+			switch (MeleeAttackComboCount) // 4번의 연결된 평타동작
+			{
+			case 0:
+				ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+				ChampionAnimInstance->Montage_JumpToSection(FName("1"), MeleeAttackAnimMontage);
+				GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
+				MeleeAttackComboCount++;
+				break;
 
-	case 2:
-		ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("3"), MeleeAttackAnimMontage);
-		GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
-		GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
-		MeleeAttackComboCount++;
-		break;
+			case 1:
+				ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+				ChampionAnimInstance->Montage_JumpToSection(FName("2"), MeleeAttackAnimMontage);
+				GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimerHandle);
+				GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
+				MeleeAttackComboCount++;
+				break;
 
-	case 3:
-		ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("4"), MeleeAttackAnimMontage);
-		MeleeAttackComboCount = 0;
-		break;
+			case 2:
+				ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+				ChampionAnimInstance->Montage_JumpToSection(FName("3"), MeleeAttackAnimMontage);
+				GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimerHandle);
+				GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
+				MeleeAttackComboCount++;
+				break;
 
-	default:
-		;
+			case 3:
+				ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+				ChampionAnimInstance->Montage_JumpToSection(FName("4"), MeleeAttackAnimMontage);
+				MeleeAttackComboCount = 0;
+				break;
+
+			default:
+				;
+			}
+		}
 	}
 }
 
@@ -122,6 +136,13 @@ bool AOPVolibear::MeleeAttackTrace()
 void AOPVolibear::Skill_1()
 {
 	Super::Skill_1();
+
+	if (!bSkill_1) return;
+	if (OPPlayerController == nullptr) return;
+
+	bThunderingSmash = true;
+
+	
 }
 
 void AOPVolibear::Skill_2()
@@ -143,7 +164,7 @@ void AOPVolibear::Skill_3()
 
 	Skill_3_FinalLocation = MouseCursorHit.Location;
 
-	GetWorldTimerManager().SetTimer(LightningboltSpawnTimer, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(LightningboltSpawnTimerHandle, FTimerDelegate::CreateLambda([&]
 	{
 		Skill_3_Lightningbolt();
 	}), 2.f, false);
@@ -151,6 +172,8 @@ void AOPVolibear::Skill_3()
 
 void AOPVolibear::Skill_3_Lightningbolt()
 {
+	Lightningbolt = GetWorld()->SpawnActor<AOPVolibearLightningbolt>(LightningboltClass, Skill_3_FinalLocation, GetActorRotation());
+	Lightningbolt->SetOwner(this);
 }
 
 void AOPVolibear::Skill_4()
@@ -171,18 +194,60 @@ void AOPVolibear::Ult()
 	TurnCharacterToCursor(MouseCursorHit);
 
 	Ult_FinalLocation = MouseCursorHit.Location;
+	FVector UltVector = Ult_FinalLocation - GetActorLocation();
+	
+	FVector UltVector_XY = UltVector.GetSafeNormal();
+	UltVector_XY.Z = 0.f;
 
-	GetWorldTimerManager().SetTimer(LightningboltSpawnTimer, FTimerDelegate::CreateLambda([&]
+	// ProjectileMovementComponent->Velocity = GetActorForwardVector() * 100000.f;
+	
+	// Launch 방식
+	if (bUlt_ActAsProjectile)
 	{
-		Skill_3_Lightningbolt();
-	}), 2.f, false);
+		LaunchCharacter(UltVector_XY * Ult_Velocity_XY + GetActorUpVector() * Ult_Velocity_Z, true, true); // 속도
+	}
+
+	// Game 방식
+	if (bUlt_ActAsGame)
+	{
+		if (ProjectileMovementComponent == nullptr) return;
+		
+		const FVector FinalVelocity = GetActorForwardVector() * Ult_Velocity_XY + GetActorUpVector() * Ult_Velocity_Z;;
+
+		ProjectileMovementComponent->Velocity = FinalVelocity;
+		ProjectileMovementComponent->ProjectileGravityScale = 0.f;
+		GetWorldTimerManager().SetTimer(Ult_StopTimerHandle, FTimerDelegate::CreateLambda([&]
+		{
+			ProjectileMovementComponent->Velocity = FVector::Zero();
+			ProjectileMovementComponent->ProjectileGravityScale = 1.f;
+		}), 0.1f, false);
+	}
+
+	// 포물선 운동 방식
+	else if (bUlt_ActAsParabola)
+	{
+		if (ProjectileMovementComponent == nullptr) return;
+		
+		UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, Ult_Velocity_Parabola, GetActorLocation(), Ult_FinalLocation, 1.f, 0.5);
+		GetCharacterMovement()->AddImpulse(Ult_Velocity_Parabola, true);
+	}
+
+	// Game 방식
+	
+	// 포물선 운동
+	// if (ProjectileMovementComponent)
+	// {
+	// 	UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, Ult_Velocity_Parabola, GetActorLocation(), Ult_FinalLocation, 1.f, 0.5);
+	// 	GetCharacterMovement()->AddImpulse(Ult_Velocity_Parabola, true);
+	// }
+
+	if (ChampionAnimInstance && Ult_AnimMontage)
+	{
+		ChampionAnimInstance->Montage_Play(Ult_AnimMontage, 1.f);
+	}
 }
 
 void AOPVolibear::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse, const FHitResult& Hit)
-{
-}
-
-void AOPVolibear::ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* OtherChampion)
 {
 }

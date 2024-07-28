@@ -31,6 +31,7 @@ protected:
 	void EndRapidFire();
 	virtual void Skill_2() override; //로켓 점프 (Rocket Jump) 효과: 트리스타나가 목표 지점으로 로켓을 이용해 뛰어올라, 착지 지점에서 범위 피해를 입히고 적들을 둔화시킵니다. 재사용: 로켓 점프는 적을 처치하거나 어시스트를 기록하면 재사용 대기 시간이 초기화됩니다.
 	void OnLanding();
+	void PlaySkill_2_JumpAnimMontage();
 	virtual void Skill_3() override; //폭발 화약(Explosive Charge) 		효과: 패시브로, 트리스타나가 처치한 적이 폭발하여 주변 적들에게 피해를 입힙니다.		활성화 : 트리스타나가 적에게 폭발물 패키지를 설치합니다.시간이 지나거나 트리스타나가 일정 횟수 공격을 가하면 폭발하여 큰 피해를 입힙니다.
 	// Function to use Explosive Charge
 	void UseExplosiveCharge(AOPDiavolo* Target);
@@ -52,7 +53,22 @@ private:
 	float LongDistanceAttack_Speed = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_2_MaxJumpRange;
+	float Skill_2_MaxJumpRange = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_2_ShortJumpRange = 350.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_2_MiddleJumpRange = 700.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_2_LongJumpRange;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_2_Velocity_XY = 0.f; // ??? 4 ???
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_2_Velocity_Z = 0.f; // ??? 4 ???
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Skill_2_JumpStrength;
@@ -93,6 +109,9 @@ private:
 	TSubclassOf<AOPTristanaCannonBall> CannonBallClass; // 위 변수에 담아서 실제로 날릴 캐논볼
 
 	FTimerHandle CannonBallClassSpawnTimer; // 캐논볼 딜레이 설정을 위한 타이머
+	FTimerHandle Skill_2_JumpTimerHandle;
+	FVector Skill_2_FinalLocation;
+	FVector Skill_2_Vector_XY;
 
 	TObjectPtr<AOPTristanaBusterShot> BusterShot; // 버스터샷 담을 함수
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ult", meta = (AllowPrivateAccess = "true"))
@@ -127,6 +146,7 @@ private:
 
 	// Timer handle for explosion
 	FTimerHandle ExplosionTimerHandle;
+	FTimerHandle ExplosiveChargeSpawnTimerHandle;
 
 
 	// Handle Landing

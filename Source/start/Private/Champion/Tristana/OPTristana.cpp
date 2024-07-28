@@ -19,9 +19,10 @@
 
 AOPTristana::AOPTristana()
 {
+	PrimaryActorTick.bCanEverTick = true;
+	
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component")); // Åõ»çÃ¼ ¿òÁ÷ÀÓ Æ÷ÀÎÅÍ¿¡ µ¿Àû ÇÒ´ç
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AOPTristana::BeginPlay()
@@ -29,6 +30,8 @@ void AOPTristana::BeginPlay()
 	Super::BeginPlay();
 
 	DefaultAttackSpeed = LongDistanceAttack_Speed;
+
+	Skill_2_LongJumpRange = Skill_2_MaxJumpRange;
 }
 
 void AOPTristana::Tick(float DeltaTime)
@@ -154,41 +157,63 @@ void AOPTristana::Skill_2() //·ÎÄÏ Á¡ÇÁ (Rocket Jump) È¿°ú: Æ®¸®½ºÅ¸³ª°¡ ¸ñÇ¥ Áö
 	UE_LOG(LogTemp, Warning, TEXT("cursor Hit"));
 	TurnCharacterToCursor(MouseCursorHit);
 
-	TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
-	if (TestDiavolo == nullptr) return;
+	// TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
+	// if (TestDiavolo == nullptr) return;
 
-	FVector DiavoloLocation = TestDiavolo->GetActorLocation();
+	// FVector DiavoloLocation = TestDiavolo->GetActorLocation();
 
 	FVector CurrentLocation = GetActorLocation();
-	float Distance = FVector::Dist(CurrentLocation, DiavoloLocation);
+	// float Distance = FVector::Dist(CurrentLocation, DiavoloLocation);
+	float Distance = FVector::Dist(CurrentLocation, MouseCursorHit.Location);
 
 	if (Distance <= Skill_2_MaxJumpRange)
 	{
-		if (ChampionAnimInstance && Skill_2_AnimMontage)
-		{
-			ChampionAnimInstance->Montage_Play(Skill_2_AnimMontage, 1.0f);
-		}
-
-		TargetLocation = DiavoloLocation;
-		FVector JumpDirection = (TargetLocation - CurrentLocation).GetSafeNormal();
-		LaunchCharacter(JumpDirection * Skill_2_JumpStrength, true, true);
-
-		// Set a timer to handle landing effects
-		GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimer, this, &AOPTristana::OnLanding, 1.0f, false, 1.0f);
+		Skill_2_FinalLocation = MouseCursorHit.Location;
+		FVector Skill_2_Vector = Skill_2_FinalLocation - GetActorLocation();
+	
+		Skill_2_Vector_XY = Skill_2_Vector.GetSafeNormal();
+		Skill_2_Vector_XY.Z = 0.f;
 	}
-	else
+
+	GetWorldTimerManager().SetTimer(Skill_2_JumpTimerHandle, FTimerDelegate::CreateLambda([&]
 	{
-		// Optionally, print a message or trigger a feedback to indicate that the target is out of range
-		UE_LOG(LogTemp, Warning, TEXT("Target location is out of jump range."));
+		LaunchCharacter(Skill_2_Vector_XY * Skill_2_Velocity_XY + GetActorUpVector() * Skill_2_Velocity_Z, true, true);
+	}), 0.25f, false);
+
+	if (ChampionAnimInstance && Skill_2_AnimMontage)
+	{
+		ChampionAnimInstance->Montage_Play(Skill_2_AnimMontage, 1.0f);
+		if (Distance <= Skill_2_ShortJumpRange)
+		{
+			ChampionAnimInstance->Montage_JumpToSection(FName("Short"), Skill_2_AnimMontage);
+		}
+		
+		else if (Distance <= Skill_2_MiddleJumpRange)
+		{
+			ChampionAnimInstance->Montage_JumpToSection(FName("Middle"), Skill_2_AnimMontage);
+		}
+		
+		else if (Distance <= Skill_2_LongJumpRange)
+		{
+			ChampionAnimInstance->Montage_JumpToSection(FName("Long"), Skill_2_AnimMontage);
+		}
 	}
+	// TargetLocation = DiavoloLocation;
+	// FVector JumpDirection = (TargetLocation - CurrentLocation).GetSafeNormal();
+	// LaunchCharacter(JumpDirection * Skill_2_JumpStrength, true, true);
+
+	// Set a timer to handle landing effects
+	GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimer, this, &AOPTristana::OnLanding, 1.0f, false, 1.0f);
 }
+
+
+
 
 void AOPTristana::OnLanding()
 {
 	// Handle landing damage and effects
 	TArray<AActor*> IgnoredActors;
 	IgnoredActors.Add(this);
-
 
 	// Apply damage to actors within radius ¹üÀ§ ³»ÀÇ Ä³¸¯ÅÍµé¿¡°Ô ½½·Î¿ì ÀÌÆåÆ® ºÎ¿©
 	//UGameplayStatics::ApplyRadialDamage(this, Skill_2_LandingDamage, GetActorLocation(), Skill_2_LandingRadius, nullptr, IgnoredActors, this, GetController(), true);
@@ -200,15 +225,19 @@ void AOPTristana::OnLanding()
 	GetWorldTimerManager().ClearTimer(Skill_2_CooltimeTimer);
 }
 
+void AOPTristana::PlaySkill_2_JumpAnimMontage()
+{
+}
+
 
 void AOPTristana::Skill_3() //Æø¹ß È­¾à(Explosive Charge) 		È¿°ú: ÆÐ½Ãºê·Î, Æ®¸®½ºÅ¸³ª°¡ Ã³Ä¡ÇÑ ÀûÀÌ Æø¹ßÇÏ¿© ÁÖº¯ Àûµé¿¡°Ô ÇÇÇØ¸¦ ÀÔÈü´Ï´Ù.È°¼ºÈ­ : Æ®¸®½ºÅ¸³ª°¡ Àû¿¡°Ô Æø¹ß¹° ÆÐÅ°Áö¸¦ ¼³Ä¡ÇÕ´Ï´Ù.½Ã°£ÀÌ Áö³ª°Å³ª Æ®¸®½ºÅ¸³ª°¡ ÀÏÁ¤ È½¼ö °ø°ÝÀ» °¡ÇÏ¸é Æø¹ßÇÏ¿© Å« ÇÇÇØ¸¦ ÀÔÈü´Ï´Ù.
 {
 	Super::Skill_3();
 
-	if (!GetbSkill_3()) return;
-	if (!GetOPPlayerController()) return;
+	if (!bSkill_3) return;
+	if (OPPlayerController == nullptr) return;
 
-	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 	if (!MouseCursorHit.bBlockingHit) return;
 	UE_LOG(LogTemp, Warning, TEXT("cursor Hit"));
 	TurnCharacterToCursor(MouseCursorHit);
@@ -227,7 +256,10 @@ void AOPTristana::Skill_3() //Æø¹ß È­¾à(Explosive Charge) 		È¿°ú: ÆÐ½Ãºê·Î, Æ®¸®
 		{
 			ChampionAnimInstance->Montage_Play(Skill_3_AnimMontage, 1.0f);
 		}
-		UseExplosiveCharge(TestDiavolo);
+		GetWorldTimerManager().SetTimer(ExplosiveChargeSpawnTimerHandle, FTimerDelegate::CreateLambda([&]
+		{
+			UseExplosiveCharge(TestDiavolo);
+		}), 0.2f, false);
 	}
 }
 
@@ -244,6 +276,7 @@ void AOPTristana::UseExplosiveCharge(AOPDiavolo* Target)
 		AOPTristanaExplosiveCharge* ExplosiveChargeNow = GetWorld()->SpawnActor<AOPTristanaExplosiveCharge>(ExplosiveChargeClass, Target->GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
 		if (ExplosiveChargeNow)
 		{
+			// ExplosiveChargeNow->AttachToComponent(Target->GetCapsuleComponent(), FAttachmentTransformRules::KeepWorldTransform);
 			ExplosiveChargeNow->InitializeCharge(Target, Skill_3_Damage, Skill_3_ExplosionRadius, Skill_3_TimeToExplode);
 			CurrentExplosiveCharge = ExplosiveChargeNow;
 		}
@@ -266,16 +299,20 @@ void AOPTristana::Ult() //´ë±¸°æ ÅºÈ¯ (Buster Shot)È¿°ú: Æ®¸®½ºÅ¸³ª°¡ °­·ÂÇÑ ÅºÈ
 	GetWorldTimerManager().SetTimer(BusterShotClassSpawnTimer, FTimerDelegate::CreateLambda([&]
 		{
 			Ult_BusterShot();
-		}), 0.25f, false);
+		}), 0.35f, false);
 
 	SetbUlt_False();
 	GetWorldTimerManager().SetTimer(Ult_CooltimeTimer, this, &AOPTristana::SetbUlt_True, GetUlt_Cooltime(), false);
+
+	if (ChampionAnimInstance && Ult_AnimMontage)
+	{
+		ChampionAnimInstance->Montage_Play(Ult_AnimMontage, 1.0f);
+	}
 }
 
 void AOPTristana::Ult_BusterShot()
 {
 	UE_LOG(LogTemp, Log, TEXT("Ult_BusterShot"));
-	ChampionAnimInstance->Montage_Play(GetUlt_AnimMontage(), 1.0f);
 
 	if (BusterShotClass == nullptr) return;
 

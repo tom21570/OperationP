@@ -6,8 +6,11 @@
 #include "Champion/OPChampion.h"
 #include "OPMalphite.generated.h"
 
-
 class AOPMalphiteShardOfTheEarth;
+
+/**
+ * 
+ */
 UCLASS()
 class START_API AOPMalphite : public AOPChampion
 {
