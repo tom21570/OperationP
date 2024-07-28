@@ -27,6 +27,8 @@ protected:
 
 	virtual void Skill_2() override;
 
+	AOPDiavolo* Skill_2_Trace();
+
 	virtual void Skill_3() override;
 	
 	void Skill_3_Lightningbolt();
@@ -36,6 +38,10 @@ protected:
 
 	UFUNCTION()
 	void OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	UFUNCTION()
+	void CreateMarkerOnTarget(AOPDiavolo* Target);
+
+	void RemoveMarkerOnTarget(AOPDiavolo* Target);
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"));
@@ -91,8 +97,12 @@ private:
 	FTimerHandle Skill_1_SpawnTimerHandle;
 	FTimerHandle Skill_1_RestTimer;
 
+	FTimerHandle Skill_2_SpawnTimerHandle;
+	FTimerHandle Skill_2_RestTimer;
+
 	bool bThunderingSmash = false; // Q 강화평타가 켜져있는지에 대한 bool
 	bool bStormbringer = false; // 궁으로 변신한 상태인지
+	
 
 	TObjectPtr<class AOPVolibearLightningbolt> Lightningbolt;
 	
@@ -113,6 +123,9 @@ private:
 	bool bUlt_ActAsGame = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	bool bUlt_ActAsParabola = false;
+	//볼리베어 w스킬 갈퀴 마커 메쉬 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 2 | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UStaticMeshComponent* MarkerMesh;
 
 public:
 	FORCEINLINE void ResetMeleeAttackComboCount() { MeleeAttackComboCount = 0; }
