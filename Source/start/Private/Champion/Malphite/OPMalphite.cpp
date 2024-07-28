@@ -30,11 +30,11 @@ void AOPMalphite::Passive()
 	Super::Passive();
 }
 
-void AOPMalphite::MeleeAttack() //��Ÿ
+void AOPMalphite::BasicAttack() //��Ÿ
 {
-	Super::MeleeAttack();
+	Super::BasicAttack();
 
-	if (!bMeleeAttack) return;
+	if (!bBasicAttack) return;
 	if (!OPPlayerController) return;
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -48,23 +48,23 @@ void AOPMalphite::MeleeAttack() //��Ÿ
 			MeleeAttackTrace();
 	}), 0.25f, false);
 
-	if (ChampionAnimInstance && MeleeAttackAnimMontage)
+	if (ChampionAnimInstance && BasicAttackAnimMontage)
 	{
 		if (bThunderClapOn == true)
 		{
-			ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-			ChampionAnimInstance->Montage_JumpToSection(FName("clap"), MeleeAttackAnimMontage);
+			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("clap"), BasicAttackAnimMontage);
 			bThunderClapOn = false;
 		}
 		else
 		{
-			ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
+			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
 		}
 		
 	}
 	
-	SetbMeleeAttack_False();
-	GetWorldTimerManager().SetTimer(MeleeAttackCooltimeTimer, this, &AOPMalphite::SetbMeleeAttack_True, GetMeleeAttackCooltime(), false);
+	SetbBasicAttack_False();
+	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPMalphite::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
 }
 
 bool AOPMalphite::MeleeAttackTrace()
@@ -110,7 +110,7 @@ void AOPMalphite::Skill_1() //������ �ĵ� (Seismic Shard): ��
 
 	SetbSkill_1_False();
 	GetWorldTimerManager().SetTimer(ShardOfTheEarthSpawnTimer, this, &AOPMalphite::Skill_1_ShardOfTheEarth, 0.25f, false);
-	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimer, this, &AOPMalphite::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
+	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimerHandle, this, &AOPMalphite::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
 }
 
 void AOPMalphite::ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* OtherChampion)
@@ -188,7 +188,7 @@ void AOPMalphite::Skill_3() //���� ��Ÿ (Ground Slam): ����:
 	}
 
 	SetbSkill_3_False();
-	GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimer, this, &AOPMalphite::SetbSkill_3_True, GetSkill_3_Cooltime(), false);
+	GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimerHandle, this, &AOPMalphite::SetbSkill_3_True, GetSkill_3_Cooltime(), false);
 }
 
 
@@ -260,7 +260,7 @@ void AOPMalphite::Ult() //���� �� ���� �� (Unstoppable F
 	ProjectileMovementComponent->Velocity = GetActorForwardVector() * Ult_Velocity;
 	
 	SetbUlt_False();
-	GetWorldTimerManager().SetTimer(Ult_CooltimeTimer, this, &AOPMalphite::SetbUlt_True, GetUlt_Cooltime(), false);
+	GetWorldTimerManager().SetTimer(Ult_CooltimeTimerHandle, this, &AOPMalphite::SetbUlt_True, GetUlt_Cooltime(), false);
 }
 
 // Collision event handler

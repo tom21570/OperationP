@@ -29,11 +29,11 @@ void AOPYasuo::Passive()
 	Super::Passive();
 }
 
-void AOPYasuo::MeleeAttack()
+void AOPYasuo::BasicAttack()
 {
-	Super::MeleeAttack();
+	Super::BasicAttack();
 
-	if(!bMeleeAttack) return; // 평타 쿨타임 시 return
+	if(!bBasicAttack) return; // 평타 쿨타임 시 return
 	if(OPPlayerController == nullptr) return; // 플레이어 컨트롤러가 nullptr 시 return
 
 	// ECC_Visibility 채널에 대한 반응이 overlap 또는 block인 액터에 hit 했을 시 GetHitResultUnderCursor는 그 액터에 대한 HitResult를 MouseCursorHit에 저장.
@@ -43,8 +43,8 @@ void AOPYasuo::MeleeAttack()
 	TurnCharacterToCursor(MouseCursorHit); // 만약 반응이 block이라면 그 Hit 방향으로 캐릭터를 돌림
 
 	// 평타 쿨타임 설정을 위한 두 줄
-	SetbMeleeAttack_False();
-	GetWorldTimerManager().SetTimer(MeleeAttackCooltimeTimer, this, &AOPYasuo::SetbMeleeAttack_True, GetMeleeAttackCooltime(), false);
+	SetbBasicAttack_False();
+	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPYasuo::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
 
 	// 평타 시전시간 지나면 Trace하고 디아볼로가 Trace되면 피격 사운드 재생
 	GetWorldTimerManager().SetTimer(MeleeAttackCastTimer, FTimerDelegate::CreateLambda([&]
@@ -59,36 +59,36 @@ void AOPYasuo::MeleeAttack()
 	}), 0.25f, false);
 
 	if (!ChampionAnimInstance) return; // 애니메이션 인스턴스가 없을 시 return
-	if (!MeleeAttackAnimMontage) return; // 평타 애니메이션 몽타주가 없을 시 return
+	if (!BasicAttackAnimMontage) return; // 평타 애니메이션 몽타주가 없을 시 return
 	
 	switch (MeleeAttackComboCount) // 4번의 연결된 평타동작
 	{
 	case 0:
-		ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("1"), MeleeAttackAnimMontage);
+		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+		ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
 		GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
 		MeleeAttackComboCount++;
 		break;
 
 	case 1:
-		ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("2"), MeleeAttackAnimMontage);
+		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+		ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
 		GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
 		GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
 		MeleeAttackComboCount++;
 		break;
 
 	case 2:
-		ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("3"), MeleeAttackAnimMontage);
+		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+		ChampionAnimInstance->Montage_JumpToSection(FName("3"), BasicAttackAnimMontage);
 		GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
 		GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
 		MeleeAttackComboCount++;
 		break;
 
 	case 3:
-		ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("4"), MeleeAttackAnimMontage);
+		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+		ChampionAnimInstance->Montage_JumpToSection(FName("4"), BasicAttackAnimMontage);
 		MeleeAttackComboCount = 0;
 		break;
 
@@ -191,7 +191,7 @@ void AOPYasuo::Skill_1()
 	}
 	
 	SetbSkill_1_False();
-	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimer, this, &AOPYasuo::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
+	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
 }
 
 bool AOPYasuo::Skill_1_Trace()
@@ -270,7 +270,7 @@ void AOPYasuo::Skill_2()
 	}
 
 	SetbSkill_2_False();
-	GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimer, this, &AOPYasuo::SetbSkill_2_True, GetSkill_2_Cooltime(), false);
+	GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_2_True, GetSkill_2_Cooltime(), false);
 }
 
 void AOPYasuo::Skill_2_WindWall()
@@ -333,7 +333,7 @@ void AOPYasuo::Skill_3()
 	}
 	
 	SetbSkill_3_False();
-	GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimer, this, &AOPYasuo::SetbSkill_3_True, Skill_3_Cooltime, false);
+	GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_3_True, Skill_3_Cooltime, false);
 }
 
 void AOPYasuo::Skill_4()
@@ -394,7 +394,7 @@ void AOPYasuo::Skill_4()
 	}
 
 	SetbSkill_4_False();
-	GetWorldTimerManager().SetTimer(Skill_4_CooltimeTimer, this, &AOPYasuo::SetbSkill_4_True, GetSkill_4_Cooltime(), false);
+	GetWorldTimerManager().SetTimer(Skill_4_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_4_True, GetSkill_4_Cooltime(), false);
 }
 
 // Collision event handler
@@ -485,7 +485,7 @@ void AOPYasuo::Ult()
 	}
 	
 	SetbUlt_False();
-	GetWorldTimerManager().SetTimer(Ult_CooltimeTimer, this, &AOPYasuo::SetbUlt_True, GetUlt_Cooltime(), false);
+	GetWorldTimerManager().SetTimer(Ult_CooltimeTimerHandle, this, &AOPYasuo::SetbUlt_True, GetUlt_Cooltime(), false);
 }
 
 

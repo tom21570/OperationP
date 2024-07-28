@@ -17,12 +17,11 @@ public:
     AOPChampion();
 
 protected:
-    FHitResult MouseCursorHit;
-    virtual void BeginPlay() override;
+    FHitResult MouseCursorHit; // 마우스 커서에서 받아오는 정보를 담을 HitResult
+    virtual void BeginPlay() override; // 게임이 시작될 때 실행될 함수
 
     virtual void Passive();
-    virtual void MeleeAttack();
-    virtual void LongDistanceAttack();
+    virtual void BasicAttack(); // 평타
     virtual void Skill_1();
     virtual void Skill_2();
     virtual void Skill_3();
@@ -30,12 +29,11 @@ protected:
     virtual void Ult();
 
 public:
-    virtual void Tick(float DeltaTime) override;
-    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    virtual void Tick(float DeltaTime) override; // 매 프레임마다 실행되는 함수
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override; // 조작키
 
     void TurnCharacterToLocation(FVector TurnPoint);
     void TurnCharacterToCursor(FHitResult HitResult);
-
 
 protected:
     TObjectPtr<class AOPPlayerController> OPPlayerController;
@@ -59,7 +57,7 @@ protected:
     TObjectPtr<UInputAction> LookAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputAction> MeleeAttackAction;
+    TObjectPtr<UInputAction> BasicAttackAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UInputAction> LongDistanceAttackAction;
@@ -95,29 +93,19 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Damaged", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> DeadAnimMontage;
 
-    FTimerHandle MeleeAttackCooltimeTimer;
-    FTimerHandle MeleeAttackTimer;
-    bool bMeleeAttack = true;
+    /**************************************** 평타 *******************************************/
+    FTimerHandle BasicAttackCooltimeTimerHandle;
+    FTimerHandle BasicAttackTimer;
+    bool bBasicAttack = true;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MeleeAttack", meta = (AllowPrivateAccess = "true"))
-    float MeleeAttackCooltime = 1.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack", meta = (AllowPrivateAccess = "true"))
+    float BasicAttackCooltime = 1.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Melee Attack", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UAnimMontage> MeleeAttackAnimMontage;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UAnimMontage> BasicAttackAnimMontage;
 
-    FTimerHandle LongDistanceAttackCooltimeTimer;
-    bool bLongDistanceAttack = true;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LongDistanceAttack", meta = (AllowPrivateAccess = "true"))
-    float LongDistanceAttackCooltime = 1.f;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Long DistanceAttack", meta = (AllowPrivateAccess = "true"))
-    class UAnimMontage* LongDistanceAttackAnimMontage;
-
-
-
-
-    FTimerHandle PassiveTimer;
+    /**************************************** 패시브 *******************************************/
+    FTimerHandle PassiveTimerHandle;
     bool bPassive = true;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Passive", meta = (AllowPrivateAccess = "true"))
@@ -126,7 +114,8 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Passive", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Passive_AnimMontage;
 
-    FTimerHandle Skill_1_CooltimeTimer;
+    /**************************************** 스킬 1 *******************************************/
+    FTimerHandle Skill_1_CooltimeTimerHandle;
     bool bSkill_1 = true;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
@@ -135,42 +124,46 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Skill_1_AnimMontage;
 
+    /**************************************** 스킬 2 *******************************************/
     bool bSkill_2 = true;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 2", meta = (AllowPrivateAccess = "true"))
     float Skill_2_Cooltime = 10.f;
 
-    FTimerHandle Skill_2_CooltimeTimer;
+    FTimerHandle Skill_2_CooltimeTimerHandle;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 2", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Skill_2_AnimMontage;
 
+    /**************************************** 스킬 3 *******************************************/
     bool bSkill_3 = true;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3", meta = (AllowPrivateAccess = "true"))
     float Skill_3_Cooltime = 10.f;
 
-    FTimerHandle Skill_3_CooltimeTimer;
+    FTimerHandle Skill_3_CooltimeTimerHandle;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Skill_3_AnimMontage;
 
+    /**************************************** 스킬 4 *******************************************/
     bool bSkill_4 = true;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 4", meta = (AllowPrivateAccess = "true"))
     float Skill_4_Cooltime = 10.f;
 
-    FTimerHandle Skill_4_CooltimeTimer;
+    FTimerHandle Skill_4_CooltimeTimerHandle;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 4", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Skill_4_AnimMontage;
 
+    /**************************************** 궁극기 *******************************************/
     bool bUlt = true;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ult", meta = (AllowPrivateAccess = "true"))
     float Ult_Cooltime = 10.f;
 
-    FTimerHandle Ult_CooltimeTimer;
+    FTimerHandle Ult_CooltimeTimerHandle;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ult", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Ult_AnimMontage;
@@ -196,29 +189,20 @@ public:
     FORCEINLINE UAnimMontage* GetDamagedAnimMontage() const { return DamagedAnimMontage; }
     FORCEINLINE UAnimMontage* GetDeadAnimMontage() const { return DeadAnimMontage; }
 
-    FORCEINLINE bool GetbMeleeAttack() const { return bMeleeAttack; }
-    FORCEINLINE float GetMeleeAttackCooltime() const { return MeleeAttackCooltime; }
-    FORCEINLINE void SetbMeleeAttack(bool value) { bMeleeAttack = value; }
-    FORCEINLINE void SetbMeleeAttack_True() { bMeleeAttack = true; }
-    FORCEINLINE void SetbMeleeAttack_False() { bMeleeAttack = false; }
-    FORCEINLINE FTimerHandle GetMeleeAttackTimerHandle() { return MeleeAttackCooltimeTimer; }
-    FORCEINLINE UAnimMontage* GetMeleeAttackAnimMontage() const { return MeleeAttackAnimMontage; }
-
-    FORCEINLINE bool GetbLongDistanceAttack() const { return bLongDistanceAttack; }
-    FORCEINLINE float GetLongDistanceAttackCooltime() const { return LongDistanceAttackCooltime; }
-    FORCEINLINE void SetbLongDistanceAttack(bool value) { bLongDistanceAttack = value; }
-    FORCEINLINE void SetbLongDistanceAttack_True() { bLongDistanceAttack = true; }
-    FORCEINLINE void SetbLongDistanceAttack_False() { bLongDistanceAttack = false; }
-    FORCEINLINE FTimerHandle GetLongDistanceAttackTimerHandle() { return LongDistanceAttackCooltimeTimer; }
-    FORCEINLINE UAnimMontage* GetLongDistanceAttackAnimMontage() const { return LongDistanceAttackAnimMontage; }
-
-
+    FORCEINLINE bool GetbBasicAttack() const { return bBasicAttack; }
+    FORCEINLINE float GetBasicAttackCooltime() const { return BasicAttackCooltime; }
+    FORCEINLINE void SetbBasicAttack(bool value) { bBasicAttack = value; }
+    FORCEINLINE void SetbBasicAttack_True() { bBasicAttack = true; }
+    FORCEINLINE void SetbBasicAttack_False() { bBasicAttack = false; }
+    FORCEINLINE FTimerHandle GetBasicAttackTimerHandle() const { return BasicAttackCooltimeTimerHandle; }
+    FORCEINLINE UAnimMontage* GetBasicAttackAnimMontage() const { return BasicAttackAnimMontage; }
+    
     FORCEINLINE bool GetbPassive() const { return bPassive; }
     FORCEINLINE float GetPassiveCooltime() const { return Passive_Cooltime; }
     FORCEINLINE void SetbPassive(bool value) { bPassive = value; }
     FORCEINLINE void SetbPassive_True() { bPassive = true; }
     FORCEINLINE void SetbPassive_False() { bPassive = false; }
-    FORCEINLINE FTimerHandle GetPassiveTimerHandle() const { return PassiveTimer; }
+    FORCEINLINE FTimerHandle GetPassiveTimerHandle() const { return PassiveTimerHandle; }
     FORCEINLINE UAnimMontage* GetPassiveAnimMontage() const { return Passive_AnimMontage; }
 
     FORCEINLINE bool GetbSkill_1() const { return bSkill_1; }
@@ -226,7 +210,7 @@ public:
     FORCEINLINE void SetbSkill_1(bool value) { bSkill_1 = value; }
     FORCEINLINE void SetbSkill_1_True() { bSkill_1 = true; }
     FORCEINLINE void SetbSkill_1_False() { bSkill_1 = false; }
-    FORCEINLINE FTimerHandle GetSkill_1_TimerHandle() const { return Skill_1_CooltimeTimer; }
+    FORCEINLINE FTimerHandle GetSkill_1_TimerHandle() const { return Skill_1_CooltimeTimerHandle; }
     FORCEINLINE UAnimMontage* GetSkill_1_AnimMontage() const { return Skill_1_AnimMontage; }
 
     FORCEINLINE bool GetbSkill_2() const { return bSkill_2; }
@@ -234,7 +218,7 @@ public:
     FORCEINLINE void SetbSkill_2(bool value) { bSkill_2 = value; }
     FORCEINLINE void SetbSkill_2_True() { bSkill_2 = true; }
     FORCEINLINE void SetbSkill_2_False() { bSkill_2 = false; }
-    FORCEINLINE FTimerHandle GetSkill_2_TimerHandle() const { return Skill_2_CooltimeTimer; }
+    FORCEINLINE FTimerHandle GetSkill_2_TimerHandle() const { return Skill_2_CooltimeTimerHandle; }
     FORCEINLINE UAnimMontage* GetSkill_2_AnimMontage() const { return Skill_2_AnimMontage; }
 
     FORCEINLINE bool GetbSkill_3() const { return bSkill_3; }
@@ -242,7 +226,7 @@ public:
     FORCEINLINE void SetbSkill_3(bool value) { bSkill_3 = value; }
     FORCEINLINE void SetbSkill_3_True() { bSkill_3 = true; }
     FORCEINLINE void SetbSkill_3_False() { bSkill_3 = false; }
-    FORCEINLINE FTimerHandle GetSkill_3_TimerHandle() const { return Skill_3_CooltimeTimer; }
+    FORCEINLINE FTimerHandle GetSkill_3_TimerHandle() const { return Skill_3_CooltimeTimerHandle; }
     FORCEINLINE UAnimMontage* GetSkill_3_AnimMontage() const { return Skill_3_AnimMontage; }
 
     FORCEINLINE bool GetbSkill_4() const { return bSkill_4; }
@@ -250,7 +234,7 @@ public:
     FORCEINLINE void SetbSkill_4(bool value) { bSkill_4 = value; }
     FORCEINLINE void SetbSkill_4_True() { bSkill_4 = true; }
     FORCEINLINE void SetbSkill_4_False() { bSkill_4 = false; }
-    FORCEINLINE FTimerHandle GetSkill_4_TimerHandle() const { return Skill_4_CooltimeTimer; }
+    FORCEINLINE FTimerHandle GetSkill_4_TimerHandle() const { return Skill_4_CooltimeTimerHandle; }
     FORCEINLINE UAnimMontage* GetSkill_4_AnimMontage() const { return Skill_4_AnimMontage; }
 
     FORCEINLINE bool GetbUlt() const { return bUlt; }
@@ -258,7 +242,7 @@ public:
     FORCEINLINE void SetbUlt(bool value) { bUlt = value; }
     FORCEINLINE void SetbUlt_True() { bUlt = true; }
     FORCEINLINE void SetbUlt_False() { bUlt = false; }
-    FORCEINLINE FTimerHandle GetUlt_TimerHandle() const { return Ult_CooltimeTimer; }
+    FORCEINLINE FTimerHandle GetUlt_TimerHandle() const { return Ult_CooltimeTimerHandle; }
     FORCEINLINE UAnimMontage* GetUlt_AnimMontage() const { return Ult_AnimMontage; }
 
     FORCEINLINE UOPAnimInstance* GetChampionAnimInstance() const { return ChampionAnimInstance; }
@@ -267,4 +251,6 @@ public:
     USkeletalMeshComponent* GetChampionSkeletalMeshComponent() const { return GetMesh(); }
 
     virtual void AddShield(float ShieldAmount);
+
+    void PlayDeadAnimMontage();
 };

@@ -30,11 +30,11 @@ void AOPLeeSin::Passive()
     Super::Passive();
 }
 
-void AOPLeeSin::MeleeAttack()
+void AOPLeeSin::BasicAttack()
 {
-    Super::MeleeAttack();
+    Super::BasicAttack();
 
-    if (!bMeleeAttack) return;
+    if (!bBasicAttack) return;
     if (OPPlayerController == nullptr) return;
 
     OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -43,43 +43,43 @@ void AOPLeeSin::MeleeAttack()
     TurnCharacterToCursor(MouseCursorHit);
     
     check(ChampionAnimInstance);
-    check(GetMeleeAttackAnimMontage());
+    check(GetBasicAttackAnimMontage());
 
-    GetWorldTimerManager().SetTimer(MeleeAttackTimer, FTimerDelegate::CreateLambda([&]
+    GetWorldTimerManager().SetTimer(BasicAttackTimer, FTimerDelegate::CreateLambda([&]
     {
         MeleeAttackTrace();
     }), 0.25f, false);
 
-    if (ChampionAnimInstance && MeleeAttackAnimMontage)
+    if (ChampionAnimInstance && BasicAttackAnimMontage)
     {
         switch (MeleeAttackComboCount)
         {
         case 0:
-            ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-            ChampionAnimInstance->Montage_JumpToSection(FName("1"), MeleeAttackAnimMontage);
+            ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
             GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPLeeSin::ResetMeleeAttackComboCount, 5.f, false);
             MeleeAttackComboCount++;
             break;
 
         case 1:
-            ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-            ChampionAnimInstance->Montage_JumpToSection(FName("2"), MeleeAttackAnimMontage);
+            ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
             GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
             GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPLeeSin::ResetMeleeAttackComboCount, 5.f, false);
             MeleeAttackComboCount++;
             break;
 
         case 2:
-            ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-            ChampionAnimInstance->Montage_JumpToSection(FName("3"), MeleeAttackAnimMontage);
+            ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("3"), BasicAttackAnimMontage);
             GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
             GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPLeeSin::ResetMeleeAttackComboCount, 5.f, false);
             MeleeAttackComboCount++;
             break;
 
         case 3:
-            ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-            ChampionAnimInstance->Montage_JumpToSection(FName("4"), MeleeAttackAnimMontage);
+            ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("4"), BasicAttackAnimMontage);
             MeleeAttackComboCount = 0;
             break;
 
@@ -88,8 +88,8 @@ void AOPLeeSin::MeleeAttack()
         }
     }
 
-    SetbMeleeAttack_False();
-    GetWorldTimerManager().SetTimer(MeleeAttackCooltimeTimer, this, &AOPLeeSin::SetbMeleeAttack_True, GetMeleeAttackCooltime(), false);
+    SetbBasicAttack_False();
+    GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPLeeSin::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
 }
 
 bool AOPLeeSin::MeleeAttackTrace()
@@ -164,7 +164,7 @@ void AOPLeeSin::Skill_1()
         ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
         ChampionAnimInstance->Montage_JumpToSection(FName("SonicWave"), GetSkill_1_AnimMontage());
         GetWorldTimerManager().SetTimer(SonicWaveSpawnTimer, this, &AOPLeeSin::Skill_1_SonicWave, 0.25f, false);
-        GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimer, this, &AOPLeeSin::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
+        GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimerHandle, this, &AOPLeeSin::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
     }
 }
 
@@ -205,7 +205,7 @@ void AOPLeeSin::Skill_2()
         GetWorldTimerManager().SetTimer(DashCompleteTimer, this, &AOPLeeSin::OnDashCompleted, 0.1f, false);
 
         SetbSkill_2_False();
-        GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimer, this, &AOPLeeSin::SetbSkill_2_True, GetSkill_2_Cooltime(), false);
+        GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimerHandle, this, &AOPLeeSin::SetbSkill_2_True, GetSkill_2_Cooltime(), false);
     }
 }
 
@@ -246,7 +246,7 @@ void AOPLeeSin::Skill_3()
     GetWorldTimerManager().SetTimer(Skill_3_CastTimer, this, &AOPLeeSin::Skill_3_GroundSlam, 0.25f, false);
     
     SetbSkill_3_False();
-    GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimer, this, &AOPLeeSin::SetbSkill_3_True, GetSkill_3_Cooltime(), false);
+    GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimerHandle, this, &AOPLeeSin::SetbSkill_3_True, GetSkill_3_Cooltime(), false);
 
     if (ChampionAnimInstance && Skill_3_AnimMontage)
     {
@@ -345,7 +345,7 @@ void AOPLeeSin::Ult()
     }
 
     SetbUlt_False();
-    GetWorldTimerManager().SetTimer(Ult_CooltimeTimer, this, &AOPLeeSin::SetbUlt_True, GetUlt_Cooltime(), false);
+    GetWorldTimerManager().SetTimer(Ult_CooltimeTimerHandle, this, &AOPLeeSin::SetbUlt_True, GetUlt_Cooltime(), false);
 }
 
 bool AOPLeeSin::UltTrace()

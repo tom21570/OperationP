@@ -16,12 +16,19 @@
 #include "Champion/Tristana/OPTristanaExplosiveCharge.h"
 #include "Engine/World.h"
 #include "TimerManager.h"
+#include "Engine/SkeletalMeshSocket.h"
 
 AOPTristana::AOPTristana()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component")); // Åõ»çÃ¼ ¿òÁ÷ÀÓ Æ÷ÀÎÅÍ¿¡ µ¿Àû ÇÒ´ç
+
+	CannonBallSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("CannonBall SpawnPoint"));
+	CannonBallSpawnPoint->SetupAttachment(GetMesh(), FName(TEXT("CannonSocket")));
+
+	RapidFireNiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("RapidFire Niagara"));
+	RapidFireNiagaraComponent->SetupAttachment(GetMesh(), FName(TEXT("CannonSocket")));
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 }
 
@@ -29,9 +36,14 @@ void AOPTristana::BeginPlay()
 {
 	Super::BeginPlay();
 
-	DefaultAttackSpeed = LongDistanceAttack_Speed;
+	DefaultAttackSpeed = BasicAttackCooltime;
 
 	Skill_2_LongJumpRange = Skill_2_MaxJumpRange;
+
+	if (RapidFireNiagaraComponent)
+	{
+		RapidFireNiagaraComponent->SetVisibility(false);
+	}
 }
 
 void AOPTristana::Tick(float DeltaTime)
@@ -43,79 +55,75 @@ void AOPTristana::Passive()
 
 }
 
-void AOPTristana::MeleeAttack()
+void AOPTristana::BasicAttack()
 {
-	Super::MeleeAttack();
+	Super::BasicAttack();
 
-	if (!GetbLongDistanceAttack()) return;
-	if (!GetOPPlayerController()) return;
+	if (!bBasicAttack) return;
+	if (OPPlayerController == nullptr) return;
 
-	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 	if (!MouseCursorHit.bBlockingHit) return;
-	UE_LOG(LogTemp, Warning, TEXT("cursor Hit"));
 	TurnCharacterToCursor(MouseCursorHit);
 
-	TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
-	if (TestDiavolo == nullptr) return;
+	GetWorldTimerManager().SetTimer(CannonBallSpawnTimer, this, &AOPTristana::BasicAttack_CannonBall, 0.25f, false);
 
-	MeleeAttack_CannonBall();
+	if (ChampionAnimInstance && BasicAttackAnimMontage)
+	{
+		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.0f);
+	}
 
-	GetWorldTimerManager().SetTimer(CannonBallClassSpawnTimer, this, &AOPTristana::MeleeAttack_CannonBall, LongDistanceAttack_Speed, false);
+	SetbBasicAttack_False();
+	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPTristana::SetbBasicAttack_True, BasicAttackCooltime, false);
 	//GetWorldTimerManager().SetTimer(MeleeAttackCooltimeTimer, this, &AOPTristana::SetbMeleeAttack, GetMeleeAttackCooltime(), false); //ÀÌºÎºÐÀº ¿Ö SetTimer°¡ »¡°£ÁÙÀÌ ÃÄÁú±î¿ä
 	
 	
-	/* ¹üÀ§ ÀÌµ¿ ÈÄ °ø°ÝÀº ÃßÈÄ Ãß°¡
-	FVector Start = GetActorLocation();
-	FVector TestDiavoloLocation = TestDiavolo->GetActorLocation();
-
-	float DistanceToTarget = CalculateMinDistanceToActorEdge(Start, TestDiavoloLocation, LongDistanceAttack_Range);
-
-	FTimerHandle LongDistanceAttack_EndTimer;
-
-
-	if (DistanceToTarget <= LongDistanceAttack_Range)
-	{
-		// °ø°Ý ¹üÀ§ ³»¿¡ ÀÖÀ¸¸é °ø°Ý
-		FHitResult HitResult;
-		FCollisionQueryParams Params;
-		Params.AddIgnoredActor(this);
-
-		GetChampionAnimInstance()->Montage_Play(LongDistanceAttackAnimMontage, 1.f);
-
-		if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, TestDiavoloLocation, ECC_Visibility, Params))
-		{
-			// µ¥¹ÌÁö Àû¿ë
-			if (AActor* HitActor = HitResult.GetActor())
-			{
-				// ÀÓ½Ã·Î ·Î±× Ãâ·Â
-				UE_LOG(LogTemp, Warning, TEXT("Hit: %s"), *HitActor->GetName());
-				//µð¾Æº¼·Î ¾²·¯Áö´Â ¸ð¼Ç È¤Àº °ø°Ý´çÇÏ´Â ¸ð¼Ç Ãß°¡
-			}
-		}
-	}
-	else
-	{
-		// °ø°Ý ¹üÀ§ ¹Û¿¡ ÀÖÀ¸¸é ÀÌµ¿
-		FVector Direction = (TestDiavoloLocation - Start).GetSafeNormal();
-		FVector MoveLocation = TestDiavoloLocation - Direction * LongDistanceAttack_Range;
-
-		UE_LOG(LogTemp, Warning, TEXT("Moving to: %s"), *MoveLocation.ToString());
-		MoveToLocation(MoveLocation);
-	}
-	*/
+	// FVector Start = GetActorLocation();
+	// FVector TestDiavoloLocation = TestDiavolo->GetActorLocation();
+	//
+	// float DistanceToTarget = CalculateMinDistanceToActorEdge(Start, TestDiavoloLocation, LongDistanceAttack_Range);
+	//
+	// FTimerHandle LongDistanceAttack_EndTimer;
+	//
+	//
+	// if (DistanceToTarget <= LongDistanceAttack_Range)
+	// {
+	// 	// °ø°Ý ¹üÀ§ ³»¿¡ ÀÖÀ¸¸é °ø°Ý
+	// 	FHitResult HitResult;
+	// 	FCollisionQueryParams Params;
+	// 	Params.AddIgnoredActor(this);
+	//
+	// 	GetChampionAnimInstance()->Montage_Play(LongDistanceAttackAnimMontage, 1.f);
+	//
+	// 	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, TestDiavoloLocation, ECC_Visibility, Params))
+	// 	{
+	// 		// µ¥¹ÌÁö Àû¿ë
+	// 		if (AActor* HitActor = HitResult.GetActor())
+	// 		{
+	// 			// ÀÓ½Ã·Î ·Î±× Ãâ·Â
+	// 			UE_LOG(LogTemp, Warning, TEXT("Hit: %s"), *HitActor->GetName());
+	// 			//µð¾Æº¼·Î ¾²·¯Áö´Â ¸ð¼Ç È¤Àº °ø°Ý´çÇÏ´Â ¸ð¼Ç Ãß°¡
+	// 		}
+	// 	}
+	// }
+	// else
+	// {
+	// 	// °ø°Ý ¹üÀ§ ¹Û¿¡ ÀÖÀ¸¸é ÀÌµ¿
+	// 	FVector Direction = (TestDiavoloLocation - Start).GetSafeNormal();
+	// 	FVector MoveLocation = TestDiavoloLocation - Direction * LongDistanceAttack_Range;
+	//
+	// 	UE_LOG(LogTemp, Warning, TEXT("Moving to: %s"), *MoveLocation.ToString());
+	// 	MoveToLocation(MoveLocation);
+	//
+	// }
+		
 }
 
-void AOPTristana::MeleeAttack_CannonBall()
+void AOPTristana::BasicAttack_CannonBall()
 {
-	UE_LOG(LogTemp, Log, TEXT("MeleeAttack_CannonBall"));
-	ChampionAnimInstance->Montage_Play(GetMeleeAttackAnimMontage(), 1.0f);
-
 	if (CannonBallClass == nullptr) return;
-
-	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 100.f; // Ä³¸¯ÅÍº¸´Ù »ìÂ¦ ¾Õ¿¡ ½ºÆù
-	FRotator SpawnRotation = GetActorRotation();
-
-	if (CannonBall = GetWorld()->SpawnActor<AOPTristanaCannonBall>(CannonBallClass, SpawnLocation, SpawnRotation))
+	
+	if (CannonBall = GetWorld()->SpawnActor<AOPTristanaCannonBall>(CannonBallClass, CannonBallSpawnPoint->GetComponentLocation(), GetActorRotation()))
 	{
 		CannonBall->SetOwner(this);
 		FVector LaunchDirection = GetActorForwardVector();
@@ -129,10 +137,16 @@ void AOPTristana::Skill_1()  //ºü¸¥ ¹ß»ç (Rapid Fire) È¿°ú: ÀÏÁ¤ ½Ã°£ µ¿¾È Æ®¸®½
 	//´ëÆ÷¿¡ ºÒºÙ´Â vfx Ãß°¡ ÇÊ¿ä
 
 	bIsRapidFireActive = true;
-	
-	LongDistanceAttack_Speed *= 0.8;
 
+	BasicAttackCooltime *= RapidFireValue;
+
+	if (RapidFireNiagaraComponent)
+	{
+		RapidFireNiagaraComponent->SetVisibility(true);
+	}
 	GetWorldTimerManager().SetTimer(RapidFireTimerHandle, this, &AOPTristana::EndRapidFire, RapidFireDuration, false);
+
+	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimerHandle, this, &AOPTristana::SetbSkill_1_True, Skill_1_Cooltime, false);
 }
 
 
@@ -140,7 +154,12 @@ void AOPTristana::EndRapidFire()
 {
 	bIsRapidFireActive = false;
 
-	LongDistanceAttack_Speed = DefaultAttackSpeed;
+	BasicAttackCooltime = DefaultAttackSpeed;
+
+	if (RapidFireNiagaraComponent)
+	{
+		RapidFireNiagaraComponent->SetVisibility(false);
+	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Rapid Fire ended: Attack speed normalized."));
 }
@@ -149,10 +168,10 @@ void AOPTristana::Skill_2() //·ÎÄÏ Á¡ÇÁ (Rocket Jump) È¿°ú: Æ®¸®½ºÅ¸³ª°¡ ¸ñÇ¥ Áö
 {
 	Super::Skill_2();
 
-	if (!GetbSkill_2()) return;
-	if (!GetOPPlayerController()) return;
+	if (!bSkill_2) return;
+	if (OPPlayerController == nullptr) return;
 
-	GetOPPlayerController()->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 	if (!MouseCursorHit.bBlockingHit) return;
 	UE_LOG(LogTemp, Warning, TEXT("cursor Hit"));
 	TurnCharacterToCursor(MouseCursorHit);
@@ -183,31 +202,14 @@ void AOPTristana::Skill_2() //·ÎÄÏ Á¡ÇÁ (Rocket Jump) È¿°ú: Æ®¸®½ºÅ¸³ª°¡ ¸ñÇ¥ Áö
 	if (ChampionAnimInstance && Skill_2_AnimMontage)
 	{
 		ChampionAnimInstance->Montage_Play(Skill_2_AnimMontage, 1.0f);
-		if (Distance <= Skill_2_ShortJumpRange)
-		{
-			ChampionAnimInstance->Montage_JumpToSection(FName("Short"), Skill_2_AnimMontage);
-		}
-		
-		else if (Distance <= Skill_2_MiddleJumpRange)
-		{
-			ChampionAnimInstance->Montage_JumpToSection(FName("Middle"), Skill_2_AnimMontage);
-		}
-		
-		else if (Distance <= Skill_2_LongJumpRange)
-		{
-			ChampionAnimInstance->Montage_JumpToSection(FName("Long"), Skill_2_AnimMontage);
-		}
 	}
 	// TargetLocation = DiavoloLocation;
 	// FVector JumpDirection = (TargetLocation - CurrentLocation).GetSafeNormal();
 	// LaunchCharacter(JumpDirection * Skill_2_JumpStrength, true, true);
 
 	// Set a timer to handle landing effects
-	GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimer, this, &AOPTristana::OnLanding, 1.0f, false, 1.0f);
+	GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimerHandle, this, &AOPTristana::OnLanding, 1.0f, false, 1.0f);
 }
-
-
-
 
 void AOPTristana::OnLanding()
 {
@@ -222,7 +224,7 @@ void AOPTristana::OnLanding()
 	// This can be done via a gameplay ability system or custom logic
 
 	// Clear timer
-	GetWorldTimerManager().ClearTimer(Skill_2_CooltimeTimer);
+	GetWorldTimerManager().ClearTimer(Skill_2_CooltimeTimerHandle);
 }
 
 void AOPTristana::PlaySkill_2_JumpAnimMontage()
@@ -289,7 +291,7 @@ void AOPTristana::Ult() //´ë±¸°æ ÅºÈ¯ (Buster Shot)È¿°ú: Æ®¸®½ºÅ¸³ª°¡ °­·ÂÇÑ ÅºÈ
 	Super::Ult();
 
 	if (!bUlt) return;
-	if (!OPPlayerController) return;
+	if (OPPlayerController == nullptr) return;
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 
@@ -297,12 +299,12 @@ void AOPTristana::Ult() //´ë±¸°æ ÅºÈ¯ (Buster Shot)È¿°ú: Æ®¸®½ºÅ¸³ª°¡ °­·ÂÇÑ ÅºÈ
 	TurnCharacterToCursor(MouseCursorHit);
 
 	GetWorldTimerManager().SetTimer(BusterShotClassSpawnTimer, FTimerDelegate::CreateLambda([&]
-		{
-			Ult_BusterShot();
-		}), 0.35f, false);
+	{
+		Ult_BusterShot();
+	}), 0.3f, false);
 
 	SetbUlt_False();
-	GetWorldTimerManager().SetTimer(Ult_CooltimeTimer, this, &AOPTristana::SetbUlt_True, GetUlt_Cooltime(), false);
+	GetWorldTimerManager().SetTimer(Ult_CooltimeTimerHandle, this, &AOPTristana::SetbUlt_True, GetUlt_Cooltime(), false);
 
 	if (ChampionAnimInstance && Ult_AnimMontage)
 	{
@@ -316,10 +318,7 @@ void AOPTristana::Ult_BusterShot()
 
 	if (BusterShotClass == nullptr) return;
 
-	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 100.f; // Ä³¸¯ÅÍº¸´Ù »ìÂ¦ ¾Õ¿¡ ½ºÆù
-	FRotator SpawnRotation = GetActorRotation();
-
-	if (BusterShot = GetWorld()->SpawnActor<AOPTristanaBusterShot>(BusterShotClass, SpawnLocation, SpawnRotation))
+	if (BusterShot = GetWorld()->SpawnActor<AOPTristanaBusterShot>(BusterShotClass, CannonBallSpawnPoint->GetComponentLocation(), GetActorRotation()))
 	{
 		BusterShot->SetOwner(this);
 		FVector LaunchDirection = GetActorForwardVector();

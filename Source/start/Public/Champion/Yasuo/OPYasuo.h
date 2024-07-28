@@ -24,7 +24,7 @@ protected:
 	virtual void BeginPlay() override;
 	
 	virtual void Passive() override;
-	virtual void MeleeAttack() override;
+	virtual void BasicAttack() override;
 	
 	UFUNCTION()
 	bool MeleeAttackTrace(); // 평타 발동 시 트레이스하는 함수

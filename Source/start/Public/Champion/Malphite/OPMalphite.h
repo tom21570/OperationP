@@ -23,7 +23,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void Passive() override;
-	virtual void MeleeAttack() override;
+	virtual void BasicAttack() override;
 	bool MeleeAttackTrace(); // ��Ÿ �ߵ� �� Ʈ���̽��ϴ� �Լ�
 	virtual void Skill_1() override;
 
@@ -41,7 +41,6 @@ protected:
 
 	UFUNCTION()
 	void OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"));

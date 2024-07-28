@@ -40,6 +40,12 @@ void AOPTristanaCannonBall::OnDamageCollisionBeginOverlap(UPrimitiveComponent* O
 				// TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 			}
 		}
+
+		AOPMalphite* TestMalphite = Cast<AOPMalphite>(OtherActor);
+		if (TestMalphite)
+		{
+			TestMalphite->PlayDeadAnimMontage();
+		}
 	}
 }
 

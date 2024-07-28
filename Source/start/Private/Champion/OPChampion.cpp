@@ -128,6 +128,11 @@ void AOPChampion::AddShield(float ShieldAmount)
 	UE_LOG(LogTemp, Log, TEXT("Shield added: %f"), ShieldAmount);
 }
 
+void AOPChampion::PlayDeadAnimMontage()
+{
+	ChampionAnimInstance->Montage_Play(DeadAnimMontage);
+}
+
 void AOPChampion::DeactivateShieldEffect()
 {
 	if (ShieldEffectComponent)
@@ -142,14 +147,9 @@ void AOPChampion::Passive()
 	UE_LOG(LogTemp, Warning, TEXT("Passive"));
 }
 
-void AOPChampion::MeleeAttack()
+void AOPChampion::BasicAttack()
 {
 	UE_LOG(LogTemp, Warning, TEXT("MeleeAttack"));
-}
-
-void AOPChampion::LongDistanceAttack()
-{
-	UE_LOG(LogTemp, Warning, TEXT("LongDistanceAttack"));
 }
 
 void AOPChampion::Skill_1()
@@ -238,7 +238,7 @@ void AOPChampion::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AOPChampion::Move);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AOPChampion::Look);
 
-	EnhancedInputComponent->BindAction(MeleeAttackAction, ETriggerEvent::Started, this, &AOPChampion::MeleeAttack);
+	EnhancedInputComponent->BindAction(BasicAttackAction, ETriggerEvent::Started, this, &AOPChampion::BasicAttack);
 	EnhancedInputComponent->BindAction(SkillAction1, ETriggerEvent::Started, this, &AOPChampion::Skill_1);
 	EnhancedInputComponent->BindAction(SkillAction2, ETriggerEvent::Started, this, &AOPChampion::Skill_2);
 	EnhancedInputComponent->BindAction(SkillAction3, ETriggerEvent::Started, this, &AOPChampion::Skill_3);

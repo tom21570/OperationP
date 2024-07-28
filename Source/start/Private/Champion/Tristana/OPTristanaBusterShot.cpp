@@ -3,6 +3,7 @@
 
 #include "Champion/Tristana/OPTristanaBusterShot.h"
 #include "Champion/OPChampion.h"
+#include "Champion/Malphite/OPMalphite.h"
 #include "Components/CapsuleComponent.h"
 #include "Diavolo/OPDiavolo.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -16,6 +17,7 @@ void AOPTristanaBusterShot::OnDamageCollisionBeginOverlap(UPrimitiveComponent* O
 	if (OtherActor && OtherActor != this && GetOwner() != nullptr && OtherActor != GetOwner())
 	{
 		AOPDiavolo* TestDiavolo = Cast<AOPDiavolo>(OtherActor);
+		AOPMalphite* TestMalphite = Cast<AOPMalphite>(OtherActor);
 		if (TestDiavolo)
 		{            // Calculate the direction of the impulse
 			FVector ImpactDirection = (TestDiavolo->GetActorLocation() - SweepResult.ImpactPoint).GetSafeNormal();
@@ -36,6 +38,11 @@ void AOPTristanaBusterShot::OnDamageCollisionBeginOverlap(UPrimitiveComponent* O
 				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
 				// TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 			}
+		}
+
+		if (TestMalphite)
+		{
+			TestMalphite->PlayDeadAnimMontage();
 		}
 	}
 }

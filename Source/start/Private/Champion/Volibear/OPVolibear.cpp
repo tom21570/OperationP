@@ -26,11 +26,11 @@ void AOPVolibear::Passive()
 	Super::Passive();
 }
 
-void AOPVolibear::MeleeAttack()
+void AOPVolibear::BasicAttack()
 {
-	Super::MeleeAttack();
+	Super::BasicAttack();
 
-	if(!bMeleeAttack) return; // 평타 쿨타임 시 return
+	if(!bBasicAttack) return; // 평타 쿨타임 시 return
 	if(OPPlayerController == nullptr) return; // 플레이어 컨트롤러가 nullptr 시 return
 
 	// ECC_Visibility 채널에 대한 반응이 overlap 또는 block인 액터에 hit 했을 시 GetHitResultUnderCursor는 그 액터에 대한 HitResult를 MouseCursorHit에 저장.
@@ -42,8 +42,8 @@ void AOPVolibear::MeleeAttack()
 	}
 
 	// 평타 쿨타임 설정을 위한 두 줄
-	SetbMeleeAttack_False();
-	GetWorldTimerManager().SetTimer(MeleeAttackCooltimeTimer, this, &AOPVolibear::SetbMeleeAttack_True, GetMeleeAttackCooltime(), false);
+	SetbBasicAttack_False();
+	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPVolibear::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
 
 	// 평타 시전시간 지나면 Trace하고 디아볼로가 Trace되면 피격 사운드 재생
 	GetWorldTimerManager().SetTimer(MeleeAttackCastTimerHandle, FTimerDelegate::CreateLambda([&]
@@ -55,14 +55,14 @@ void AOPVolibear::MeleeAttack()
 	}), 0.25f, false);
 
 	if (!ChampionAnimInstance) return; // 애니메이션 인스턴스가 없을 시 return
-	if (!MeleeAttackAnimMontage) return; // 평타 애니메이션 몽타주가 없을 시 return
+	if (!BasicAttackAnimMontage) return; // 평타 애니메이션 몽타주가 없을 시 return
 
-	if (ChampionAnimInstance && MeleeAttackAnimMontage)
+	if (ChampionAnimInstance && BasicAttackAnimMontage)
 	{
 		if (bThunderingSmash)
 		{
-			ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-			ChampionAnimInstance->Montage_JumpToSection(FName("Thundering Smash"), MeleeAttackAnimMontage);
+			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("Thundering Smash"), BasicAttackAnimMontage);
 		}
 
 		else
@@ -70,20 +70,37 @@ void AOPVolibear::MeleeAttack()
 			switch (MeleeAttackComboCount) // 2번의 연결된 평타동작
 			{
 			case 0:
-				ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-				ChampionAnimInstance->Montage_JumpToSection(FName("1"), MeleeAttackAnimMontage);
+				ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+				ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
 				GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
 				MeleeAttackComboCount++;
 				break;
 
 			case 1:
-				ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-				ChampionAnimInstance->Montage_JumpToSection(FName("2"), MeleeAttackAnimMontage);
+				ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+				ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
 				GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimerHandle);
 				GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
 				MeleeAttackComboCount++;
 				break;
 
+<<<<<<< Updated upstream
+=======
+			case 2:
+				ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+				ChampionAnimInstance->Montage_JumpToSection(FName("3"), BasicAttackAnimMontage);
+				GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimerHandle);
+				GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
+				MeleeAttackComboCount++;
+				break;
+
+			case 3:
+				ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+				ChampionAnimInstance->Montage_JumpToSection(FName("4"), BasicAttackAnimMontage);
+				MeleeAttackComboCount = 0;
+				break;
+
+>>>>>>> Stashed changes
 			default:
 				;
 			}

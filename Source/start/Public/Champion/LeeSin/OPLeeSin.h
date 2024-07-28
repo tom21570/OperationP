@@ -19,7 +19,7 @@ protected:
     virtual void BeginPlay() override;
 
     virtual void Passive() override;
-    virtual void MeleeAttack() override;
+    virtual void BasicAttack() override;
     bool MeleeAttackTrace();
     virtual void Skill_1() override;
     void Skill_1_SonicWave();
