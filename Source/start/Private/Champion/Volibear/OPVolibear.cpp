@@ -67,7 +67,7 @@ void AOPVolibear::MeleeAttack()
 
 		else
 		{
-			switch (MeleeAttackComboCount) // 4번의 연결된 평타동작
+			switch (MeleeAttackComboCount) // 2번의 연결된 평타동작
 			{
 			case 0:
 				ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
@@ -82,20 +82,6 @@ void AOPVolibear::MeleeAttack()
 				GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimerHandle);
 				GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
 				MeleeAttackComboCount++;
-				break;
-
-			case 2:
-				ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-				ChampionAnimInstance->Montage_JumpToSection(FName("3"), MeleeAttackAnimMontage);
-				GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimerHandle);
-				GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
-				MeleeAttackComboCount++;
-				break;
-
-			case 3:
-				ChampionAnimInstance->Montage_Play(MeleeAttackAnimMontage, 1.f);
-				ChampionAnimInstance->Montage_JumpToSection(FName("4"), MeleeAttackAnimMontage);
-				MeleeAttackComboCount = 0;
 				break;
 
 			default:
@@ -133,9 +119,9 @@ bool AOPVolibear::MeleeAttackTrace()
 	return false;
 }
 
-void AOPVolibear::Skill_1()
+void AOPVolibear::Skill_1() //번개 강타 Q 볼리베어가 적을 향해 이동할 때 이동 속도가 증가하며 처음으로 기본 공격하는 대상을 기절시키고 피해를 입힙니다.
 {
-	Super::Skill_1();
+	Super::Skill_1(); 
 
 	if (!bSkill_1) return;
 	if (OPPlayerController == nullptr) return;
@@ -145,12 +131,65 @@ void AOPVolibear::Skill_1()
 	
 }
 
-void AOPVolibear::Skill_2()
+void AOPVolibear::Skill_2() //광란의 상처 W 볼리베어가 적에게 피해를 입혀 적중 시 효과를 적용하고 표식을 남깁니다.표식을 남긴 대상에게 다시 이 스킬을 사용하면 추가 피해를 입히고 체력을 회복합니다.
 {
 	Super::Skill_2();
+
+	if (!bSkill_2) return;
+	if (OPPlayerController == nullptr) return;
+
+	ChampionAnimInstance->Montage_Play(Skill_2_AnimMontage, 1.f);
+
+	if (AOPDiavolo * ReturnedDiavolo = Cast<AOPDiavolo>(Skill_2_Trace()))
+	{
+		GetWorldTimerManager().SetTimer(Skill_2_SpawnTimerHandle, [this, ReturnedDiavolo]()
+		{
+				SetbSkill_2_True();
+				RemoveMarkerOnTarget(ReturnedDiavolo);
+		}, 8.0, false);
+
+		if (ReturnedDiavolo->bFrenziedMaulOn)
+		{
+			//추가피해 + 체력 회복
+		}
+		else
+		{
+			// 마커생성
+			CreateMarkerOnTarget(ReturnedDiavolo);
+		}
+
+	}
 }
 
-void AOPVolibear::Skill_3()
+AOPDiavolo* AOPVolibear::Skill_2_Trace()
+{
+	TArray<FHitResult> HitResults;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 200.f, 80.f,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+
+	for (auto& HitActor : HitResults)
+	{
+		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+		{
+			Diavolo->SetbIsDamagedTrue();
+			Diavolo->PlayDiavoloRandomDeadMontage();
+			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * Skill_2_Impulse, true);
+			if (!Diavolo->GetbCanBeTestedMultipleTimes())
+			{
+				Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+			}
+
+			return Diavolo;
+		}
+	}
+
+	return nullptr;
+}
+
+void AOPVolibear::Skill_3() //천공 분열E 볼리베어가 지정한 위치에 번개를 소환해 적에게 피해를 입히고 둔화시킵니다.볼리베어가 폭발 반경 안에 있으면 보호막을 얻습니다.
 {
 	Super::Skill_3();
 
@@ -170,7 +209,7 @@ void AOPVolibear::Skill_3()
 	}), 2.f, false);
 }
 
-void AOPVolibear::Skill_3_Lightningbolt()
+void AOPVolibear::Skill_3_Lightningbolt() //
 {
 	Lightningbolt = GetWorld()->SpawnActor<AOPVolibearLightningbolt>(LightningboltClass, Skill_3_FinalLocation, GetActorRotation());
 	Lightningbolt->SetOwner(this);
@@ -181,7 +220,7 @@ void AOPVolibear::Skill_4()
 	Super::Skill_4();
 }
 
-void AOPVolibear::Ult()
+void AOPVolibear::Ult() //폭풍을 부르는 자 R 볼리베어가 지정한 위치로 도약하여 아래에 있는 적을 둔화시키고 피해를 입히며 추가 체력을 얻습니다.볼리베어가 착지한 곳 근처에 있는 포탑은 일시적으로 비활성화됩니다.
 {
 	Super::Ult();
 
@@ -250,4 +289,25 @@ void AOPVolibear::Ult()
 void AOPVolibear::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	FVector NormalImpulse, const FHitResult& Hit)
 {
+}
+
+void AOPVolibear::CreateMarkerOnTarget(AOPDiavolo* Target)
+{
+	if (MarkerMesh && Target)
+	{
+		Target->bFrenziedMaulOn = true;
+		MarkerMesh->AttachToComponent(Target->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		MarkerMesh->SetRelativeLocation(FVector(0, 0, 100));
+		MarkerMesh->SetVisibility(true);
+	}
+}
+
+void AOPVolibear::RemoveMarkerOnTarget(AOPDiavolo* Target)
+{
+	if (MarkerMesh && Target)
+	{
+		Target->bFrenziedMaulOn = false;
+		MarkerMesh->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+		MarkerMesh->SetVisibility(false);
+	}
 }
