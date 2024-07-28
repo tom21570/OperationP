@@ -83,24 +83,7 @@ void AOPVolibear::BasicAttack()
 				GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
 				MeleeAttackComboCount++;
 				break;
-
-<<<<<<< Updated upstream
-=======
-			case 2:
-				ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-				ChampionAnimInstance->Montage_JumpToSection(FName("3"), BasicAttackAnimMontage);
-				GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimerHandle);
-				GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
-				MeleeAttackComboCount++;
-				break;
-
-			case 3:
-				ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-				ChampionAnimInstance->Montage_JumpToSection(FName("4"), BasicAttackAnimMontage);
-				MeleeAttackComboCount = 0;
-				break;
-
->>>>>>> Stashed changes
+				
 			default:
 				;
 			}
