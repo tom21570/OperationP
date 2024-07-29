@@ -3,7 +3,7 @@
 
 #include "Champion/Malphite/OPMalphiteShardOfTheEarth.h"
 #include "Champion/OPChampion.h"
-#include "Animation/AnimInstance.h" // ¾Ö´Ï¸ÞÀÌ¼Ç ÀÎ½ºÅÏ½º Çì´õ Æ÷ÇÔ
+#include "Animation/AnimInstance.h" // ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #include "Animation/OPAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Champion/Malphite/OPMalphite.h"
@@ -21,11 +21,10 @@ void AOPMalphiteShardOfTheEarth::OnDamageCollisionBeginOverlap(UPrimitiveCompone
 		AOPMalphite* MalphiteOwner = Cast<AOPMalphite>(GetOwner());
 		if (TestDiavolo)
 		{
-			// Ä³¸¯ÅÍ Å¬·¡½º¿¡¼­ È¿°ú¸¦ Àû¿ëÇÏ´Â ÇÔ¼ö È£Ãâ
+			// Ä³ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½ ï¿½Ô¼ï¿½ È£ï¿½ï¿½
 			MalphiteOwner->ApplySkill_1_Effect(MalphiteOwner, TestDiavolo);
 		}
-		//¸»ÆÄÀÌÆ® µ¹¿¡ ¸Â°í µð¾Æº¼·Î°¡ ³¯¾Æ°¡¾ßµÇ¸é µð¾Æº¼·Î Ãæ°Ý ÄÚµå¸¦ ³Ö¾îÁà¾ßÇÔ
-		Destroy();
+		//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ ï¿½Â°ï¿½ ï¿½ï¿½Æºï¿½ï¿½Î°ï¿½ ï¿½ï¿½ï¿½Æ°ï¿½ï¿½ßµÇ¸ï¿½ ï¿½ï¿½Æºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Úµå¸¦ ï¿½Ö¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	}
 }
 

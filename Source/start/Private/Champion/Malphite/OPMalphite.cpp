@@ -62,6 +62,9 @@ void AOPMalphite::BasicAttack() //��Ÿ
 		}
 		
 	}
+
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPMalphite::ResetChampionMovement, 0.6f, false);
 	
 	SetbBasicAttack_False();
 	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPMalphite::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
@@ -108,8 +111,11 @@ void AOPMalphite::Skill_1() //������ �ĵ� (Seismic Shard): ��
 	UE_LOG(LogTemp, Log, TEXT("Skill_1_ShardOfTheEarth"));
 	ChampionAnimInstance->Montage_Play(Skill_1_AnimMontage, 1.0f);
 
-	SetbSkill_1_False();
 	GetWorldTimerManager().SetTimer(ShardOfTheEarthSpawnTimer, this, &AOPMalphite::Skill_1_ShardOfTheEarth, 0.25f, false);
+
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPMalphite::ResetChampionMovement, 0.9f, false);
+	SetbSkill_1_False();
 	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimerHandle, this, &AOPMalphite::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
 }
 
@@ -159,6 +165,11 @@ void AOPMalphite::Skill_2() //õ���� ���� (Thunderclap): ���
 		ChampionAnimInstance->Montage_Play(Skill_2_AnimMontage, 1.f);
 	}
 
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPMalphite::ResetChampionMovement, 0.55f, false);
+
+	SetbSkill_2_False();
+	GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimerHandle, this, &AOPMalphite::SetbSkill_2_True, Skill_2_Cooltime, false);
 }
 
 
@@ -187,6 +198,9 @@ void AOPMalphite::Skill_3() //���� ��Ÿ (Ground Slam): ����:
 		ChampionAnimInstance->Montage_JumpToSection(FName("GroundSlam"), Skill_3_AnimMontage);
 	}
 
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPMalphite::ResetChampionMovement, 0.3f, false);
+
 	SetbSkill_3_False();
 	GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimerHandle, this, &AOPMalphite::SetbSkill_3_True, GetSkill_3_Cooltime(), false);
 }
@@ -199,7 +213,7 @@ void AOPMalphite::Skill_3_GroundSlam()
 	ActorsToIgnore.Add(this);
 
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * Skill_3_Radius, Skill_3_Radius,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 
 	for (auto& HitActor : HitResults)
 	{
@@ -245,7 +259,7 @@ void AOPMalphite::Ult() //���� �� ���� �� (Unstoppable F
 	LaunchVector.Z = 0.f;
 	const float FinalDistance = (Ult_FinalLocation - GetActorLocation()).Length();
 	
-	// LaunchCharacter(LaunchVector * Ult_Velocity, true, true);
+	LaunchCharacter(LaunchVector * Ult_Velocity, true, true);
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AOPMalphite::OnProjectileHit);
 	
 	GetWorldTimerManager().SetTimer(Ult_StopTimer, FTimerDelegate::CreateLambda([&]
@@ -257,7 +271,10 @@ void AOPMalphite::Ult() //���� �� ���� �� (Unstoppable F
 	
 	UE_LOG(LogTemp, Warning, TEXT("Distance: %f"), FinalDistance);
 	
-	ProjectileMovementComponent->Velocity = GetActorForwardVector() * Ult_Velocity;
+	// ProjectileMovementComponent->Velocity = GetActorForwardVector() * Ult_Velocity;
+
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPMalphite::ResetChampionMovement, 0.3f, false);
 	
 	SetbUlt_False();
 	GetWorldTimerManager().SetTimer(Ult_CooltimeTimerHandle, this, &AOPMalphite::SetbUlt_True, GetUlt_Cooltime(), false);

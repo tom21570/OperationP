@@ -42,6 +42,9 @@ void AOPYasuo::BasicAttack()
 	if (!MouseCursorHit.bBlockingHit) return; 
 	TurnCharacterToCursor(MouseCursorHit); // 만약 반응이 block이라면 그 Hit 방향으로 캐릭터를 돌림
 
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 1.4f, false);
+
 	// 평타 쿨타임 설정을 위한 두 줄
 	SetbBasicAttack_False();
 	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPYasuo::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
@@ -189,6 +192,9 @@ void AOPYasuo::Skill_1()
 			}
 		}
 	}
+
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 0.7f, false);
 	
 	SetbSkill_1_False();
 	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
@@ -201,7 +207,7 @@ bool AOPYasuo::Skill_1_Trace()
 	ActorsToIgnore.Add(this);
 
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 450.f, 40.f,
-	UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+	UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 
 	for (auto& HitActor : HitResults)
 	{
@@ -254,7 +260,7 @@ void AOPYasuo::Skill_2()
 {
 	Super::Skill_2();
 	
-	if (bSkill_2) return;
+	if (!bSkill_2) return;
 	if (!OPPlayerController) return;
 	
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -268,6 +274,9 @@ void AOPYasuo::Skill_2()
 	{
 		ChampionAnimInstance->Montage_Play(Skill_2_AnimMontage, 1.0f);
 	}
+
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 0.4f, false);
 
 	SetbSkill_2_False();
 	GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_2_True, GetSkill_2_Cooltime(), false);
@@ -331,6 +340,9 @@ void AOPYasuo::Skill_3()
 			TestDiavolo = nullptr;
 		}), 475.f/750.f, false);
 	}
+
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 0.7f, false);
 	
 	SetbSkill_3_False();
 	GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_3_True, Skill_3_Cooltime, false);
@@ -392,6 +404,9 @@ void AOPYasuo::Skill_4()
 	{
 		ChampionAnimInstance->Montage_Play(Skill_3_AnimMontage, 1.0f);
 	}
+	
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 0.7f, false);
 
 	SetbSkill_4_False();
 	GetWorldTimerManager().SetTimer(Skill_4_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_4_True, GetSkill_4_Cooltime(), false);
@@ -483,6 +498,9 @@ void AOPYasuo::Ult()
 	{
 		ChampionAnimInstance->Montage_Play(Ult_AnimMontage, 1.0f);
 	}
+
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 1.35f, false);
 	
 	SetbUlt_False();
 	GetWorldTimerManager().SetTimer(Ult_CooltimeTimerHandle, this, &AOPYasuo::SetbUlt_True, GetUlt_Cooltime(), false);

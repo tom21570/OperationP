@@ -60,9 +60,9 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
     float Ult_Angle = 0.f;
 
-    int32 MeleeAttackComboCount = 0;
-    FTimerHandle MeleeAttackComboCountTimer;
-
+    int32 BasicAttackComboCount = 0;
+    FTimerHandle BasicAttackComboCountTimerHandle;
+    
     FTimerHandle Skill_1_CastTimer;
     FTimerHandle ResonatingStrike_DiavoloMotionTimer;
 
@@ -78,6 +78,7 @@ private:
     // TObjectPtr<UCapsuleComponent> ResonatingStrikeCapsule;
 
     FTimerHandle SonicWaveSpawnTimer;
+
     FTimerHandle DragonsRageSpawnTimer;
 
     TObjectPtr<AOPLeeSinDragonsRage> DragonsRage;

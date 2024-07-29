@@ -72,6 +72,9 @@ void AOPTristana::BasicAttack()
 	{
 		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.0f);
 	}
+	
+	StopChampionMovement();
+    GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.7f, false);
 
 	SetbBasicAttack_False();
 	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPTristana::SetbBasicAttack_True, BasicAttackCooltime, false);
@@ -209,6 +212,12 @@ void AOPTristana::Skill_2() //·ÎÄÏ Á¡ÇÁ (Rocket Jump) È¿°ú: Æ®¸®½ºÅ¸³ª°¡ ¸ñÇ¥ Áö
 
 	// Set a timer to handle landing effects
 	GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimerHandle, this, &AOPTristana::OnLanding, 1.0f, false, 1.0f);
+	
+	StopChampionMovement();
+    GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.7f, false);
+    
+    SetbSkill_2_False();
+    GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimerHandle, this, &AOPTristana::SetbSkill_2_True, Skill_2_Cooltime, false);
 }
 
 void AOPTristana::OnLanding()
@@ -263,6 +272,12 @@ void AOPTristana::Skill_3() //Æø¹ß È­¾à(Explosive Charge) 		È¿°ú: ÆÐ½Ãºê·Î, Æ®¸®
 			UseExplosiveCharge(TestDiavolo);
 		}), 0.2f, false);
 	}
+	
+	StopChampionMovement();
+    GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.7f, false);
+        
+    SetbSkill_3_False();
+    GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimerHandle, this, &AOPTristana::SetbSkill_3_True, Skill_3_Cooltime, false);
 }
 
 void AOPTristana::UseExplosiveCharge(AOPDiavolo* Target)
@@ -310,6 +325,12 @@ void AOPTristana::Ult() //´ë±¸°æ ÅºÈ¯ (Buster Shot)È¿°ú: Æ®¸®½ºÅ¸³ª°¡ °­·ÂÇÑ ÅºÈ
 	{
 		ChampionAnimInstance->Montage_Play(Ult_AnimMontage, 1.0f);
 	}
+	
+	StopChampionMovement();
+    GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.9f, false);
+        
+    SetbUlt_False();
+    GetWorldTimerManager().SetTimer(Ult_CooltimeTimerHandle, this, &AOPTristana::SetbUlt_True, Ult_Cooltime, false);
 }
 
 void AOPTristana::Ult_BusterShot()

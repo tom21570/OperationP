@@ -44,7 +44,6 @@ AOPChampion::AOPChampion()
 	ShieldEffectComponent->SetupAttachment(RootComponent);
 	ShieldEffectComponent->SetAutoActivate(false);
 
-
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveInput(TEXT("/Game/Input/IA_Move.IA_Move"));
 	if(MoveInput.Succeeded())
 	{
@@ -109,6 +108,8 @@ void AOPChampion::BeginPlay()
 
 	ChampionAnimInstance = Cast<UOPAnimInstance>(GetMesh()->GetAnimInstance());
 
+	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
+
 	if (ShieldEffect)
 	{
 		ShieldEffectComponent->SetAsset(ShieldEffect);
@@ -128,9 +129,23 @@ void AOPChampion::AddShield(float ShieldAmount)
 	UE_LOG(LogTemp, Log, TEXT("Shield added: %f"), ShieldAmount);
 }
 
-void AOPChampion::PlayDeadAnimMontage()
+void AOPChampion::PlayDeadAnimMontage() const
 {
 	ChampionAnimInstance->Montage_Play(DeadAnimMontage);
+}
+
+void AOPChampion::ResetChampionMovement() const
+{
+	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->JumpZVelocity = 700.f;
+}
+
+void AOPChampion::StopChampionMovement() const
+{
+	GetCharacterMovement()->MaxWalkSpeed = 0.f;
+	GetCharacterMovement()->bOrientRotationToMovement = false;
+	GetCharacterMovement()->JumpZVelocity = 0.f;
 }
 
 void AOPChampion::DeactivateShieldEffect()

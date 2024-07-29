@@ -76,6 +76,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Ult_Impulse = 0.f; // �ñر� ��ݷ�
 
+	FTimerHandle BasicAttackMovementStopTimerHandle;
+
 	float Skill_1_SlowDuration = 3.0f;
 	FTimerHandle Skill_1_SpawnTimerHandle;
 

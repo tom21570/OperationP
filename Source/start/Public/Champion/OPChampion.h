@@ -104,6 +104,8 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> BasicAttackAnimMontage;
 
+    FTimerHandle BasicAttack_MovementStopTimerHandle;
+    
     /**************************************** 패시브 *******************************************/
     FTimerHandle PassiveTimerHandle;
     bool bPassive = true;
@@ -124,6 +126,8 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Skill_1_AnimMontage;
 
+    FTimerHandle Skill_1_MovementStopTimerHandle;
+
     /**************************************** 스킬 2 *******************************************/
     bool bSkill_2 = true;
 
@@ -134,6 +138,8 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 2", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Skill_2_AnimMontage;
+
+    FTimerHandle Skill_2_MovementStopTimerHandle;
 
     /**************************************** 스킬 3 *******************************************/
     bool bSkill_3 = true;
@@ -146,6 +152,8 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Skill_3_AnimMontage;
 
+    FTimerHandle Skill_3_MovementStopTimerHandle;
+
     /**************************************** 스킬 4 *******************************************/
     bool bSkill_4 = true;
 
@@ -157,6 +165,8 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 4", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Skill_4_AnimMontage;
 
+    FTimerHandle Skill_4_MovementStopTimerHandle;
+
     /**************************************** 궁극기 *******************************************/
     bool bUlt = true;
 
@@ -167,6 +177,16 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ult", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Ult_AnimMontage;
+
+    FTimerHandle Ult_MovementStopTimerHandle;
+
+    /**************************************** 기타 *******************************************/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Champion Movement", meta = (AllowPrivateAccess = "true"))
+    float DefaultWalkSpeed = 350.f; // 챔피언의 기본 이동 속도
+    
+    void ResetChampionMovement() const;
+    void StopChampionMovement() const;
+    FTimerHandle ResetMovementTimerHandle;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Effects", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UNiagaraSystem> ShieldEffect;
@@ -252,5 +272,5 @@ public:
 
     virtual void AddShield(float ShieldAmount);
 
-    void PlayDeadAnimMontage();
+    void PlayDeadAnimMontage() const;
 };

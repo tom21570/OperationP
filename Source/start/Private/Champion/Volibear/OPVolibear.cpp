@@ -51,7 +51,7 @@ void AOPVolibear::BasicAttack()
 		if (MeleeAttackTrace())
 		{
 			
-		};
+		}
 	}), 0.25f, false);
 
 	if (!ChampionAnimInstance) return; // 애니메이션 인스턴스가 없을 시 return
@@ -81,7 +81,7 @@ void AOPVolibear::BasicAttack()
 				ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
 				GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimerHandle);
 				GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
-				MeleeAttackComboCount++;
+				MeleeAttackComboCount = 0;
 				break;
 				
 			default:
@@ -89,6 +89,12 @@ void AOPVolibear::BasicAttack()
 			}
 		}
 	}
+
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 1.05f, false);
+    
+	SetbBasicAttack_False();
+	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPVolibear::SetbBasicAttack_True, BasicAttackCooltime, false);
 }
 
 bool AOPVolibear::MeleeAttackTrace()
@@ -127,8 +133,6 @@ void AOPVolibear::Skill_1() //번개 강타 Q 볼리베어가 적을 향해 이�
 	if (OPPlayerController == nullptr) return;
 
 	bThunderingSmash = true;
-
-	
 }
 
 void AOPVolibear::Skill_2() //광란의 상처 W 볼리베어가 적에게 피해를 입혀 적중 시 효과를 적용하고 표식을 남깁니다.표식을 남긴 대상에게 다시 이 스킬을 사용하면 추가 피해를 입히고 체력을 회복합니다.
@@ -159,6 +163,12 @@ void AOPVolibear::Skill_2() //광란의 상처 W 볼리베어가 적에게 피�
 		}
 
 	}
+
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 1.f, false);
+
+	SetbSkill_2_False();
+	GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimerHandle, this, &AOPVolibear::SetbSkill_2_True, Skill_2_Cooltime, false);
 }
 
 AOPDiavolo* AOPVolibear::Skill_2_Trace()
@@ -207,12 +217,26 @@ void AOPVolibear::Skill_3() //천공 분열E 볼리베어가 지정한 위치에
 	{
 		Skill_3_Lightningbolt();
 	}), 2.f, false);
+
+	if (ChampionAnimInstance && Ult_AnimMontage)
+	{
+		ChampionAnimInstance->Montage_Play(Skill_3_AnimMontage, 1.f);
+	}
+	
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 2.6f, false);
+
+	SetbSkill_3_False();
+	GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimerHandle, this, &AOPVolibear::SetbSkill_3_True, Skill_3_Cooltime, false);
 }
 
 void AOPVolibear::Skill_3_Lightningbolt() //
 {
-	Lightningbolt = GetWorld()->SpawnActor<AOPVolibearLightningbolt>(LightningboltClass, Skill_3_FinalLocation, GetActorRotation());
-	Lightningbolt->SetOwner(this);
+	if (LightningboltClass)
+	{
+		Lightningbolt = GetWorld()->SpawnActor<AOPVolibearLightningbolt>(LightningboltClass, Skill_3_FinalLocation, GetActorRotation());
+		Lightningbolt->SetOwner(this);
+	}
 }
 
 void AOPVolibear::Skill_4()
@@ -284,6 +308,12 @@ void AOPVolibear::Ult() //폭풍을 부르는 자 R 볼리베어가 지정한 �
 	{
 		ChampionAnimInstance->Montage_Play(Ult_AnimMontage, 1.f);
 	}
+
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 2.f, false);
+
+	SetbUlt_False();
+	GetWorldTimerManager().SetTimer(Ult_CooltimeTimerHandle, this, &AOPVolibear::SetbUlt_True, Ult_Cooltime, false);
 }
 
 void AOPVolibear::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
