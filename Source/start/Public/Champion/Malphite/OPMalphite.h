@@ -42,38 +42,42 @@ protected:
 	UFUNCTION()
 	void OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
+	UFUNCTION()
+	virtual void UltBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"));
 	TObjectPtr<class UProjectileMovementComponent> ProjectileMovementComponent; //�߻�ü �������� �߰�����
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"));
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Gameplay Methods", meta = (AllowPrivateAccess = "true"));
 	TObjectPtr<USceneComponent> ShardSpawnLocation;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float MeleeAttack_Impulse = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float BasicAttack_Impulse = 0.f;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Skill_3_Impulse = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Skill_3_Radius = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Skill_3_SlowAmount = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Skill_3_SlowDuration = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Ult_Velocity = 0.f; // ��ų 4 �ӵ�
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Ult_Speed = 0.f; // ��ų 4 �ӵ�
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Ult_Angle = 0.f; // ��ų 4 ����
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Ult_Distance = 0.f; // ��ų 4 �Ÿ�
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Ult_Impulse = 0.f; // �ñر� ��ݷ�
 
 	FTimerHandle BasicAttackMovementStopTimerHandle;
@@ -84,7 +88,7 @@ private:
 	bool bThunderClapOn = false;
 	
 	TObjectPtr<AOPMalphiteShardOfTheEarth> ShardOfTheEarth;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AOPMalphiteShardOfTheEarth> ShardOfTheEarthClass;
 
 	FTimerHandle ShardOfTheEarthSpawnTimer;

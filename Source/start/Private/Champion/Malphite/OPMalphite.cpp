@@ -85,7 +85,7 @@ bool AOPMalphite::MeleeAttackTrace()
 		{
 			Diavolo->SetbIsDamagedTrue();
 			Diavolo->PlayDiavoloRandomDeadMontage();
-			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * MeleeAttack_Impulse, true);
+			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Impulse, true);
 			if (!Diavolo->GetbCanBeTestedMultipleTimes())
 			{
 				Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
@@ -259,19 +259,19 @@ void AOPMalphite::Ult() //���� �� ���� �� (Unstoppable F
 	LaunchVector.Z = 0.f;
 	const float FinalDistance = (Ult_FinalLocation - GetActorLocation()).Length();
 	
-	LaunchCharacter(LaunchVector * Ult_Velocity, true, true);
 	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AOPMalphite::OnProjectileHit);
+	ProjectileMovementComponent->Velocity = LaunchVector * Ult_Speed;
 	
 	GetWorldTimerManager().SetTimer(Ult_StopTimer, FTimerDelegate::CreateLambda([&]
 	{
 		GetCapsuleComponent()->OnComponentHit.RemoveDynamic(this, &AOPMalphite::OnProjectileHit);
+		ProjectileMovementComponent->Velocity = FVector::ZeroVector;
 		GEngine->AddOnScreenDebugMessage(1, 3.f, FColor::Cyan, FString::Printf(TEXT("Hit Done")));
 			
-	}), (Ult_FinalLocation / Ult_Velocity).Size(), false);
+	}), FinalDistance / Ult_Speed, false);
 	
 	UE_LOG(LogTemp, Warning, TEXT("Distance: %f"), FinalDistance);
 	
-	// ProjectileMovementComponent->Velocity = GetActorForwardVector() * Ult_Velocity;
 
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPMalphite::ResetChampionMovement, 0.3f, false);
@@ -317,4 +317,9 @@ void AOPMalphite::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* Oth
 
 	}
 
+}
+
+void AOPMalphite::UltBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
 }

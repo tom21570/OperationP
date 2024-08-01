@@ -24,6 +24,7 @@ void UOPAnimInstance::UpdateAnimationProperties(float DeltaTime)
 
 		bIsInAir = OPChampion->GetCharacterMovement()->IsFalling();
 		bIsDamaged = OPChampion->GetbIsDamaged();
+		bIsDead = OPChampion->GetbIsDead();
 
 		if((OPChampion->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0) || Speed > 0.f)
 		{
@@ -40,4 +41,6 @@ void UOPAnimInstance::UpdateAnimationProperties(float DeltaTime)
 void UOPAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
+
+	OPChampion = Cast<AOPChampion>(TryGetPawnOwner());
 }
