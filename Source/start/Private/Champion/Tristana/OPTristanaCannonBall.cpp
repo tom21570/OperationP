@@ -44,7 +44,17 @@ void AOPTristanaCannonBall::OnDamageCollisionBeginOverlap(UPrimitiveComponent* O
 		AOPMalphite* TestMalphite = Cast<AOPMalphite>(OtherActor);
 		if (TestMalphite)
 		{
-			TestMalphite->PlayDeadAnimMontage();
+			if (TestMalphite->GetMalphite_HP() > 0)
+			{
+				//damaged animation ³Ö±â
+				UE_LOG(LogTemp, Log, TEXT("Malphite Damaged from CannonBall"));
+				TestMalphite->SetMalphite_HP_Damaged(this->ForceOfCannonBall,TestMalphite);
+			}
+			else
+			{
+				TestMalphite->PlayDeadAnimMontage();
+			}
+			
 		}
 	}
 }
