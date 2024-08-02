@@ -51,7 +51,10 @@ private:
 	float BasicAttack_Range = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float BasicAttack_Speed = 0.f;
+	float BasicAttack_Speed = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float BasicAttack_Angle = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Skill_2_MaxJumpRange = 1000.f;
@@ -103,6 +106,12 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Ult_Impulse;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Ult_Speed = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Ult_Rebound = 5000.f;
 
 	/**************************************** 평타 *******************************************/
 	TObjectPtr<AOPTristanaCannonBall> CannonBall; // 평타 캐논볼 담을 함수

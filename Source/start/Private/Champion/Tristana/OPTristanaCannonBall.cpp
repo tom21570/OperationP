@@ -3,7 +3,7 @@
 
 #include "Champion/Tristana/OPTristanaCannonBall.h"
 #include "Champion/OPChampion.h"
-#include "Animation/AnimInstance.h" // ¾Ö´Ï¸ÞÀÌ¼Ç ÀÎ½ºÅÏ½º Çì´õ Æ÷ÇÔ
+#include "Animation/AnimInstance.h" // ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½Î½ï¿½ï¿½Ï½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 #include "Animation/OPAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Champion/Malphite/OPMalphite.h"
@@ -46,13 +46,13 @@ void AOPTristanaCannonBall::OnDamageCollisionBeginOverlap(UPrimitiveComponent* O
 		{
 			if (TestMalphite->GetMalphite_HP() > 0)
 			{
-				//damaged animation ³Ö±â
+				//damaged animation ï¿½Ö±ï¿½
 				UE_LOG(LogTemp, Log, TEXT("Malphite Damaged from CannonBall"));
-				TestMalphite->SetMalphite_HP_Damaged(this->ForceOfCannonBall,TestMalphite);
+				TestMalphite->SetMalphite_HP_Damaged(this->ForceOfCannonBall, TestMalphite);
 			}
 			else
 			{
-				TestMalphite->PlayDeadAnimMontage();
+				TestMalphite-> PlayDeadAnimMontage();
 			}
 			
 		}

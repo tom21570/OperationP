@@ -125,9 +125,13 @@ void AOPTristana::BasicAttack()
 void AOPTristana::BasicAttack_CannonBall()
 {
 	if (CannonBallClass == nullptr) return;
+
+	FRotator CannonBallRotator = FRotator(BasicAttack_Angle, GetActorRotation().Yaw, GetActorRotation().Roll);
+	FVector CannonBallVelocity = BasicAttack_Speed * CannonBallRotator.Vector();
 	
 	if (CannonBall = GetWorld()->SpawnActor<AOPTristanaCannonBall>(CannonBallClass, CannonBallSpawnPoint->GetComponentLocation(), GetActorRotation()))
 	{
+		CannonBall->GetOPProjectileMovementComponent()->Velocity = CannonBallVelocity;
 		CannonBall->SetOwner(this);
 		FVector LaunchDirection = GetActorForwardVector();
 	}
@@ -339,10 +343,14 @@ void AOPTristana::Ult_BusterShot()
 
 	if (BusterShotClass == nullptr) return;
 
+	FRotator BusterShotRotator = FRotator(Ult_Angle, GetActorRotation().Yaw, GetActorRotation().Roll);
+	FVector BusterShotVelocity = Ult_Speed * BusterShotRotator.Vector();
+
 	if (BusterShot = GetWorld()->SpawnActor<AOPTristanaBusterShot>(BusterShotClass, CannonBallSpawnPoint->GetComponentLocation(), GetActorRotation()))
 	{
+		BusterShot->GetOPProjectileMovementComponent()->Velocity = BusterShotVelocity;
 		BusterShot->SetOwner(this);
-		FVector LaunchDirection = GetActorForwardVector();
+		LaunchCharacter(-BusterShotRotator.Vector() * Ult_Rebound, true, true);
 	}
 }
 

@@ -20,7 +20,7 @@ protected:
 
     virtual void Passive() override;
     virtual void BasicAttack() override;
-    bool MeleeAttackTrace();
+    bool BasicAttackTrace();
     virtual void Skill_1() override;
     void Skill_1_SonicWave();
 
@@ -41,6 +41,9 @@ private:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float Skill_1_Velocity = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    float Skill_1_ResonateSpeed = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float Skill_3_Impulse = 0.f;
@@ -76,6 +79,10 @@ private:
 
     // UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
     // TObjectPtr<UCapsuleComponent> ResonatingStrikeCapsule;
+
+    bool bCanResonate = false;
+    bool bIsResonating = false;
+    TObjectPtr<AOPChampion> ResonateTarget;
 
     FTimerHandle SonicWaveSpawnTimer;
 
@@ -114,6 +121,14 @@ public:
     void CreateMarkerOnTarget(AOPDiavolo* Target);
     void RemoveMarkerOnTarget(AOPDiavolo* Target);
 
+    FORCEINLINE bool GetbCanResonate() const { return bCanResonate; }
+    FORCEINLINE void SetbCanResonate_True() { bCanResonate = true; }
+    FORCEINLINE void SetbCanResonate_False() { bCanResonate = false; }
 
+    FORCEINLINE bool GetbIsResonating() const { return bIsResonating; }
+    FORCEINLINE void SetbIsResonating_True() { bIsResonating = true; }
+    FORCEINLINE void SetbIsResonating_False() { bIsResonating = false; }
+
+    FORCEINLINE void SetResonateTarget(AOPChampion* Target) { ResonateTarget = Target; }
 };
 

@@ -18,51 +18,31 @@ void AOPLeeSinSonicWave::OnDamageCollisionBeginOverlap(UPrimitiveComponent* Over
 
     if (OtherActor && OtherActor != this && GetOwner() != nullptr && OtherActor != GetOwner())
     {
-        AOPDiavolo* TestDiavolo = Cast<AOPDiavolo>(OtherActor);
+        AOPDiavolo* Diavolo = Cast<AOPDiavolo>(OtherActor);
         AOPLeeSin* LeeSinOwner = Cast<AOPLeeSin>(GetOwner());
-        if (TestDiavolo)
+        if (Diavolo)
         {
-            // Log the impact direction for debugging
-            UE_LOG(LogTemp, Log, TEXT("Sonic Wave Hit!!"));
+            LeeSinOwner->SetResonateTarget(Diavolo);
+            LeeSinOwner->SetTestDiavolo(Diavolo);
 
-            LeeSinOwner->Skill_1_Stack++;
-            TestDiavolo->bTrueSightOn = true;
+            LeeSinOwner->SetbCanResonate_True();
+            Diavolo->SetbTrueSightOn_True();
 
-            // Get the animation instance from the mesh and play the AM_Diavolo_damaged montage
-            // �׳� Diavolo�� ��Ÿ�ָ� �����ؼ� ����ϴ°� �� ������ �� ���ƿ�
-            TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinSonicWave_AnimMontage());
-            // UAnimInstance* AnimInstance = TestDiavolo->GetDiavoloMesh()->GetAnimInstance();
-            // if (AnimInstance && AM_Diavolo_damaged)
-            // {
-            //     UE_LOG(LogTemp, Log, TEXT("Diavolo Damaged"));
-            //     AnimInstance->Montage_Play(AM_Diavolo_damaged);
-            // }
-            FVector ImpactDirection = (TestDiavolo->GetActorLocation() - SweepResult.ImpactPoint).GetSafeNormal();
+            Diavolo->GetChampionAnimInstance()->Montage_Play(Diavolo->GetDiavolo_DamagedByLeeSinSonicWave_AnimMontage());
 
-            // Add an upward component to the impact direction
-            //ImpactDirection.Z += AngleOfFloating;
-            ImpactDirection = ImpactDirection.GetSafeNormal();
-
-            // Log the impact direction for debugging
-            UE_LOG(LogTemp, Log, TEXT("Impact Direction: %s"), *ImpactDirection.ToString());
-
-            // Apply an impulse to the Diavolo character based on the impact direction and AirborneRate
-            TestDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * 10, true);
-
-            if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
+            if (!Diavolo->GetbCanBeTestedMultipleTimes())
             {
-                TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
+                Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
             }
             if (LeeSinOwner)
             {
-                LeeSinOwner->GetWorldTimerManager().SetTimer(LeeSinOwner->Skill_1_StackTimer, [LeeSinOwner, TestDiavolo]()
-                    {
-                        LeeSinOwner->SetbSkill_1_True();
-                        LeeSinOwner->RemoveMarkerOnTarget(TestDiavolo);
-                    }, LeeSinOwner->Skill_1_StackTime, false); // ���� ����
+                LeeSinOwner->GetWorldTimerManager().SetTimer(LeeSinOwner->Skill_1_StackTimer, [LeeSinOwner, Diavolo]()
+                {
+                    LeeSinOwner->SetbSkill_1_True();
+                    LeeSinOwner->RemoveMarkerOnTarget(Diavolo);
+                }, LeeSinOwner->Skill_1_StackTime, false); // ���� ����
 
-                // Ÿ�� �Ӹ� ���� ��Ŀ ����
-                LeeSinOwner->CreateMarkerOnTarget(TestDiavolo);
+                LeeSinOwner->CreateMarkerOnTarget(Diavolo);
             }
         }
     }

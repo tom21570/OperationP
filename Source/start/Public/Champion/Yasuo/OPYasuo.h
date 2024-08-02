@@ -30,6 +30,7 @@ protected:
 	bool MeleeAttackTrace(); // 평타 발동 시 트레이스하는 함수
 	
 	virtual void Skill_1() override;
+	void PlaySkill_1_OrdinaryAnimMontage();
 
 	UFUNCTION()
 	bool Skill_1_Trace(); // 강철폭풍 발동 시 트레이스하는 함수
@@ -53,6 +54,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Skill_3_Impulse = 0.f; // 스킬 3 충격량
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Skill_3_DistanceBetweenEnemy = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Skill_3_Speed = 0.f; // 스킬 3 속도
@@ -80,6 +84,16 @@ private:
 	FTimerHandle BasicAttackCastTimer; // 평타 시전을 위한 타이머
 	FTimerHandle Skill_1_CastTimer; // 강철폭풍 트레이스 시전시간을 위한 타이머
 	FTimerHandle Skill_1_StackTimer; // 강철폭풍 스택 유지를 위한 타이머
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> Skill_1_Swift_AnimMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
+	bool bSkill_1_CanSwift = false;
+
+	FTimerHandle Skill_1_Swift_StartTimerHandle;
+	FTimerHandle Skill_1_Swift_EndTimerHandle;
+	
 	FTimerHandle BasicAttackComboCountTimer; // 평타 연결된 동작 타이머
 	FTimerHandle Skill_3_EndTimer;
 	FVector MoveTargetLocation; //스킬4 이동 장소(디아볼로)
@@ -100,6 +114,12 @@ private:
 	// 추가할 이벤트 핸들러 선언
 	UFUNCTION()
 	void OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+	void OnDrawingSword(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	TArray<TObjectPtr<AOPChampion>> SlicedChampions;
+
 	
 	FORCEINLINE void ResetMeleeAttackComboCount() { BasicAttackComboCount = 0; }
 
@@ -110,5 +130,5 @@ private:
 	TObjectPtr<USoundCue> Skill_1_Charged_SFX;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Melee Attack", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<USoundCue> MeleeAttack_Hit_SFX;
+	TObjectPtr<USoundCue> BasicAttack_Hit_SFX;
 };

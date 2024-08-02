@@ -53,11 +53,6 @@ private:
     TObjectPtr<UAnimMontage> Diavolo_DamagedByLeeSinDragonsRage_AnimMontage;
 
 public:
-    //LeeSin
-    bool bTrueSightOn = false;
-    //Volibear
-    bool bFrenziedMaulOn = false;
-
     FORCEINLINE bool GetbCanBeTestedMultipleTimes() const { return bCanBeTestedMultipleTimes; }
 
     TObjectPtr<USkeletalMeshComponent> GetDiavoloMesh() const;

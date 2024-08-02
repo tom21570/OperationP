@@ -46,7 +46,7 @@ void AOPVolibear::BasicAttack()
 	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPVolibear::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
 
 	// 평타 시전시간 지나면 Trace하고 디아볼로가 Trace되면 피격 사운드 재생
-	GetWorldTimerManager().SetTimer(MeleeAttackCastTimerHandle, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(BasicAttackCastTimerHandle, FTimerDelegate::CreateLambda([&]
 	{
 		if (MeleeAttackTrace())
 		{
@@ -67,21 +67,21 @@ void AOPVolibear::BasicAttack()
 
 		else
 		{
-			switch (MeleeAttackComboCount) // 2번의 연결된 평타동작
+			switch (BasicAttackComboCount) // 2번의 연결된 평타동작
 			{
 			case 0:
 				ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
 				ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
-				GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
-				MeleeAttackComboCount++;
+				GetWorldTimerManager().SetTimer(BasicAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
+				BasicAttackComboCount++;
 				break;
 
 			case 1:
 				ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
 				ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
-				GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimerHandle);
-				GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
-				MeleeAttackComboCount = 0;
+				GetWorldTimerManager().ClearTimer(BasicAttackComboCountTimerHandle);
+				GetWorldTimerManager().SetTimer(BasicAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
+				BasicAttackComboCount = 0;
 				break;
 				
 			default:
@@ -152,7 +152,7 @@ void AOPVolibear::Skill_2() //광란의 상처 W 볼리베어가 적에게 피�
 				RemoveMarkerOnTarget(ReturnedDiavolo);
 		}, 8.0, false);
 
-		if (ReturnedDiavolo->bFrenziedMaulOn)
+		if (ReturnedDiavolo->GetbFrenziedMaulOn())
 		{
 			//추가피해 + 체력 회복
 		}
@@ -239,11 +239,6 @@ void AOPVolibear::Skill_3_Lightningbolt() //
 	}
 }
 
-void AOPVolibear::Skill_4()
-{
-	Super::Skill_4();
-}
-
 void AOPVolibear::Ult() //폭풍을 부르는 자 R 볼리베어가 지정한 위치로 도약하여 아래에 있는 적을 둔화시키고 피해를 입히며 추가 체력을 얻습니다.볼리베어가 착지한 곳 근처에 있는 포탑은 일시적으로 비활성화됩니다.
 {
 	Super::Ult();
@@ -325,7 +320,7 @@ void AOPVolibear::CreateMarkerOnTarget(AOPDiavolo* Target)
 {
 	if (MarkerMesh && Target)
 	{
-		Target->bFrenziedMaulOn = true;
+		Target->SetbFrenziedMaulOn_True();
 		MarkerMesh->AttachToComponent(Target->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 		MarkerMesh->SetRelativeLocation(FVector(0, 0, 100));
 		MarkerMesh->SetVisibility(true);
@@ -336,7 +331,7 @@ void AOPVolibear::RemoveMarkerOnTarget(AOPDiavolo* Target)
 {
 	if (MarkerMesh && Target)
 	{
-		Target->bFrenziedMaulOn = false;
+		Target->SetbFrenziedMaulOn_False();
 		MarkerMesh->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
 		MarkerMesh->SetVisibility(false);
 	}

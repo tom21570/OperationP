@@ -41,13 +41,10 @@ void AOPLeeSin::BasicAttack()
 
     if (!MouseCursorHit.bBlockingHit) return;
     TurnCharacterToCursor(MouseCursorHit);
-    
-    check(ChampionAnimInstance);
-    check(GetBasicAttackAnimMontage());
 
     GetWorldTimerManager().SetTimer(BasicAttackTimer, FTimerDelegate::CreateLambda([&]
     {
-        MeleeAttackTrace();
+        BasicAttackTrace();
     }), 0.25f, false);
 
     if (ChampionAnimInstance && BasicAttackAnimMontage)
@@ -94,7 +91,7 @@ void AOPLeeSin::BasicAttack()
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPLeeSin::ResetChampionMovement, 0.7f, false);
 }
 
-bool AOPLeeSin::MeleeAttackTrace()
+bool AOPLeeSin::BasicAttackTrace()
 {
     TArray<FHitResult> HitResults;
     TArray<AActor*> ActorsToIgnore;
@@ -105,6 +102,7 @@ bool AOPLeeSin::MeleeAttackTrace()
 
     for (auto& HitActor : HitResults)
     {
+        HitActor.Component->AddImpulse(BasicAttack_Impulse * GetActorForwardVector());
         if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
         {
             Diavolo->SetbIsDamagedTrue();
@@ -129,39 +127,38 @@ void AOPLeeSin::Skill_1()
     if (!bSkill_1) return;
     if (OPPlayerController == nullptr) return;
 
-    OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
-
-    if (!MouseCursorHit.bBlockingHit) return;
-    TurnCharacterToCursor(MouseCursorHit);
-
-    if (Skill_1_Stack == 1)
+    if (bCanResonate)
     {
-        UE_LOG(LogTemp, Log, TEXT("Skill_1_Moving"));
         GetWorldTimerManager().ClearTimer(Skill_1_StackTimer);
-        Skill_1_Stack = 0;
-
-        TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
-        if (TestDiavolo && TestDiavolo->bTrueSightOn)
+        if (TestDiavolo && TestDiavolo->GetbTrueSightOn())
         {
-            Skill_1_Stack = 0;
-            ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
-            ChampionAnimInstance->Montage_JumpToSection(FName("DashB"), GetSkill_1_AnimMontage());
-
+            SetbIsResonating_True();
+            TurnCharacterToLocation(TestDiavolo->GetActorLocation());
+            StopChampionMovement();
+            UE_LOG(LogTemp, Log, TEXT("Skill_1_CanResonate"));
             FVector TargetLocation = TestDiavolo->GetActorLocation();
             FVector Direction = TargetLocation - GetActorLocation();
             float Distance = Direction.Size();
             float LaunchSpeed = Distance * Skill_1_Velocity;
-            FVector LaunchVelocity = Direction.GetSafeNormal() * LaunchSpeed;
-            LaunchCharacter(LaunchVelocity, true, true);
+            FVector LaunchVelocity = Direction.GetSafeNormal() * Skill_1_ResonateSpeed;
+            ProjectileMovementComponent->Velocity = LaunchVelocity;
 
             GetWorldTimerManager().SetTimer(ResonatingStrike_DiavoloMotionTimer, FTimerDelegate::CreateLambda([&]
             {
+                ProjectileMovementComponent->Velocity = FVector::Zero();
                 TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinResonatingStrike_AnimMontage());
-            }), Distance / LaunchSpeed, false);
+                SetbIsResonating_False();
+                ResetChampionMovement();
+            }), Distance / Skill_1_ResonateSpeed, false);
         }
     }
     else
     {
+        OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+        
+        if (!MouseCursorHit.bBlockingHit) return;
+        TurnCharacterToCursor(MouseCursorHit);
+        
         UE_LOG(LogTemp, Log, TEXT("Skill_1_SonicWave"));
         ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
         ChampionAnimInstance->Montage_JumpToSection(FName("SonicWave"), GetSkill_1_AnimMontage());
@@ -371,6 +368,7 @@ bool AOPLeeSin::UltTrace()
 
     for (auto& HitActor : HitResults)
     {
+        HitActor.Component->AddImpulse(Ult_Impulse * GetActorForwardVector());
         if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
         {
             FVector ImpactDirection = (Diavolo->GetActorLocation() - HitActor.ImpactPoint).GetSafeNormal();

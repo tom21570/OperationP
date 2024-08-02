@@ -101,9 +101,9 @@ void AOPChampion::BeginPlay()
 	Super::BeginPlay();
 
 	OPPlayerController = Cast<AOPPlayerController>(UGameplayStatics::GetPlayerController(this, 0));
-	check(OPPlayerController);
+	if (OPPlayerController == nullptr) return;
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(OPPlayerController->GetLocalPlayer());
-	check(Subsystem);
+	if (Subsystem == nullptr) return;
 	Subsystem->AddMappingContext(ChampionMappingContext, 0);
 
 	ChampionAnimInstance = Cast<UOPAnimInstance>(GetMesh()->GetAnimInstance());

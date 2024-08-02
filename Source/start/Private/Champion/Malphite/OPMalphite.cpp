@@ -152,16 +152,18 @@ void AOPMalphite::SetMalphite_HP_Damaged(float Force, AOPMalphite* Malphite)
 	curHp -= Force;
 	if (curHp < 0) Malphite->SetMalphite_HP(0);
 	else Malphite->SetMalphite_HP(curHp);
+
+	UE_LOG(LogTemp, Warning, TEXT("Malphite HP: %f"), GetMalphite_HP());
 }
 
 float AOPMalphite::GetMalphite_HP()
 {
-	return this->Heat_Points;
+	return Heat_Points;
 }
 
 void AOPMalphite::SetMalphite_HP(float hp)
 {
-	this->Heat_Points = hp;
+	Heat_Points = hp;
 }
 
 void AOPMalphite::Skill_1_ShardOfTheEarth()
@@ -213,7 +215,6 @@ void AOPMalphite::Skill_3() //���� ��Ÿ (Ground Slam): ����:
 	if (ChampionAnimInstance && Skill_3_AnimMontage)
 	{
 		ChampionAnimInstance->Montage_Play(Skill_3_AnimMontage, 1.f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("GroundSlam"), Skill_3_AnimMontage);
 	}
 
 	StopChampionMovement();
@@ -243,8 +244,8 @@ void AOPMalphite::Skill_3_GroundSlam()
 				FVector ImpulseDirection = (HitDiavolo->GetActorLocation() - MalphiteLocation).GetSafeNormal();
 				HitDiavolo->SetbIsDamagedTrue();
 				HitDiavolo->PlayDiavoloRandomDeadMontage();
-				HitDiavolo->LaunchCharacter(ImpulseDirection * Skill_3_Impulse, true, true);
-				// HitDiavolo->GetCharacterMovement()->AddImpulse(ImpulseDirection * Skill_3_Impulse, true);
+				// HitDiavolo->LaunchCharacter(ImpulseDirection * Skill_3_Impulse, true, true);
+				HitDiavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * 100000.f, true);
 				HitDiavolo->ApplySlowAttackEffect(Skill_3_SlowAmount, Skill_3_SlowDuration); //��ƺ��ο� ���ݸ���� �������� �Լ� �����ʿ�
 			}
 		}

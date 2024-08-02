@@ -22,6 +22,8 @@ AOPYasuo::AOPYasuo()
 void AOPYasuo::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ProjectileMovementComponent->Velocity = GetActorForwardVector() * 100.f;
 }
 
 void AOPYasuo::Passive()
@@ -54,9 +56,9 @@ void AOPYasuo::BasicAttack()
 	{
 		if (MeleeAttackTrace())
 		{
-			if (MeleeAttack_Hit_SFX)
+			if (BasicAttack_Hit_SFX)
 			{
-				UGameplayStatics::PlaySound2D(GetWorld(), MeleeAttack_Hit_SFX);
+				UGameplayStatics::PlaySound2D(GetWorld(), BasicAttack_Hit_SFX);
 			}
 		};
 	}), 0.25f, false);
@@ -174,21 +176,39 @@ void AOPYasuo::Skill_1()
 
 		if (ChampionAnimInstance && Skill_1_AnimMontage)
 		{
-			int32 Section = FMath::RandRange(0, 1);
-			switch (Section)
+			if (bSkill_1_CanSwift)
 			{
-			case 0:
-				ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
-				ChampionAnimInstance->Montage_JumpToSection(FName("1"), GetSkill_1_AnimMontage());
-				break;
+				PlaySkill_1_OrdinaryAnimMontage();
+				GetWorldTimerManager().SetTimer(Skill_1_Swift_StartTimerHandle, FTimerDelegate::CreateLambda([&]
+				{
+					PlaySkill_1_OrdinaryAnimMontage();
+					UE_LOG(LogTemp, Warning, TEXT("Hello"));
+				}), 0.165f, true);
 
-			case 1:
-				ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
-				ChampionAnimInstance->Montage_JumpToSection(FName("2"), GetSkill_1_AnimMontage());
-				break;
+				GetWorldTimerManager().SetTimer(Skill_1_Swift_EndTimerHandle, FTimerDelegate::CreateLambda([&]
+				{
+					GetWorldTimerManager().ClearTimer(Skill_1_Swift_StartTimerHandle);
+				}), 1.f, false);
+			}
 
-			default:
-				;
+			else
+			{
+				int32 Section = FMath::RandRange(0, 1);
+				switch (Section)
+				{
+				case 0:
+					ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
+					ChampionAnimInstance->Montage_JumpToSection(FName("1"), GetSkill_1_AnimMontage());
+					break;
+
+				case 1:
+					ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
+					ChampionAnimInstance->Montage_JumpToSection(FName("2"), GetSkill_1_AnimMontage());
+					break;
+
+				default:
+					;
+				}
 			}
 		}
 	}
@@ -198,6 +218,26 @@ void AOPYasuo::Skill_1()
 	
 	SetbSkill_1_False();
 	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
+}
+
+void AOPYasuo::PlaySkill_1_OrdinaryAnimMontage()
+{
+	int32 Section = FMath::RandRange(0, 1);
+	switch (Section)
+	{
+	case 0:
+		ChampionAnimInstance->Montage_Play(Skill_1_Swift_AnimMontage, 6.0f);
+		ChampionAnimInstance->Montage_JumpToSection(FName("1"), Skill_1_Swift_AnimMontage);
+		break;
+
+	case 1:
+		ChampionAnimInstance->Montage_Play(Skill_1_Swift_AnimMontage, 6.0f);
+		ChampionAnimInstance->Montage_JumpToSection(FName("2"), Skill_1_Swift_AnimMontage);
+		break;
+
+	default:
+		;
+	}
 }
 
 bool AOPYasuo::Skill_1_Trace()
@@ -315,7 +355,7 @@ void AOPYasuo::Skill_3()
 	TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
 	if (TestDiavolo == nullptr) return;
 	
-	int32 Distance = FVector::Dist(GetActorLocation(), TestDiavolo->GetActorLocation());
+	Skill_3_DistanceBetweenEnemy = FVector::Dist(GetActorLocation(), TestDiavolo->GetActorLocation());
 
 	FVector Skill3Vector = MouseCursorHit.Location - GetActorLocation();
 	Skill3Vector.Normalize();
@@ -323,12 +363,18 @@ void AOPYasuo::Skill_3()
 	Skill3Vector.Z = 0.f;
 	TurnCharacterToLocation(TestDiavolo->GetActorLocation());
 	ProjectileMovementComponent->Velocity = Skill3Vector;
-	SetActorEnableCollision(false);
+	// SetActorEnableCollision(false);
+	// GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AOPYasuo::OnProjectileHit);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AOPYasuo::OnDrawingSword);
 		
 	GetWorldTimerManager().SetTimer(Skill_3_EndTimer, FTimerDelegate::CreateLambda([&]
 	{
 		ProjectileMovementComponent->Velocity = FVector(0, 0, 0);
 		SetActorEnableCollision(true);
+		// GetCapsuleComponent()->OnComponentHit.RemoveDynamic(this, &AOPYasuo::OnProjectileHit);
+		GetCapsuleComponent()->OnComponentBeginOverlap.RemoveDynamic(this, &AOPYasuo::OnDrawingSword);
+		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 		TestDiavolo->SetbIsDamagedTrue();
 		TestDiavolo->PlayDiavoloRandomDeadMontage();
 		if (TestDiavolo->GetbCanBeTestedMultipleTimes() == false)
@@ -435,7 +481,7 @@ void AOPYasuo::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherA
 			UE_LOG(LogTemp, Warning, TEXT("Impact Direction: %s"), *ImpactDirection.ToString());
 
 			// Apply an impulse to the Diavolo character based on the impact direction and AirborneRate
-			TestDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * Skill_4_Impulse, true);
+			TestDiavolo->GetCharacterMovement()->AddImpulse(Skill_3_DistanceBetweenEnemy * ImpactDirection * Skill_3_Impulse, true);
 
 			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
 			{
@@ -449,6 +495,23 @@ void AOPYasuo::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherA
 		
 	}
 	
+}
+
+void AOPYasuo::OnDrawingSword(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor && OtherActor != this)
+	{
+		AOPDiavolo* SlicedChampion = Cast<AOPDiavolo>(OtherActor);
+
+		if (SlicedChampion)
+		{
+			FVector Direction = (SlicedChampion->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+			SlicedChampion->LaunchCharacter(Direction * Skill_3_DistanceBetweenEnemy * Skill_3_Speed, true, true);
+			UE_LOG(LogTemp, Warning, TEXT("Hello"));
+		}
+		
+	}
 }
 
 void AOPYasuo::Ult()

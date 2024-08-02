@@ -196,6 +196,11 @@ protected:
 
     FTimerHandle FuzeTimerHandle;
 
+    //LeeSin
+    bool bTrueSightOn = false;
+    //Volibear
+    bool bFrenziedMaulOn = false;
+
 public:
     void DeactivateShieldEffect();
 
@@ -266,6 +271,16 @@ public:
     FORCEINLINE UAnimMontage* GetUlt_AnimMontage() const { return Ult_AnimMontage; }
 
     FORCEINLINE UOPAnimInstance* GetChampionAnimInstance() const { return ChampionAnimInstance; }
+
+    FORCEINLINE AOPDiavolo* GetTestDiavolo() const { return TestDiavolo; }
+    FORCEINLINE void SetTestDiavolo(AOPDiavolo* Diavolo) { TestDiavolo = Diavolo; }
+
+    FORCEINLINE bool GetbTrueSightOn() const { return bTrueSightOn; }
+    FORCEINLINE void SetbTrueSightOn_True() { bTrueSightOn = true; }
+    FORCEINLINE void SetbTrueSightOn_False() { bTrueSightOn = false; }
+    FORCEINLINE bool GetbFrenziedMaulOn() const { return bFrenziedMaulOn; }
+    FORCEINLINE void SetbFrenziedMaulOn_True() { bFrenziedMaulOn = true; }
+    FORCEINLINE void SetbFrenziedMaulOn_False() { bFrenziedMaulOn = false; }
 
     UFUNCTION(BlueprintCallable)
     USkeletalMeshComponent* GetChampionSkeletalMeshComponent() const { return GetMesh(); }
