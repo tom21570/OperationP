@@ -80,6 +80,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Ult_Impulse = 0.f; // �ñر� ��ݷ�
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "ETC | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Heat_Points = 20000000.f; // �ñر� ��ݷ�
+
+
 	FTimerHandle BasicAttackMovementStopTimerHandle;
 
 	float Skill_1_SlowDuration = 3.0f;
@@ -99,5 +103,11 @@ private:
 	FTimerHandle Ult_StopTimer;
 
 public:
+	float GetMalphite_HP();
+	void SetMalphite_HP(float hp);
+	
 	void ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* OtherChampion);
+
+	void SetMalphite_HP_Damaged(float SourceChampionsForce, AOPMalphite* OtherChampion);
+	
 };

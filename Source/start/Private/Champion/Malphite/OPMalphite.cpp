@@ -146,6 +146,24 @@ void AOPMalphite::ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* O
 	}
 }
 
+void AOPMalphite::SetMalphite_HP_Damaged(float Force, AOPMalphite* Malphite)
+{
+	float curHp = Malphite->GetMalphite_HP();
+	curHp -= Force;
+	if (curHp < 0) Malphite->SetMalphite_HP(0);
+	else Malphite->SetMalphite_HP(curHp);
+}
+
+float AOPMalphite::GetMalphite_HP()
+{
+	return this->Heat_Points;
+}
+
+void AOPMalphite::SetMalphite_HP(float hp)
+{
+	this->Heat_Points = hp;
+}
+
 void AOPMalphite::Skill_1_ShardOfTheEarth()
 {
 	if (ShardOfTheEarthClass == nullptr) return;
