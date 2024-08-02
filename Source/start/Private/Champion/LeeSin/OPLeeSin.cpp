@@ -109,7 +109,7 @@ bool AOPLeeSin::MeleeAttackTrace()
         {
             Diavolo->SetbIsDamagedTrue();
             Diavolo->GetChampionAnimInstance()->Montage_Play(Diavolo->GetDiavolo_DamagedByLeeSinMeleeAttack_AnimMontage());
-            Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * MeleeAttack_Impulse, true);
+            Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Impulse, true);
             if (!Diavolo->GetbCanBeTestedMultipleTimes())
             {
                 Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
@@ -292,11 +292,12 @@ void AOPLeeSin::Skill_3_GroundSlam()
 
     for (auto& HitActor : HitResults)
     {
-        if (TestDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+        if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
         {
-            TestDiavolo->SetbIsDamagedTrue();
-            TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinSkill_3_AnimMontage());
-            TestDiavolo->ApplySlowEffect(SlowAmount, SlowDuration);
+            Diavolo->SetbIsDamagedTrue();
+            Diavolo->SetbIsDeadTrue();
+            Diavolo->GetChampionAnimInstance()->Montage_Play(Diavolo->GetDiavolo_DamagedByLeeSinSkill_3_AnimMontage());
+            Diavolo->ApplySlowEffect(SlowAmount, SlowDuration);
         }
     }
     // Skill_3_ApplySlowEffect();
@@ -379,6 +380,7 @@ bool AOPLeeSin::UltTrace()
             UE_LOG(LogTemp, Log, TEXT("Impact Direction: %s"), *ImpactDirection.ToString());
 
             Diavolo->SetbIsDamagedTrue();
+            Diavolo->SetbIsDeadTrue();
             Diavolo->GetChampionAnimInstance()->Montage_Play(Diavolo->GetDiavolo_DamagedByLeeSinDragonsRage_AnimMontage());
             Diavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * Ult_Impulse, true);
             Diavolo->TurnCharacterToLocation(GetActorLocation());

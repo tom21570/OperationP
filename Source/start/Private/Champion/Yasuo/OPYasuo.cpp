@@ -50,7 +50,7 @@ void AOPYasuo::BasicAttack()
 	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPYasuo::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
 
 	// 평타 시전시간 지나면 Trace하고 디아볼로가 Trace되면 피격 사운드 재생
-	GetWorldTimerManager().SetTimer(MeleeAttackCastTimer, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(BasicAttackCastTimer, FTimerDelegate::CreateLambda([&]
 	{
 		if (MeleeAttackTrace())
 		{
@@ -64,35 +64,35 @@ void AOPYasuo::BasicAttack()
 	if (!ChampionAnimInstance) return; // 애니메이션 인스턴스가 없을 시 return
 	if (!BasicAttackAnimMontage) return; // 평타 애니메이션 몽타주가 없을 시 return
 	
-	switch (MeleeAttackComboCount) // 4번의 연결된 평타동작
+	switch (BasicAttackComboCount) // 4번의 연결된 평타동작
 	{
 	case 0:
 		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
 		ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
-		GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
-		MeleeAttackComboCount++;
+		GetWorldTimerManager().SetTimer(BasicAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
+		BasicAttackComboCount++;
 		break;
 
 	case 1:
 		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
 		ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
-		GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
-		GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
-		MeleeAttackComboCount++;
+		GetWorldTimerManager().ClearTimer(BasicAttackComboCountTimer);
+		GetWorldTimerManager().SetTimer(BasicAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
+		BasicAttackComboCount++;
 		break;
 
 	case 2:
 		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
 		ChampionAnimInstance->Montage_JumpToSection(FName("3"), BasicAttackAnimMontage);
-		GetWorldTimerManager().ClearTimer(MeleeAttackComboCountTimer);
-		GetWorldTimerManager().SetTimer(MeleeAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
-		MeleeAttackComboCount++;
+		GetWorldTimerManager().ClearTimer(BasicAttackComboCountTimer);
+		GetWorldTimerManager().SetTimer(BasicAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
+		BasicAttackComboCount++;
 		break;
 
 	case 3:
 		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
 		ChampionAnimInstance->Montage_JumpToSection(FName("4"), BasicAttackAnimMontage);
-		MeleeAttackComboCount = 0;
+		BasicAttackComboCount = 0;
 		break;
 
 	default:
@@ -116,7 +116,7 @@ bool AOPYasuo::MeleeAttackTrace()
 		{
 			Diavolo->SetbIsDamagedTrue();
 			Diavolo->PlayDiavoloRandomDeadMontage();
-			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * MeleeAttack_Impulse, true); // 디아볼로에 충격 가하기
+			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Impulse, true); // 디아볼로에 충격 가하기
 			if (!Diavolo->GetbCanBeTestedMultipleTimes()) // 만약 bCanBeTestedMultipleTimes가 false라면 더이상 트레이스되지 않도록 디아볼로를 설정
 			{
 				Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
@@ -317,29 +317,27 @@ void AOPYasuo::Skill_3()
 	
 	int32 Distance = FVector::Dist(GetActorLocation(), TestDiavolo->GetActorLocation());
 
-	if (Distance <= Skill_3_Distance)
-	{
-		FVector Skill3Vector = MouseCursorHit.Location - GetActorLocation();
-		Skill3Vector.Normalize();
-		Skill3Vector *= Skill_3_Velocity;
-		Skill3Vector.Z = 0.f;
-		TurnCharacterToLocation(TestDiavolo->GetActorLocation());
-		ProjectileMovementComponent->Velocity = Skill3Vector;
-		SetActorEnableCollision(false);
+	FVector Skill3Vector = MouseCursorHit.Location - GetActorLocation();
+	Skill3Vector.Normalize();
+	Skill3Vector *= Skill_3_Speed;
+	Skill3Vector.Z = 0.f;
+	TurnCharacterToLocation(TestDiavolo->GetActorLocation());
+	ProjectileMovementComponent->Velocity = Skill3Vector;
+	SetActorEnableCollision(false);
 		
-		GetWorldTimerManager().SetTimer(Skill_3_EndTimer, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(Skill_3_EndTimer, FTimerDelegate::CreateLambda([&]
+	{
+		ProjectileMovementComponent->Velocity = FVector(0, 0, 0);
+		SetActorEnableCollision(true);
+		TestDiavolo->SetbIsDamagedTrue();
+		TestDiavolo->PlayDiavoloRandomDeadMontage();
+		if (TestDiavolo->GetbCanBeTestedMultipleTimes() == false)
 		{
-			ProjectileMovementComponent->Velocity = FVector(0, 0, 0);
-			SetActorEnableCollision(true);
-			TestDiavolo->SetbIsDamagedTrue();
-			TestDiavolo->PlayDiavoloRandomDeadMontage();
-			if (TestDiavolo->GetbCanBeTestedMultipleTimes() == false)
-			{
-				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
-			}
-			TestDiavolo = nullptr;
-		}), 475.f/750.f, false);
-	}
+			TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+		}
+		TestDiavolo = nullptr;
+	}), Skill_3_CastTime, false);
+	
 
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 0.7f, false);
