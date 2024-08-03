@@ -102,6 +102,8 @@ private:
 	FVector Ult_FinalLocation;
 	FTimerHandle Ult_StopTimer;
 
+	// 말파는 디아볼로에서 피직스 시뮬레이트를 켜 놔야 q랑 궁에서 영상처럼 작동합니다
+
 public:
 	float GetMalphite_HP();
 	void SetMalphite_HP(float hp);
