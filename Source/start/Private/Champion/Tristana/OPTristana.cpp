@@ -138,9 +138,9 @@ void AOPTristana::BasicAttack_CannonBall()
 }
 
 
-void AOPTristana::Skill_1()  //빠른 발사 (Rapid Fire) 효과: 일정 시간 동안 트리스타나의 공격 속도가 대폭 증가합니다.
+void AOPTristana::Q()  //빠른 발사 (Rapid Fire) 효과: 일정 시간 동안 트리스타나의 공격 속도가 대폭 증가합니다.
 {
-	Super::Skill_1();
+	Super::Q();
 	//대포에 불붙는 vfx 추가 필요
 
 	bIsRapidFireActive = true;
@@ -171,9 +171,9 @@ void AOPTristana::EndRapidFire()
 	UE_LOG(LogTemp, Warning, TEXT("Rapid Fire ended: Attack speed normalized."));
 }
 
-void AOPTristana::Skill_2() //로켓 점프 (Rocket Jump) 효과: 트리스타나가 목표 지점으로 로켓을 이용해 뛰어올라, 착지 지점에서 범위 피해를 입히고 적들을 둔화시킵니다. 재사용: 로켓 점프는 적을 처치하거나 어시스트를 기록하면 재사용 대기 시간이 초기화됩니다.
+void AOPTristana::W() //로켓 점프 (Rocket Jump) 효과: 트리스타나가 목표 지점으로 로켓을 이용해 뛰어올라, 착지 지점에서 범위 피해를 입히고 적들을 둔화시킵니다. 재사용: 로켓 점프는 적을 처치하거나 어시스트를 기록하면 재사용 대기 시간이 초기화됩니다.
 {
-	Super::Skill_2();
+	Super::W();
 
 	if (!bSkill_2) return;
 	if (OPPlayerController == nullptr) return;
@@ -245,9 +245,9 @@ void AOPTristana::PlaySkill_2_JumpAnimMontage()
 }
 
 
-void AOPTristana::Skill_3() //폭발 화약(Explosive Charge) 		효과: 패시브로, 트리스타나가 처치한 적이 폭발하여 주변 적들에게 피해를 입힙니다.활성화 : 트리스타나가 적에게 폭발물 패키지를 설치합니다.시간이 지나거나 트리스타나가 일정 횟수 공격을 가하면 폭발하여 큰 피해를 입힙니다.
+void AOPTristana::E() //폭발 화약(Explosive Charge) 		효과: 패시브로, 트리스타나가 처치한 적이 폭발하여 주변 적들에게 피해를 입힙니다.활성화 : 트리스타나가 적에게 폭발물 패키지를 설치합니다.시간이 지나거나 트리스타나가 일정 횟수 공격을 가하면 폭발하여 큰 피해를 입힙니다.
 {
-	Super::Skill_3();
+	Super::E();
 
 	if (!bSkill_3) return;
 	if (OPPlayerController == nullptr) return;
@@ -305,9 +305,9 @@ void AOPTristana::UseExplosiveCharge(AOPDiavolo* Target)
 }
 
 
-void AOPTristana::Ult() //대구경 탄환 (Buster Shot)효과: 트리스타나가 강력한 탄환을 발사하여 대상에게 피해를 입히고, 대상을 멀리 밀어냅니다. 활성화 : 이 스킬은 적 챔피언을 밀어내는 데 효과적이며, 특히 위험한 적을 멀리 밀어내어 위기 상황에서 탈출하거나 적을 분리시키는 데 사용할 수 있습니다.
+void AOPTristana::R() //대구경 탄환 (Buster Shot)효과: 트리스타나가 강력한 탄환을 발사하여 대상에게 피해를 입히고, 대상을 멀리 밀어냅니다. 활성화 : 이 스킬은 적 챔피언을 밀어내는 데 효과적이며, 특히 위험한 적을 멀리 밀어내어 위기 상황에서 탈출하거나 적을 분리시키는 데 사용할 수 있습니다.
 {
-	Super::Ult();
+	Super::R();
 
 	if (!bUlt) return;
 	if (OPPlayerController == nullptr) return;

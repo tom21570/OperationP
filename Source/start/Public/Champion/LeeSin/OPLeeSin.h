@@ -21,12 +21,12 @@ protected:
     virtual void Passive() override;
     virtual void BasicAttack() override;
     bool BasicAttackTrace();
-    virtual void Skill_1() override;
+    virtual void Q() override;
     void Skill_1_SonicWave();
 
-    virtual void Skill_2() override;
-    virtual void Skill_3() override;
-    virtual void Ult() override;
+    virtual void W() override;
+    virtual void E() override;
+    virtual void R() override;
     bool UltTrace();
 
 private:    

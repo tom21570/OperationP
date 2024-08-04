@@ -29,18 +29,17 @@ protected:
 	UFUNCTION()
 	bool MeleeAttackTrace(); // 평타 발동 시 트레이스하는 함수
 	
-	virtual void Skill_1() override;
+	virtual void Q() override;
 	void PlaySkill_1_OrdinaryAnimMontage();
 
 	UFUNCTION()
 	bool Skill_1_Trace(); // 강철폭풍 발동 시 트레이스하는 함수
 	
 	void Skill_1_WhirlWind(); // 강철폭풍 3타에서 회오리 날리기
-	virtual void Skill_2() override;
+	virtual void W() override;
 	void Skill_2_WindWall();
-	virtual void Skill_3() override;
-	virtual void Skill_4() override;
-	virtual void Ult() override;
+	virtual void E() override;
+	virtual void R() override;
 	
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"));

@@ -125,9 +125,9 @@ bool AOPVolibear::MeleeAttackTrace()
 	return false;
 }
 
-void AOPVolibear::Skill_1() //번개 강타 Q 볼리베어가 적을 향해 이동할 때 이동 속도가 증가하며 처음으로 기본 공격하는 대상을 기절시키고 피해를 입힙니다.
+void AOPVolibear::Q() //번개 강타 Q 볼리베어가 적을 향해 이동할 때 이동 속도가 증가하며 처음으로 기본 공격하는 대상을 기절시키고 피해를 입힙니다.
 {
-	Super::Skill_1(); 
+	Super::Q(); 
 
 	if (!bSkill_1) return;
 	if (OPPlayerController == nullptr) return;
@@ -135,9 +135,9 @@ void AOPVolibear::Skill_1() //번개 강타 Q 볼리베어가 적을 향해 이�
 	bThunderingSmash = true;
 }
 
-void AOPVolibear::Skill_2() //광란의 상처 W 볼리베어가 적에게 피해를 입혀 적중 시 효과를 적용하고 표식을 남깁니다.표식을 남긴 대상에게 다시 이 스킬을 사용하면 추가 피해를 입히고 체력을 회복합니다.
+void AOPVolibear::W() //광란의 상처 W 볼리베어가 적에게 피해를 입혀 적중 시 효과를 적용하고 표식을 남깁니다.표식을 남긴 대상에게 다시 이 스킬을 사용하면 추가 피해를 입히고 체력을 회복합니다.
 {
-	Super::Skill_2();
+	Super::W();
 
 	if (!bSkill_2) return;
 	if (OPPlayerController == nullptr) return;
@@ -199,9 +199,9 @@ AOPDiavolo* AOPVolibear::Skill_2_Trace()
 	return nullptr;
 }
 
-void AOPVolibear::Skill_3() //천공 분열E 볼리베어가 지정한 위치에 번개를 소환해 적에게 피해를 입히고 둔화시킵니다.볼리베어가 폭발 반경 안에 있으면 보호막을 얻습니다.
+void AOPVolibear::E() //천공 분열E 볼리베어가 지정한 위치에 번개를 소환해 적에게 피해를 입히고 둔화시킵니다.볼리베어가 폭발 반경 안에 있으면 보호막을 얻습니다.
 {
-	Super::Skill_3();
+	Super::E();
 
 	if (!bSkill_3) return;
 	if (OPPlayerController == nullptr) return;
@@ -239,9 +239,9 @@ void AOPVolibear::Skill_3_Lightningbolt() //
 	}
 }
 
-void AOPVolibear::Ult() //폭풍을 부르는 자 R 볼리베어가 지정한 위치로 도약하여 아래에 있는 적을 둔화시키고 피해를 입히며 추가 체력을 얻습니다.볼리베어가 착지한 곳 근처에 있는 포탑은 일시적으로 비활성화됩니다.
+void AOPVolibear::R() //폭풍을 부르는 자 R 볼리베어가 지정한 위치로 도약하여 아래에 있는 적을 둔화시키고 피해를 입히며 추가 체력을 얻습니다.볼리베어가 착지한 곳 근처에 있는 포탑은 일시적으로 비활성화됩니다.
 {
-	Super::Ult();
+	Super::R();
 
 	if (!bUlt) return;
 	if (OPPlayerController == nullptr) return;

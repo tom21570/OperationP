@@ -120,9 +120,9 @@ bool AOPLeeSin::BasicAttackTrace()
     return false;
 }
 
-void AOPLeeSin::Skill_1()
+void AOPLeeSin::Q()
 {
-    Super::Skill_1();
+    Super::Q();
 
     if (!bSkill_1) return;
     if (OPPlayerController == nullptr) return;
@@ -182,9 +182,9 @@ void AOPLeeSin::Skill_1_SonicWave()
     SonicWave->SetOwner(this);
 }
 
-void AOPLeeSin::Skill_2()
+void AOPLeeSin::W()
 {
-    Super::Skill_2();
+    Super::W();
 
     if (!GetbSkill_2()) return;
     if (!OPPlayerController) return;
@@ -239,9 +239,9 @@ void AOPLeeSin::ApplyShieldToAlly(AOPChampion* TargetChampion)
     }
 }
 
-void AOPLeeSin::Skill_3()
+void AOPLeeSin::E()
 {
-    Super::Skill_3();
+    Super::E();
 
     if (!GetbSkill_3()) return;
 
@@ -328,9 +328,9 @@ void AOPLeeSin::Skill_3_ApplySlowEffect()
     // }
 }
 
-void AOPLeeSin::Ult()
+void AOPLeeSin::R()
 {
-    Super::Ult();
+    Super::R();
 
     if (!bUlt) return;
     if (!OPPlayerController) return;

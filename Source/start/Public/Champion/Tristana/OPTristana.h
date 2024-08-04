@@ -25,25 +25,25 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 
 	virtual void Passive() override;
-	virtual void BasicAttack() override; //¿ø°Å¸® ±âº»°ø°Ý
+	virtual void BasicAttack() override; //ï¿½ï¿½ï¿½Å¸ï¿½ ï¿½âº»ï¿½ï¿½ï¿½ï¿½
 	void BasicAttack_CannonBall();
-	virtual void Skill_1() override; //ºü¸¥ ¹ß»ç (Rapid Fire) È¿°ú: ÀÏÁ¤ ½Ã°£ µ¿¾È Æ®¸®½ºÅ¸³ªÀÇ °ø°Ý ¼Óµµ°¡ ´ëÆø Áõ°¡ÇÕ´Ï´Ù.
+	virtual void Q() override; //ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ (Rapid Fire) È¿ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ ï¿½ï¿½ï¿½ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.
 	void EndRapidFire();
-	virtual void Skill_2() override; //·ÎÄÏ Á¡ÇÁ (Rocket Jump) È¿°ú: Æ®¸®½ºÅ¸³ª°¡ ¸ñÇ¥ ÁöÁ¡À¸·Î ·ÎÄÏÀ» ÀÌ¿ëÇØ ¶Ù¾î¿Ã¶ó, ÂøÁö ÁöÁ¡¿¡¼­ ¹üÀ§ ÇÇÇØ¸¦ ÀÔÈ÷°í ÀûµéÀ» µÐÈ­½ÃÅµ´Ï´Ù. Àç»ç¿ë: ·ÎÄÏ Á¡ÇÁ´Â ÀûÀ» Ã³Ä¡ÇÏ°Å³ª ¾î½Ã½ºÆ®¸¦ ±â·ÏÇÏ¸é Àç»ç¿ë ´ë±â ½Ã°£ÀÌ ÃÊ±âÈ­µË´Ï´Ù.
+	virtual void W() override; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (Rocket Jump) È¿ï¿½ï¿½: Æ®ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ç¥ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¿ï¿½ï¿½ï¿½ ï¿½Ù¾ï¿½Ã¶ï¿½, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È­ï¿½ï¿½Åµï¿½Ï´ï¿½. ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³Ä¡ï¿½Ï°Å³ï¿½ ï¿½ï¿½Ã½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½Ê±ï¿½È­ï¿½Ë´Ï´ï¿½.
 	void OnLanding();
 	void PlaySkill_2_JumpAnimMontage();
-	virtual void Skill_3() override; //Æø¹ß È­¾à(Explosive Charge) 		È¿°ú: ÆÐ½Ãºê·Î, Æ®¸®½ºÅ¸³ª°¡ Ã³Ä¡ÇÑ ÀûÀÌ Æø¹ßÇÏ¿© ÁÖº¯ Àûµé¿¡°Ô ÇÇÇØ¸¦ ÀÔÈü´Ï´Ù.		È°¼ºÈ­ : Æ®¸®½ºÅ¸³ª°¡ Àû¿¡°Ô Æø¹ß¹° ÆÐÅ°Áö¸¦ ¼³Ä¡ÇÕ´Ï´Ù.½Ã°£ÀÌ Áö³ª°Å³ª Æ®¸®½ºÅ¸³ª°¡ ÀÏÁ¤ È½¼ö °ø°ÝÀ» °¡ÇÏ¸é Æø¹ßÇÏ¿© Å« ÇÇÇØ¸¦ ÀÔÈü´Ï´Ù.
+	virtual void E() override; //ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½(Explosive Charge) 		È¿ï¿½ï¿½: ï¿½Ð½Ãºï¿½ï¿½, Æ®ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ Ã³Ä¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½Öºï¿½ ï¿½ï¿½ï¿½é¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½Ø¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.		È°ï¿½ï¿½È­ : Æ®ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ß¹ï¿½ ï¿½ï¿½Å°ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½Õ´Ï´ï¿½.ï¿½Ã°ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Å³ï¿½ Æ®ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ Å« ï¿½ï¿½ï¿½Ø¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
 	// Function to use Explosive Charge
 	void UseExplosiveCharge(AOPDiavolo* Target);
 
-	virtual void Ult() override; //´ë±¸°æ ÅºÈ¯ (Buster Shot)È¿°ú: Æ®¸®½ºÅ¸³ª°¡ °­·ÂÇÑ ÅºÈ¯À» ¹ß»çÇÏ¿© ´ë»ó¿¡°Ô ÇÇÇØ¸¦ ÀÔÈ÷°í, ´ë»óÀ» ¸Ö¸® ¹Ð¾î³À´Ï´Ù. È°¼ºÈ­ : ÀÌ ½ºÅ³Àº Àû Ã¨ÇÇ¾ðÀ» ¹Ð¾î³»´Â µ¥ È¿°úÀûÀÌ¸ç, Æ¯È÷ À§ÇèÇÑ ÀûÀ» ¸Ö¸® ¹Ð¾î³»¾î À§±â »óÈ²¿¡¼­ Å»ÃâÇÏ°Å³ª ÀûÀ» ºÐ¸®½ÃÅ°´Â µ¥ »ç¿ëÇÒ ¼ö ÀÖ½À´Ï´Ù.
+	virtual void R() override; //ï¿½ë±¸ï¿½ï¿½ ÅºÈ¯ (Buster Shot)È¿ï¿½ï¿½: Æ®ï¿½ï¿½ï¿½ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ÅºÈ¯ï¿½ï¿½ ï¿½ß»ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ó¿¡°ï¿½ ï¿½ï¿½ï¿½Ø¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¸ï¿½ ï¿½Ð¾ï¿½ï¿½ï¿½Ï´ï¿½. È°ï¿½ï¿½È­ : ï¿½ï¿½ ï¿½ï¿½Å³ï¿½ï¿½ ï¿½ï¿½ Ã¨ï¿½Ç¾ï¿½ï¿½ï¿½ ï¿½Ð¾î³»ï¿½ï¿½ ï¿½ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½, Æ¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¸ï¿½ ï¿½Ð¾î³»ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È²ï¿½ï¿½ï¿½ï¿½ Å»ï¿½ï¿½ï¿½Ï°Å³ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ð¸ï¿½ï¿½ï¿½Å°ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ö½ï¿½ï¿½Ï´ï¿½.
 	void Ult_BusterShot();
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"));
-	class UProjectileMovementComponent* ProjectileMovementComponent; //¹ß»çÃ¼ ¿òÁ÷ÀÓÀ» Ãß°¡ÇØÁÜ
+	class UProjectileMovementComponent* ProjectileMovementComponent; //ï¿½ß»ï¿½Ã¼ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ß°ï¿½ï¿½ï¿½ï¿½ï¿½
 
-	/**************************************** ¹°¸® ½ÇÇè *******************************************/
+	/**************************************** ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ *******************************************/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float BasicAttack_Impulse = 0.f;
 
@@ -113,10 +113,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Ult_Rebound = 5000.f;
 
-	/**************************************** ÆòÅ¸ *******************************************/
-	TObjectPtr<AOPTristanaCannonBall> CannonBall; // ÆòÅ¸ Ä³³íº¼ ´ãÀ» ÇÔ¼ö
+	/**************************************** ï¿½ï¿½Å¸ *******************************************/
+	TObjectPtr<AOPTristanaCannonBall> CannonBall; // ï¿½ï¿½Å¸ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<AOPTristanaCannonBall> CannonBallClass; // À§ º¯¼ö¿¡ ´ã¾Æ¼­ ½ÇÁ¦·Î ³¯¸± Ä³³íº¼
+	TSubclassOf<AOPTristanaCannonBall> CannonBallClass; // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> CannonBallSpawnPoint;
@@ -124,42 +124,42 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack", meta = (AllowPrivateAccess = "true"))
 	const TObjectPtr<USkeletalMeshSocket> CannonBallSpawnSocket;
 
-	FTimerHandle CannonBallSpawnTimer; // Ä³³íº¼ µô·¹ÀÌ ¼³Á¤À» À§ÇÑ Å¸ÀÌ¸Ó
+	FTimerHandle CannonBallSpawnTimer; // Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ì¸ï¿½
 
 	
 
-	/**************************************** ½ºÅ³ 1 *******************************************/
-	float DefaultAttackSpeed; // ¿ø·¡ °ø¼Ó
+	/**************************************** ï¿½ï¿½Å³ 1 *******************************************/
+	float DefaultAttackSpeed; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
 	float RapidFireValue = 0.5f;
 	
-	FTimerHandle RapidFireTimerHandle; // ½ºÅ³ 1 À¯Áö Å¸ÀÌ¸Ó
-	bool bIsRapidFireActive = false; // ½ºÅ³ 1 È°¼ºÈ­µÇÀÖ´ÂÁö ºÒ¸®¾ð °ª
+	FTimerHandle RapidFireTimerHandle; // ï¿½ï¿½Å³ 1 ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ì¸ï¿½
+	bool bIsRapidFireActive = false; // ï¿½ï¿½Å³ 1 È°ï¿½ï¿½È­ï¿½ï¿½ï¿½Ö´ï¿½ï¿½ï¿½ ï¿½Ò¸ï¿½ï¿½ï¿½ ï¿½ï¿½
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
-	float RapidFireDuration = 10.f; // ½ºÅ³ 1 È°¼ºÈ­ ½Ã°£
+	float RapidFireDuration = 10.f; // ï¿½ï¿½Å³ 1 È°ï¿½ï¿½È­ ï¿½Ã°ï¿½
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UNiagaraComponent> RapidFireNiagaraComponent;
 
 	
 
-	/**************************************** ½ºÅ³ 2 *******************************************/
-	FTimerHandle Skill_2_JumpTimerHandle; // Á¡ÇÁ Àü µô·¹ÀÌ¸¦ À§ÇÑ Å¸ÀÌ¸Ó
-	FVector Skill_2_FinalLocation; // ½ºÅ³ 2 ÂøÁö ÁöÁ¡
-	FVector Skill_2_Vector_XY; // ½ºÅ³ 2 ¼öÆò¹æÇâ ¼Óµµ
+	/**************************************** ï¿½ï¿½Å³ 2 *******************************************/
+	FTimerHandle Skill_2_JumpTimerHandle; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ì¸ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ì¸ï¿½
+	FVector Skill_2_FinalLocation; // ï¿½ï¿½Å³ 2 ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	FVector Skill_2_Vector_XY; // ï¿½ï¿½Å³ 2 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Óµï¿½
 
 	
 
-	/**************************************** ½ºÅ³ 3 *******************************************/
-	TObjectPtr<AOPTristanaExplosiveCharge> ExplosiveCharge; // Æø¹ß È­¾à ´ãÀ» º¯¼ö
+	/**************************************** ï¿½ï¿½Å³ 3 *******************************************/
+	TObjectPtr<AOPTristanaExplosiveCharge> ExplosiveCharge; // ï¿½ï¿½ï¿½ï¿½ È­ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill3", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<AOPTristanaExplosiveCharge> ExplosiveChargeClass; // À§ º¯¼ö¿¡ ´ã¾Æ¼­ ½ÇÁ¦·Î ³¯¸± Æø¹ßÈ­¾à
+	TSubclassOf<AOPTristanaExplosiveCharge> ExplosiveChargeClass; // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½È­ï¿½ï¿½
 
 	// Current active explosive charge
 	AOPTristanaExplosiveCharge* CurrentExplosiveCharge;
 
-	FTimerHandle ExplosiveChargeClassSpawnTimer; // Ä³³íº¼ µô·¹ÀÌ ¼³Á¤À» À§ÇÑ Å¸ÀÌ¸Ó
+	FTimerHandle ExplosiveChargeClassSpawnTimer; // Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ì¸ï¿½
 
 	// Timer handle for explosion
 	FTimerHandle ExplosionTimerHandle;
@@ -167,17 +167,17 @@ private:
 
 	
 	
-	/**************************************** ±Ã±Ø±â *******************************************/
-	TObjectPtr<AOPTristanaBusterShot> BusterShot; // ¹ö½ºÅÍ¼¦ ´ãÀ» ÇÔ¼ö
+	/**************************************** ï¿½Ã±Ø±ï¿½ *******************************************/
+	TObjectPtr<AOPTristanaBusterShot> BusterShot; // ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ult", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<AOPTristanaBusterShot> BusterShotClass; // À§ º¯¼ö¿¡ ´ã¾Æ¼­ ½ÇÁ¦·Î ³¯¸± ¹ö½ºÅÍ¼¦
+	TSubclassOf<AOPTristanaBusterShot> BusterShotClass; // ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½
 
-	FTimerHandle BusterShotClassSpawnTimer; // ¹ö½ºÅÍ¼¦ µô·¹ÀÌ ¼³Á¤À» À§ÇÑ Å¸ÀÌ¸Ó
+	FTimerHandle BusterShotClassSpawnTimer; // ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½Ì¸ï¿½
 
 	// Handle Landing
 
-	//FVector MoveTargetLocation; //ÀÌµ¿ °ü·Ã º¯¼ö
-	//bool bIsMoving; //ÀÌµ¿ °ü·Ã º¯¼ö
+	//FVector MoveTargetLocation; //ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//bool bIsMoving; //ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 	//float CalculateMinDistanceToActorEdge(FVector ActorLocation, FVector TargetLocation, float Radius);
 	//void MoveToLocation(FVector TargetLocation);

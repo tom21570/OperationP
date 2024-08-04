@@ -25,19 +25,18 @@ protected:
 	virtual void Passive() override;
 	virtual void BasicAttack() override;
 	bool MeleeAttackTrace(); // ��Ÿ �ߵ� �� Ʈ���̽��ϴ� �Լ�
-	virtual void Skill_1() override;
+	virtual void Q() override;
 
 	void Skill_1_ShardOfTheEarth();
 
-	virtual void Skill_2() override;
+	virtual void W() override;
 
-	virtual void Skill_3() override;
+	virtual void E() override;
 	
 	UFUNCTION()
 	void Skill_3_GroundSlam();
 	
-	virtual void Skill_4() override;
-	virtual void Ult() override;
+	virtual void R() override;
 
 	UFUNCTION()
 	void OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);

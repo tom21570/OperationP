@@ -22,11 +22,10 @@ protected:
 
     virtual void Passive();
     virtual void BasicAttack(); // 평타
-    virtual void Skill_1();
-    virtual void Skill_2();
-    virtual void Skill_3();
-    virtual void Skill_4();
-    virtual void Ult();
+    virtual void Q();
+    virtual void W();
+    virtual void E();
+    virtual void R();
 
 public:
     virtual void Tick(float DeltaTime) override; // 매 프레임마다 실행되는 함수
@@ -60,22 +59,19 @@ protected:
     TObjectPtr<UInputAction> BasicAttackAction;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputAction> LongDistanceAttackAction;
+    TObjectPtr<UInputAction> Q_Action;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputAction> SkillAction1;
+    TObjectPtr<UInputAction> W_Action;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputAction> SkillAction2;
-
-    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputAction> SkillAction3;
+    TObjectPtr<UInputAction> E_Action;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UInputAction> SkillAction4;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UInputAction> UltAction;
+    TObjectPtr<UInputAction> R_Action;
 
     void Move(const struct FInputActionValue& Value);
     void Look(const struct FInputActionValue& Value);

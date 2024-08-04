@@ -22,8 +22,6 @@ AOPYasuo::AOPYasuo()
 void AOPYasuo::BeginPlay()
 {
 	Super::BeginPlay();
-
-	ProjectileMovementComponent->Velocity = GetActorForwardVector() * 100.f;
 }
 
 void AOPYasuo::Passive()
@@ -131,9 +129,9 @@ bool AOPYasuo::MeleeAttackTrace()
 	return false;
 }
 
-void AOPYasuo::Skill_1()
+void AOPYasuo::Q()
 {
-	Super::Skill_1();
+	Super::Q();
 	
 	if(!bSkill_1) return;
 	if(!OPPlayerController) return;
@@ -296,9 +294,9 @@ void AOPYasuo::Skill_1_WhirlWind() // 회오리 발사
 	WhirlWind->SetOwner(this);
 }
 
-void AOPYasuo::Skill_2()
+void AOPYasuo::W()
 {
-	Super::Skill_2();
+	Super::W();
 	
 	if (!bSkill_2) return;
 	if (!OPPlayerController) return;
@@ -336,18 +334,12 @@ void AOPYasuo::Skill_2_WindWall()
 	}
 }
 
-void AOPYasuo::Skill_3()
+void AOPYasuo::E()
 {
-	Super::Skill_3();
+	Super::E();
 	
 	if (!bSkill_3) return;
-	UE_LOG(LogTemp, Warning, TEXT("Skill 3 tasuo"));
 	if (OPPlayerController == nullptr) return;
-	
-	if (ChampionAnimInstance && Skill_3_AnimMontage)
-	{
-		ChampionAnimInstance->Montage_Play(Skill_3_AnimMontage, 1.0f);
-	}
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 	if (!MouseCursorHit.bBlockingHit) return;
@@ -383,66 +375,6 @@ void AOPYasuo::Skill_3()
 		}
 		TestDiavolo = nullptr;
 	}), Skill_3_CastTime, false);
-	
-
-	StopChampionMovement();
-	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 0.7f, false);
-	
-	SetbSkill_3_False();
-	GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_3_True, Skill_3_Cooltime, false);
-}
-
-void AOPYasuo::Skill_4()
-{
-	Super::Skill_4();
-
-	if (!bSkill_4) return;
-	if (!OPPlayerController) return;
-
-	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
-	if (!MouseCursorHit.bBlockingHit) return;
-
-	TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
-	if (TestDiavolo == nullptr) return;
-
-	int32 Distance = FVector::Dist(GetActorLocation(), TestDiavolo->GetActorLocation());
-	FTimerHandle Skill_4_EndTimer;
-
-	if (Distance <= Skill_4_Distance)
-	{
-		FVector Skill4Vector = MouseCursorHit.Location - GetActorLocation();
-		Skill4Vector.Normalize();
-		Skill4Vector *= Skill_4_Velocity;
-		Skill4Vector.Z = 0.f;
-		TurnCharacterToLocation(TestDiavolo->GetActorLocation());
-		SetActorEnableCollision(true); // Ensure collision is enabled
-		// Set the velocity for the projectile movement
-		if (ProjectileMovementComponent)
-		{
-			ProjectileMovementComponent->Velocity = Skill4Vector;
-			ProjectileMovementComponent->bSweepCollision = true;
-			ProjectileMovementComponent->Activate();
-			
-			// Bind the collision event
-			GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AOPYasuo::OnProjectileHit);
-		}
-	}
-
-	GetWorldTimerManager().SetTimer(Skill_4_EndTimer, FTimerDelegate::CreateLambda([&]
-	{
-			if (ProjectileMovementComponent)
-			{
-				ProjectileMovementComponent->Velocity = FVector::ZeroVector;
-				ProjectileMovementComponent->Deactivate();
-			}
-			
-			TestDiavolo->SetbIsDamagedTrue();
-			TestDiavolo->PlayDiavoloRandomDeadMontage();
-			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
-			{
-				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
-			}
-		}), 475.f / 750.f, false);
 
 	if (ChampionAnimInstance && Skill_3_AnimMontage)
 	{
@@ -451,9 +383,9 @@ void AOPYasuo::Skill_4()
 	
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 0.7f, false);
-
-	SetbSkill_4_False();
-	GetWorldTimerManager().SetTimer(Skill_4_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_4_True, GetSkill_4_Cooltime(), false);
+	
+	SetbSkill_3_False();
+	GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_3_True, Skill_3_Cooltime, false);
 }
 
 // Collision event handler
@@ -514,9 +446,9 @@ void AOPYasuo::OnDrawingSword(UPrimitiveComponent* OverlappedComp, AActor* Other
 	}
 }
 
-void AOPYasuo::Ult()
+void AOPYasuo::R()
 {
-	Super::Ult();
+	Super::R();
 	
 	if (!bUlt) return;
 	if (OPPlayerController == nullptr) return;
@@ -532,14 +464,13 @@ void AOPYasuo::Ult()
 
 	int32 Distance = FVector::Dist(GetActorLocation(), TestDiavolo->GetActorLocation());
 
-	if (Distance <= 1400.f)
+	if (Distance <= 100000000.f)
 	{
 		FVector DiavoloLocation = TestDiavolo->GetActorLocation();
-		DiavoloLocation.Z -= 200.f;
-		DiavoloLocation -= GetActorForwardVector() * 200.f;
+		// DiavoloLocation.Z -= 200.f;
+		// DiavoloLocation -= GetActorForwardVector() * 200.f;
 		SetActorLocation(DiavoloLocation);
 		TestDiavolo->GetCharacterMovement()->DisableMovement();
-		// GetCharacterMovement()->AddImpulse(FVector(0.f, 0.f, 1000.f), true);
 		GetCharacterMovement()->GravityScale = 0.f;
 		
 		GetWorldTimerManager().SetTimer(Ult_End_Timer, FTimerDelegate::CreateLambda([&]

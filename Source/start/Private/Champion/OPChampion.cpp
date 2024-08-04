@@ -65,19 +65,19 @@ AOPChampion::AOPChampion()
 	static ConstructorHelpers::FObjectFinder<UInputAction> Skill1Input(TEXT("/Game/Input/IA_Skill_1.IA_Skill_1"));
 	if(MoveInput.Succeeded())
 	{
-		SkillAction1 = Skill1Input.Object;
+		Q_Action = Skill1Input.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> Skill2Input(TEXT("/Game/Input/IA_Skill_2.IA_Skill_2"));
 	if(MoveInput.Succeeded())
 	{
-		SkillAction2 = Skill2Input.Object;
+		W_Action = Skill2Input.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> Skill3Input(TEXT("/Game/Input/IA_Skill_3.IA_Skill_3"));
 	if(MoveInput.Succeeded())
 	{
-		SkillAction3 = Skill3Input.Object;
+		E_Action = Skill3Input.Object;
 	}
 
 	static ConstructorHelpers::FObjectFinder<UInputAction> Skill4Input(TEXT("/Game/Input/IA_Skill_4.IA_Skill_4"));
@@ -89,7 +89,7 @@ AOPChampion::AOPChampion()
 	static ConstructorHelpers::FObjectFinder<UInputAction> UltInput(TEXT("/Game/Input/IA_Ult.IA_Ult"));
 	if(MoveInput.Succeeded())
 	{
-		UltAction = UltInput.Object;
+		R_Action = UltInput.Object;
 	}
 	
 	ChampionAnimInstance = Cast<UOPAnimInstance>(GetMesh()->GetAnimInstance());
@@ -167,27 +167,22 @@ void AOPChampion::BasicAttack()
 	UE_LOG(LogTemp, Warning, TEXT("MeleeAttack"));
 }
 
-void AOPChampion::Skill_1()
+void AOPChampion::Q()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Skill 1"));
 }
 
-void AOPChampion::Skill_2()
+void AOPChampion::W()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Skill 2"));
 }
 
-void AOPChampion::Skill_3()
+void AOPChampion::E()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Skill 3"));
 }
 
-void AOPChampion::Skill_4()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Skill 4"));
-}
-
-void AOPChampion::Ult()
+void AOPChampion::R()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Ult"));
 }
@@ -254,9 +249,8 @@ void AOPChampion::SetupPlayerInputComponent(UInputComponent* PlayerInputComponen
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AOPChampion::Look);
 
 	EnhancedInputComponent->BindAction(BasicAttackAction, ETriggerEvent::Started, this, &AOPChampion::BasicAttack);
-	EnhancedInputComponent->BindAction(SkillAction1, ETriggerEvent::Started, this, &AOPChampion::Skill_1);
-	EnhancedInputComponent->BindAction(SkillAction2, ETriggerEvent::Started, this, &AOPChampion::Skill_2);
-	EnhancedInputComponent->BindAction(SkillAction3, ETriggerEvent::Started, this, &AOPChampion::Skill_3);
-	EnhancedInputComponent->BindAction(SkillAction4, ETriggerEvent::Started, this, &AOPChampion::Skill_4);
-	EnhancedInputComponent->BindAction(UltAction, ETriggerEvent::Started, this, &AOPChampion::Ult);
+	EnhancedInputComponent->BindAction(Q_Action, ETriggerEvent::Started, this, &AOPChampion::Q);
+	EnhancedInputComponent->BindAction(W_Action, ETriggerEvent::Started, this, &AOPChampion::W);
+	EnhancedInputComponent->BindAction(E_Action, ETriggerEvent::Started, this, &AOPChampion::E);
+	EnhancedInputComponent->BindAction(R_Action, ETriggerEvent::Started, this, &AOPChampion::R);
 }

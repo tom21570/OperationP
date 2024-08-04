@@ -20,17 +20,19 @@ void AOPYasuoWhirlWind::OnDamageCollisionBeginOverlap(UPrimitiveComponent* Overl
 		AOPDiavolo* TestDiavolo = Cast<AOPDiavolo>(OtherActor);
 		if (TestDiavolo)
 		{            // Calculate the direction of the impulse
-			FVector ImpactDirection = (TestDiavolo->GetActorLocation() - SweepResult.ImpactPoint).GetSafeNormal();
+			// FVector ImpactDirection = (TestDiavolo->GetActorLocation() - SweepResult.ImpactPoint).GetSafeNormal();
+			//
+			// // Add an upward component to the impact direction
+			// ImpactDirection.Z += AngleOfFloating;
+			// ImpactDirection = ImpactDirection.GetSafeNormal();
+			//
+			// // Log the impact direction for debugging
+			// UE_LOG(LogTemp, Log, TEXT("Impact Direction: %s"), *ImpactDirection.ToString());
+			//
+			// // Apply an impulse to the Diavolo character based on the impact direction and AirborneRate
+			// TestDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * ForceOfWind, true);
 
-			// Add an upward component to the impact direction
-			ImpactDirection.Z += AngleOfFloating;
-			ImpactDirection = ImpactDirection.GetSafeNormal();
-
-			// Log the impact direction for debugging
-			UE_LOG(LogTemp, Log, TEXT("Impact Direction: %s"), *ImpactDirection.ToString());
-
-			// Apply an impulse to the Diavolo character based on the impact direction and AirborneRate
-			TestDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * ForceOfWind, true);
+			TestDiavolo->GetCharacterMovement()->AddImpulse(TestDiavolo->GetActorUpVector() * 3000.f, true);
 
 			if (WhirlWind_Hit_SFX)
 			{
