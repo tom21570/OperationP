@@ -34,5 +34,5 @@ private:
 	float Q_Impulse = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Q_Angle = 0.f;
+	float Q_Angle = 0.f;//
 };
