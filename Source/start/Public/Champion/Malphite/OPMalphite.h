@@ -31,7 +31,8 @@ protected:
 	/************************************************************************ Basic Attack ************************************************************************/
 
 	virtual void BasicAttack() override;
-	bool BasicAttackTrace();
+	bool BasicAttackTrace(int AnimationNum);
+	bool BasicAttackTrace_W();
 	
 	/****************************************************************************** Q ******************************************************************************/
 
@@ -57,9 +58,6 @@ protected:
 	UFUNCTION()
 	void R_OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
-	UFUNCTION()
-	virtual void R_BeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
-
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"));
 	TObjectPtr<class UProjectileMovementComponent> ProjectileMovementComponent;
@@ -70,6 +68,20 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float BasicAttack_Impulse = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float BasicAttack_Impulse_W = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	float BasicAttack_Range = 600.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	float BasicAttack_Radius = 600.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	float BasicAttack_Radius_W = 600.f;
+
+	FTimerHandle BasicAttackTraceTimerHandle;
 	
 	/****************************************************************************** Q ******************************************************************************/
 
@@ -89,19 +101,25 @@ private:
 
 	bool bThunderClapOn = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W", meta = (AllowPrivateAccess = "true"));
+	TObjectPtr<USceneComponent> W_ClapPoint;
+
 	/****************************************************************************** E ******************************************************************************/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_3_Impulse = 0.f;
+	float E_Impulse = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_3_Radius = 0.f;
+	float E_Radius = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_3_SlowAmount = 0.f;
+	float E_Angle = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_3_SlowDuration = 0.f;
+	float E_SlowAmount = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float E_SlowDuration = 0.f;
 
 	FTimerHandle E_CastTimer;
 	
@@ -114,18 +132,15 @@ private:
 	float R_Angle = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float R_Distance = 0.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float R_Radius = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float R_Impulse = 0.f;
 
-	FVector R_FinalLocation;
-	FTimerHandle R_StopTimer;
+	FVector R_FinalLocation; // 궁을 사용해서 도착할 지점
+	FTimerHandle R_StopTimerHandle; // 궁 시전을 멈추기 위한 타이머핸들
 
-	bool bRIsCasting = false;
+	bool bRIsCasting = false; // 궁을 시전 중이라면 true인 불리언 값
 	
 	// 말파는 디아볼로에서 피직스 시뮬레이트를 켜 놔야 q랑 궁에서 영상처럼 작동합니다
 	

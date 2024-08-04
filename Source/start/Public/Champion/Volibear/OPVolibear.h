@@ -65,7 +65,7 @@ private:
 	/****************************************************************************** 평타 ******************************************************************************/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MeleeAttack | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float MeleeAttack_Impulse = 0.f;
+	float BasicAttack_Impulse = 0.f;
 
 	FTimerHandle BasicAttackCastTimerHandle;
 	FTimerHandle BasicAttackComboCountTimerHandle;

@@ -36,7 +36,7 @@ void AOPMalphiteShardOfTheEarth::OnDamageCollisionBeginOverlap(UPrimitiveCompone
 		{
 			FVector ImpactDirection = (TestDiavolo->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 			ImpactDirection.Z = 0.f;
-			ImpactDirection.Z += Q_Angle;
+			ImpactDirection.Z = Q_Angle;
 			TestDiavolo->SetbIsDamagedTrue();
 			TestDiavolo->PlayDiavoloRandomDeadMontage();
 			TestDiavolo->LaunchCharacter(ImpactDirection * Q_Impulse, true, true);

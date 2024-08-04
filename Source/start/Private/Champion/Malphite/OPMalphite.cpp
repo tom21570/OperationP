@@ -18,6 +18,9 @@ AOPMalphite::AOPMalphite()
 
 	ShardSpawnLocation = CreateDefaultSubobject<USceneComponent>(TEXT("Shard Spawn Location"));
 	ShardSpawnLocation->SetupAttachment(GetRootComponent());
+
+	W_ClapPoint = CreateDefaultSubobject<USceneComponent>(TEXT("W_ClapPoint Component"));
+	W_ClapPoint->SetupAttachment(GetRootComponent());
 }
 
 void AOPMalphite::BeginPlay()
@@ -52,25 +55,45 @@ void AOPMalphite::BasicAttack()
 	if (!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);
 
-	FTimerHandle Timer;
-	GetWorldTimerManager().SetTimer(Timer, FTimerDelegate::CreateLambda([&]
-	{
-			BasicAttackTrace();
-	}), 0.25f, false);
-
 	if (ChampionAnimInstance && BasicAttackAnimMontage)
 	{
+		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+		
 		if (bThunderClapOn == true)
 		{
-			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
 			ChampionAnimInstance->Montage_JumpToSection(FName("clap"), BasicAttackAnimMontage);
+			GetWorldTimerManager().SetTimer(BasicAttackTraceTimerHandle, FTimerDelegate::CreateLambda([&]
+			{
+				BasicAttackTrace_W();
+			}), 0.45f, false);
 			bThunderClapOn = false;
 		}
+		
 		else
 		{
-			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+			int32 Section = FMath::RandRange(0, 1);
+			switch (Section)
+			{
+			case 0:
+				ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
+				GetWorldTimerManager().SetTimer(BasicAttackTraceTimerHandle, FTimerDelegate::CreateLambda([&]
+				{
+					BasicAttackTrace(1);
+				}), 0.25f, false);
+				break;
+
+			case 1:
+				ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
+				GetWorldTimerManager().SetTimer(BasicAttackTraceTimerHandle, FTimerDelegate::CreateLambda([&]
+				{
+					BasicAttackTrace(2);
+				}), 0.25f, false);
+				break;
+
+			default:
+				break;
+			}
 		}
-		
 	}
 
 	StopChampionMovement();
@@ -80,25 +103,76 @@ void AOPMalphite::BasicAttack()
 	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPMalphite::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
 }
 
-bool AOPMalphite::BasicAttackTrace()
+bool AOPMalphite::BasicAttackTrace(int AnimationNum)
 {
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 200.f, 80.f,
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Radius,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 
 	for (auto& HitActor : HitResults)
 	{
 		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
 		{
+			float Distance = FVector::Dist(GetActorLocation(), Diavolo->GetActorLocation());
+			switch (AnimationNum)
+			{
+			case 1:
+				Diavolo->LaunchCharacter(GetActorRightVector() * BasicAttack_Impulse / Distance, true, true);
+				break;
+
+			case 2:
+				Diavolo->LaunchCharacter(GetActorUpVector() * BasicAttack_Impulse / Distance, true, true);
+				break;
+
+			default:
+				break;
+					
+			}
+			
 			Diavolo->SetbIsDamagedTrue();
 			Diavolo->PlayDiavoloRandomDeadMontage();
-			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Impulse, true);
+			
 			if (!Diavolo->GetbCanBeTestedMultipleTimes())
 			{
 				Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+			}
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool AOPMalphite::BasicAttackTrace_W()
+{
+	TArray<FHitResult> HitResults;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), W_ClapPoint->GetComponentLocation(), W_ClapPoint->GetComponentLocation(), BasicAttack_Radius_W,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+
+	for (auto& HitActor : HitResults)
+	{
+		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+		{
+			if (Diavolo)
+			{
+				const float Distance = FVector::Dist(GetActorLocation(), Diavolo->GetActorLocation());
+				FVector ImpulseDirection = Diavolo->GetActorLocation() - W_ClapPoint->GetComponentLocation();
+				Diavolo->LaunchCharacter(ImpulseDirection * BasicAttack_Impulse_W / Distance, true, true);
+				
+				Diavolo->SetbIsDamagedTrue();
+				Diavolo->PlayDiavoloRandomDeadMontage();
+				
+				if (!Diavolo->GetbCanBeTestedMultipleTimes())
+				{
+					Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+				}
 			}
 
 			return true;
@@ -235,7 +309,7 @@ void AOPMalphite::E_GroundSlam()
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * Skill_3_Radius, Skill_3_Radius,
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * E_Radius, E_Radius,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 
 	for (auto& HitActor : HitResults)
@@ -244,13 +318,14 @@ void AOPMalphite::E_GroundSlam()
 		{
 			if (HitDiavolo)
 			{
-				FVector MalphiteLocation = FVector(GetActorLocation().X, GetActorLocation().Y, 0.f);
-				FVector ImpulseDirection = (HitDiavolo->GetActorLocation() - MalphiteLocation).GetSafeNormal();
+				FVector ImpulseDirection = (HitDiavolo->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+				ImpulseDirection.Z = 0.f;
+				ImpulseDirection.Z = E_Angle;
+				HitDiavolo->LaunchCharacter(ImpulseDirection * E_Impulse, true, true);
+				
 				HitDiavolo->SetbIsDamagedTrue();
 				HitDiavolo->PlayDiavoloRandomDeadMontage();
-				// HitDiavolo->LaunchCharacter(ImpulseDirection * Skill_3_Impulse, true, true);
-				HitDiavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * 100000.f, true);
-				HitDiavolo->ApplySlowAttackEffect(Skill_3_SlowAmount, Skill_3_SlowDuration); //��ƺ��ο� ���ݸ���� �������� �Լ� �����ʿ�
+				HitDiavolo->ApplySlowAttackEffect(E_SlowAmount, E_SlowDuration); //��ƺ��ο� ���ݸ���� �������� �Լ� �����ʿ�
 			}
 		}
 	}
@@ -282,7 +357,7 @@ void AOPMalphite::R()
 	ProjectileMovementComponent->Velocity = LaunchVector * R_Speed;
 	bRIsCasting = true;
 	
-	GetWorldTimerManager().SetTimer(R_StopTimer, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(R_StopTimerHandle, FTimerDelegate::CreateLambda([&]
 	{
 		bRIsCasting = false;
 		// GetCapsuleComponent()->OnComponentHit.RemoveDynamic(this, &AOPMalphite::R_OnProjectileHit);
@@ -316,12 +391,12 @@ void AOPMalphite::R_Trace()
 			{
 				FVector ImpactDirection = (HitDiavolo->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 				ImpactDirection.Z = 0.f;
-				ImpactDirection.Z += R_Angle;
+				ImpactDirection.Z = R_Angle;
 				HitDiavolo->SetbIsDamagedTrue();
 				HitDiavolo->PlayDiavoloRandomDeadMontage();
 				HitDiavolo->LaunchCharacter(ImpactDirection * R_Impulse, true, true);
 				// HitDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * R_Impulse, true);
-				HitDiavolo->ApplySlowAttackEffect(Skill_3_SlowAmount, Skill_3_SlowDuration); //��ƺ��ο� ���ݸ���� �������� �Լ� �����ʿ�
+				HitDiavolo->ApplySlowAttackEffect(E_SlowAmount, E_SlowDuration); //��ƺ��ο� ���ݸ���� �������� �Լ� �����ʿ�
 			}
 		}
 	}
@@ -344,7 +419,7 @@ void AOPMalphite::R_OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* O
 			FVector ImpactDirection = (Diavolo->GetActorLocation() - Hit.ImpactPoint).GetSafeNormal();
 
 			// Add an upward component to the impact direction
-			ImpactDirection.Z += R_Angle;
+			ImpactDirection.Z = R_Angle;
 			ImpactDirection = ImpactDirection.GetSafeNormal();
 
 			// Log the impact direction for debugging
@@ -360,12 +435,5 @@ void AOPMalphite::R_OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* O
 				// TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 			}
 		}
-
 	}
-
-}
-
-void AOPMalphite::R_BeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
 }
