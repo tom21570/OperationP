@@ -38,7 +38,7 @@ void AOPLeeSinSonicWave::OnDamageCollisionBeginOverlap(UPrimitiveComponent* Over
             {
                 LeeSinOwner->GetWorldTimerManager().SetTimer(LeeSinOwner->Skill_1_StackTimer, [LeeSinOwner, Diavolo]()
                 {
-                    LeeSinOwner->SetbSkill_1_True();
+                    LeeSinOwner->SetbQ_True();
                     LeeSinOwner->RemoveMarkerOnTarget(Diavolo);
                 }, LeeSinOwner->Skill_1_StackTime, false); // ���� ����
 

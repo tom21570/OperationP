@@ -94,7 +94,7 @@ void AOPVolibear::BasicAttack()
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 1.05f, false);
     
 	SetbBasicAttack_False();
-	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPVolibear::SetbBasicAttack_True, BasicAttackCooltime, false);
+	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPVolibear::SetbBasicAttack_True, BasicAttackCooldown, false);
 }
 
 bool AOPVolibear::MeleeAttackTrace()
@@ -129,7 +129,7 @@ void AOPVolibear::Q() //번개 강타 Q 볼리베어가 적을 향해 이동할 
 {
 	Super::Q(); 
 
-	if (!bSkill_1) return;
+	if (!bQ) return;
 	if (OPPlayerController == nullptr) return;
 
 	bThunderingSmash = true;
@@ -139,16 +139,16 @@ void AOPVolibear::W() //광란의 상처 W 볼리베어가 적에게 피해를 �
 {
 	Super::W();
 
-	if (!bSkill_2) return;
+	if (!bW) return;
 	if (OPPlayerController == nullptr) return;
 
-	ChampionAnimInstance->Montage_Play(Skill_2_AnimMontage, 1.f);
+	ChampionAnimInstance->Montage_Play(W_AnimMontage, 1.f);
 
 	if (AOPDiavolo * ReturnedDiavolo = Cast<AOPDiavolo>(Skill_2_Trace()))
 	{
 		GetWorldTimerManager().SetTimer(Skill_2_SpawnTimerHandle, [this, ReturnedDiavolo]()
 		{
-				SetbSkill_2_True();
+				SetbW_True();
 				RemoveMarkerOnTarget(ReturnedDiavolo);
 		}, 8.0, false);
 
@@ -167,8 +167,8 @@ void AOPVolibear::W() //광란의 상처 W 볼리베어가 적에게 피해를 �
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 1.f, false);
 
-	SetbSkill_2_False();
-	GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimerHandle, this, &AOPVolibear::SetbSkill_2_True, Skill_2_Cooltime, false);
+	SetbW_False();
+	GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPVolibear::SetbW_True, W_Cooldown, false);
 }
 
 AOPDiavolo* AOPVolibear::Skill_2_Trace()
@@ -203,7 +203,7 @@ void AOPVolibear::E() //천공 분열E 볼리베어가 지정한 위치에 번�
 {
 	Super::E();
 
-	if (!bSkill_3) return;
+	if (!bE) return;
 	if (OPPlayerController == nullptr) return;
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -218,16 +218,16 @@ void AOPVolibear::E() //천공 분열E 볼리베어가 지정한 위치에 번�
 		Skill_3_Lightningbolt();
 	}), 2.f, false);
 
-	if (ChampionAnimInstance && Ult_AnimMontage)
+	if (ChampionAnimInstance && R_AnimMontage)
 	{
-		ChampionAnimInstance->Montage_Play(Skill_3_AnimMontage, 1.f);
+		ChampionAnimInstance->Montage_Play(E_AnimMontage, 1.f);
 	}
 	
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 2.6f, false);
 
-	SetbSkill_3_False();
-	GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimerHandle, this, &AOPVolibear::SetbSkill_3_True, Skill_3_Cooltime, false);
+	SetbE_False();
+	GetWorldTimerManager().SetTimer(E_CooldownTimerHandle, this, &AOPVolibear::SetbE_True, E_Cooldown, false);
 }
 
 void AOPVolibear::Skill_3_Lightningbolt() //
@@ -243,7 +243,7 @@ void AOPVolibear::R() //폭풍을 부르는 자 R 볼리베어가 지정한 위�
 {
 	Super::R();
 
-	if (!bUlt) return;
+	if (!bR) return;
 	if (OPPlayerController == nullptr) return;
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -299,16 +299,16 @@ void AOPVolibear::R() //폭풍을 부르는 자 R 볼리베어가 지정한 위�
 	// 	GetCharacterMovement()->AddImpulse(Ult_Velocity_Parabola, true);
 	// }
 
-	if (ChampionAnimInstance && Ult_AnimMontage)
+	if (ChampionAnimInstance && R_AnimMontage)
 	{
-		ChampionAnimInstance->Montage_Play(Ult_AnimMontage, 1.f);
+		ChampionAnimInstance->Montage_Play(R_AnimMontage, 1.f);
 	}
 
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 2.f, false);
 
-	SetbUlt_False();
-	GetWorldTimerManager().SetTimer(Ult_CooltimeTimerHandle, this, &AOPVolibear::SetbUlt_True, Ult_Cooltime, false);
+	SetbR_False();
+	GetWorldTimerManager().SetTimer(R_CooldownTimerHandle, this, &AOPVolibear::SetbR_True, R_Cooldown, false);
 }
 
 void AOPVolibear::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,

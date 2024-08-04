@@ -40,10 +40,6 @@ AOPChampion::AOPChampion()
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 
-	ShieldEffectComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("ShieldEffectComponent"));
-	ShieldEffectComponent->SetupAttachment(RootComponent);
-	ShieldEffectComponent->SetAutoActivate(false);
-
 	static ConstructorHelpers::FObjectFinder<UInputAction> MoveInput(TEXT("/Game/Input/IA_Move.IA_Move"));
 	if(MoveInput.Succeeded())
 	{
@@ -62,34 +58,28 @@ AOPChampion::AOPChampion()
 	// 	JumpAction = JumpInput.Object;
 	// }
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> Skill1Input(TEXT("/Game/Input/IA_Skill_1.IA_Skill_1"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> QInput(TEXT("/Game/Input/IA_Skill_1.IA_Skill_1"));
 	if(MoveInput.Succeeded())
 	{
-		Q_Action = Skill1Input.Object;
+		Q_Action = QInput.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> Skill2Input(TEXT("/Game/Input/IA_Skill_2.IA_Skill_2"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> WInput(TEXT("/Game/Input/IA_Skill_2.IA_Skill_2"));
 	if(MoveInput.Succeeded())
 	{
-		W_Action = Skill2Input.Object;
+		W_Action = WInput.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> Skill3Input(TEXT("/Game/Input/IA_Skill_3.IA_Skill_3"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> EInput(TEXT("/Game/Input/IA_Skill_3.IA_Skill_3"));
 	if(MoveInput.Succeeded())
 	{
-		E_Action = Skill3Input.Object;
+		E_Action = EInput.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> Skill4Input(TEXT("/Game/Input/IA_Skill_4.IA_Skill_4"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> RInput(TEXT("/Game/Input/IA_Ult.IA_Ult"));
 	if(MoveInput.Succeeded())
 	{
-		SkillAction4 = Skill4Input.Object;
-	}
-
-	static ConstructorHelpers::FObjectFinder<UInputAction> UltInput(TEXT("/Game/Input/IA_Ult.IA_Ult"));
-	if(MoveInput.Succeeded())
-	{
-		R_Action = UltInput.Object;
+		R_Action = RInput.Object;
 	}
 	
 	ChampionAnimInstance = Cast<UOPAnimInstance>(GetMesh()->GetAnimInstance());
@@ -102,6 +92,7 @@ void AOPChampion::BeginPlay()
 
 	OPPlayerController = Cast<AOPPlayerController>(UGameplayStatics::GetPlayerController(this, 0));
 	if (OPPlayerController == nullptr) return;
+	
 	UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(OPPlayerController->GetLocalPlayer());
 	if (Subsystem == nullptr) return;
 	Subsystem->AddMappingContext(ChampionMappingContext, 0);
@@ -109,24 +100,6 @@ void AOPChampion::BeginPlay()
 	ChampionAnimInstance = Cast<UOPAnimInstance>(GetMesh()->GetAnimInstance());
 
 	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
-
-	if (ShieldEffect)
-	{
-		ShieldEffectComponent->SetAsset(ShieldEffect);
-	}
-}
-
-
-void AOPChampion::AddShield(float ShieldAmount)
-{
-	if (ShieldEffectComponent && ShieldEffect)
-	{
-		ShieldEffectComponent->Activate(true);
-	}
-
-	GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &AOPChampion::DeactivateShieldEffect, 3.0f, false);
-
-	UE_LOG(LogTemp, Log, TEXT("Shield added: %f"), ShieldAmount);
 }
 
 void AOPChampion::PlayDeadAnimMontage() const
@@ -148,15 +121,6 @@ void AOPChampion::StopChampionMovement() const
 	GetCharacterMovement()->JumpZVelocity = 0.f;
 }
 
-void AOPChampion::DeactivateShieldEffect()
-{
-	if (ShieldEffectComponent)
-	{
-		ShieldEffectComponent->Deactivate();
-	}
-}
-
-
 void AOPChampion::Passive()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Passive"));
@@ -164,27 +128,27 @@ void AOPChampion::Passive()
 
 void AOPChampion::BasicAttack()
 {
-	UE_LOG(LogTemp, Warning, TEXT("MeleeAttack"));
+	UE_LOG(LogTemp, Warning, TEXT("Basic Attack"));
 }
 
 void AOPChampion::Q()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Skill 1"));
+	UE_LOG(LogTemp, Warning, TEXT("Q"));
 }
 
 void AOPChampion::W()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Skill 2"));
+	UE_LOG(LogTemp, Warning, TEXT("W"));
 }
 
 void AOPChampion::E()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Skill 3"));
+	UE_LOG(LogTemp, Warning, TEXT("E"));
 }
 
 void AOPChampion::R()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Ult"));
+	UE_LOG(LogTemp, Warning, TEXT("R"));
 }
 
 void AOPChampion::TurnCharacterToLocation(FVector TurnPoint)

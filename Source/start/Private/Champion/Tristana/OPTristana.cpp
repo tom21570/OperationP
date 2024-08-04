@@ -24,11 +24,11 @@ AOPTristana::AOPTristana()
 	
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component")); // 투사체 움직임 포인터에 동적 할당
 
-	CannonBallSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("CannonBall SpawnPoint"));
-	CannonBallSpawnPoint->SetupAttachment(GetMesh(), FName(TEXT("CannonSocket")));
+	ProjectileSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("Projectile SpawnPoint"));
+	ProjectileSpawnPoint->SetupAttachment(GetMesh(), FName(TEXT("CannonSocket")));
 
-	RapidFireNiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("RapidFire Niagara"));
-	RapidFireNiagaraComponent->SetupAttachment(GetMesh(), FName(TEXT("CannonSocket")));
+	Q_NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("RapidFire Niagara"));
+	Q_NiagaraComponent->SetupAttachment(GetMesh(), FName(TEXT("CannonSocket")));
 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 }
 
@@ -36,13 +36,11 @@ void AOPTristana::BeginPlay()
 {
 	Super::BeginPlay();
 
-	DefaultAttackSpeed = BasicAttackCooltime;
+	BasicAttack_DefaultAttackSpeed = BasicAttackCooldown;
 
-	Skill_2_LongJumpRange = Skill_2_MaxJumpRange;
-
-	if (RapidFireNiagaraComponent)
+	if (Q_NiagaraComponent)
 	{
-		RapidFireNiagaraComponent->SetVisibility(false);
+		Q_NiagaraComponent->SetVisibility(false);
 	}
 }
 
@@ -66,7 +64,7 @@ void AOPTristana::BasicAttack()
 	if (!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);
 
-	GetWorldTimerManager().SetTimer(CannonBallSpawnTimer, this, &AOPTristana::BasicAttack_CannonBall, 0.25f, false);
+	GetWorldTimerManager().SetTimer(BasicAttack_CannonBallSpawnTimerHandle, this, &AOPTristana::BasicAttack_CannonBall, 0.25f, false);
 
 	if (ChampionAnimInstance && BasicAttackAnimMontage)
 	{
@@ -77,7 +75,7 @@ void AOPTristana::BasicAttack()
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.7f, false);
 
 	SetbBasicAttack_False();
-	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPTristana::SetbBasicAttack_True, BasicAttackCooltime, false);
+	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPTristana::SetbBasicAttack_True, BasicAttackCooldown, false);
 	//GetWorldTimerManager().SetTimer(MeleeAttackCooltimeTimer, this, &AOPTristana::SetbMeleeAttack, GetMeleeAttackCooltime(), false); //이부분은 왜 SetTimer가 빨간줄이 쳐질까요
 	
 	
@@ -124,15 +122,15 @@ void AOPTristana::BasicAttack()
 
 void AOPTristana::BasicAttack_CannonBall()
 {
-	if (CannonBallClass == nullptr) return;
+	if (BasicAttack_CannonBallClass == nullptr) return;
 
 	FRotator CannonBallRotator = FRotator(BasicAttack_Angle, GetActorRotation().Yaw, GetActorRotation().Roll);
 	FVector CannonBallVelocity = BasicAttack_Speed * CannonBallRotator.Vector();
 	
-	if (CannonBall = GetWorld()->SpawnActor<AOPTristanaCannonBall>(CannonBallClass, CannonBallSpawnPoint->GetComponentLocation(), GetActorRotation()))
+	if (BasicAttack_CannonBallStorage = GetWorld()->SpawnActor<AOPTristanaCannonBall>(BasicAttack_CannonBallClass, ProjectileSpawnPoint->GetComponentLocation(), CannonBallRotator))
 	{
-		CannonBall->GetOPProjectileMovementComponent()->Velocity = CannonBallVelocity;
-		CannonBall->SetOwner(this);
+		BasicAttack_CannonBallStorage->GetOPProjectileMovementComponent()->Velocity = CannonBallVelocity;
+		BasicAttack_CannonBallStorage->SetOwner(this);
 		FVector LaunchDirection = GetActorForwardVector();
 	}
 }
@@ -143,29 +141,29 @@ void AOPTristana::Q()  //빠른 발사 (Rapid Fire) 효과: 일정 시간 동안 트리스타나�
 	Super::Q();
 	//대포에 불붙는 vfx 추가 필요
 
-	bIsRapidFireActive = true;
+	bIsQActive = true;
 
-	BasicAttackCooltime *= RapidFireValue;
+	BasicAttackCooldown *= Q_RapidFireValue;
 
-	if (RapidFireNiagaraComponent)
+	if (Q_NiagaraComponent)
 	{
-		RapidFireNiagaraComponent->SetVisibility(true);
+		Q_NiagaraComponent->SetVisibility(true);
 	}
-	GetWorldTimerManager().SetTimer(RapidFireTimerHandle, this, &AOPTristana::EndRapidFire, RapidFireDuration, false);
+	GetWorldTimerManager().SetTimer(Q_TimerHandle, this, &AOPTristana::Q_EndRapidFire, Q_Duration, false);
 
-	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimerHandle, this, &AOPTristana::SetbSkill_1_True, Skill_1_Cooltime, false);
+	GetWorldTimerManager().SetTimer(Q_CooldownTimerHandle, this, &AOPTristana::SetbQ_True, Q_Cooldown, false);
 }
 
 
-void AOPTristana::EndRapidFire()
+void AOPTristana::Q_EndRapidFire()
 {
-	bIsRapidFireActive = false;
+	bIsQActive = false;
 
-	BasicAttackCooltime = DefaultAttackSpeed;
+	BasicAttackCooldown = BasicAttack_DefaultAttackSpeed;
 
-	if (RapidFireNiagaraComponent)
+	if (Q_NiagaraComponent)
 	{
-		RapidFireNiagaraComponent->SetVisibility(false);
+		Q_NiagaraComponent->SetVisibility(false);
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Rapid Fire ended: Attack speed normalized."));
@@ -175,7 +173,7 @@ void AOPTristana::W() //로켓 점프 (Rocket Jump) 효과: 트리스타나가 목표 지점으로
 {
 	Super::W();
 
-	if (!bSkill_2) return;
+	if (!bW) return;
 	if (OPPlayerController == nullptr) return;
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -183,48 +181,32 @@ void AOPTristana::W() //로켓 점프 (Rocket Jump) 효과: 트리스타나가 목표 지점으로
 	UE_LOG(LogTemp, Warning, TEXT("cursor Hit"));
 	TurnCharacterToCursor(MouseCursorHit);
 
-	// TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
-	// if (TestDiavolo == nullptr) return;
-
-	// FVector DiavoloLocation = TestDiavolo->GetActorLocation();
-
 	FVector CurrentLocation = GetActorLocation();
-	// float Distance = FVector::Dist(CurrentLocation, DiavoloLocation);
 	float Distance = FVector::Dist(CurrentLocation, MouseCursorHit.Location);
-
-	if (Distance <= Skill_2_MaxJumpRange)
-	{
-		Skill_2_FinalLocation = MouseCursorHit.Location;
-		FVector Skill_2_Vector = Skill_2_FinalLocation - GetActorLocation();
 	
-		Skill_2_Vector_XY = Skill_2_Vector.GetSafeNormal();
-		Skill_2_Vector_XY.Z = 0.f;
-	}
-
-	GetWorldTimerManager().SetTimer(Skill_2_JumpTimerHandle, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(W_JumpTimerHandle, FTimerDelegate::CreateLambda([&]
 	{
-		LaunchCharacter(Skill_2_Vector_XY * Skill_2_Velocity_XY + GetActorUpVector() * Skill_2_Velocity_Z, true, true);
+		const FRotator FinalRotation = FRotator(W_JumpAngle, GetActorRotation().Yaw, GetActorRotation().Roll);
+		const FVector FinalVelocity = FinalRotation.Vector() * W_JumpSpeed;
+		
+		LaunchCharacter(FinalVelocity, true, true);
 	}), 0.25f, false);
 
-	if (ChampionAnimInstance && Skill_2_AnimMontage)
+	if (ChampionAnimInstance && W_AnimMontage)
 	{
-		ChampionAnimInstance->Montage_Play(Skill_2_AnimMontage, 1.0f);
+		ChampionAnimInstance->Montage_Play(W_AnimMontage, 1.0f);
 	}
-	// TargetLocation = DiavoloLocation;
-	// FVector JumpDirection = (TargetLocation - CurrentLocation).GetSafeNormal();
-	// LaunchCharacter(JumpDirection * Skill_2_JumpStrength, true, true);
-
-	// Set a timer to handle landing effects
-	GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimerHandle, this, &AOPTristana::OnLanding, 1.0f, false, 1.0f);
+	
+	GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPTristana::W_OnLanding, 1.0f, false, 1.0f);
 	
 	StopChampionMovement();
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.7f, false);
     
-    SetbSkill_2_False();
-    GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimerHandle, this, &AOPTristana::SetbSkill_2_True, Skill_2_Cooltime, false);
+    SetbW_False();
+    GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPTristana::SetbW_True, W_Cooldown, false);
 }
 
-void AOPTristana::OnLanding()
+void AOPTristana::W_OnLanding()
 {
 	// Handle landing damage and effects
 	TArray<AActor*> IgnoredActors;
@@ -237,10 +219,10 @@ void AOPTristana::OnLanding()
 	// This can be done via a gameplay ability system or custom logic
 
 	// Clear timer
-	GetWorldTimerManager().ClearTimer(Skill_2_CooltimeTimerHandle);
+	GetWorldTimerManager().ClearTimer(W_CooldownTimerHandle);
 }
 
-void AOPTristana::PlaySkill_2_JumpAnimMontage()
+void AOPTristana::W_Play_JumpAnimMontage()
 {
 }
 
@@ -249,7 +231,7 @@ void AOPTristana::E() //폭발 화약(Explosive Charge) 		효과: 패시브로, 트리스타나
 {
 	Super::E();
 
-	if (!bSkill_3) return;
+	if (!bE) return;
 	if (OPPlayerController == nullptr) return;
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -265,28 +247,28 @@ void AOPTristana::E() //폭발 화약(Explosive Charge) 		효과: 패시브로, 트리스타나
 	FVector CurrentLocation = GetActorLocation();
 	float Distance = FVector::Dist(CurrentLocation, DiavoloLocation);
 
-	if (Distance <= Skill_3_MaxThrowRange)
+	if (Distance <= E_MaxThrowRange)
 	{
-		if (ChampionAnimInstance && Skill_3_AnimMontage)
+		if (ChampionAnimInstance && E_AnimMontage)
 		{
-			ChampionAnimInstance->Montage_Play(Skill_3_AnimMontage, 1.0f);
+			ChampionAnimInstance->Montage_Play(E_AnimMontage, 1.0f);
 		}
-		GetWorldTimerManager().SetTimer(ExplosiveChargeSpawnTimerHandle, FTimerDelegate::CreateLambda([&]
+		GetWorldTimerManager().SetTimer(E_SpawnTimerHandle, FTimerDelegate::CreateLambda([&]
 		{
-			UseExplosiveCharge(TestDiavolo);
+			E_UseExplosiveCharge(TestDiavolo);
 		}), 0.2f, false);
 	}
 	
 	StopChampionMovement();
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.7f, false);
         
-    SetbSkill_3_False();
-    GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimerHandle, this, &AOPTristana::SetbSkill_3_True, Skill_3_Cooltime, false);
+    SetbE_False();
+    GetWorldTimerManager().SetTimer(E_CooldownTimerHandle, this, &AOPTristana::SetbE_True, E_Cooldown, false);
 }
 
-void AOPTristana::UseExplosiveCharge(AOPDiavolo* Target)
+void AOPTristana::E_UseExplosiveCharge(AOPDiavolo* Target)
 {
-	if (ExplosiveChargeClass && Target)
+	if (E_ExplosiveChargeClass && Target)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UseExplosiveCharge"));
 		FActorSpawnParameters SpawnParams;
@@ -294,12 +276,12 @@ void AOPTristana::UseExplosiveCharge(AOPDiavolo* Target)
 		SpawnParams.Instigator = GetInstigator();
 
 		// Spawn the explosive charge
-		AOPTristanaExplosiveCharge* ExplosiveChargeNow = GetWorld()->SpawnActor<AOPTristanaExplosiveCharge>(ExplosiveChargeClass, Target->GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
+		AOPTristanaExplosiveCharge* ExplosiveChargeNow = GetWorld()->SpawnActor<AOPTristanaExplosiveCharge>(E_ExplosiveChargeClass, Target->GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
 		if (ExplosiveChargeNow)
 		{
 			// ExplosiveChargeNow->AttachToComponent(Target->GetCapsuleComponent(), FAttachmentTransformRules::KeepWorldTransform);
-			ExplosiveChargeNow->InitializeCharge(Target, Skill_3_Damage, Skill_3_ExplosionRadius, Skill_3_TimeToExplode);
-			CurrentExplosiveCharge = ExplosiveChargeNow;
+			ExplosiveChargeNow->InitializeCharge(Target, E_Damage, E_ExplosionRadius, E_TimeToExplode);
+			E_CurrentExplosiveCharge = ExplosiveChargeNow;
 		}
 	}
 }
@@ -309,7 +291,7 @@ void AOPTristana::R() //대구경 탄환 (Buster Shot)효과: 트리스타나가 강력한 탄환�
 {
 	Super::R();
 
-	if (!bUlt) return;
+	if (!bR) return;
 	if (OPPlayerController == nullptr) return;
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -317,40 +299,40 @@ void AOPTristana::R() //대구경 탄환 (Buster Shot)효과: 트리스타나가 강력한 탄환�
 	if (!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);
 
-	GetWorldTimerManager().SetTimer(BusterShotClassSpawnTimer, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(R_SpawnTimerHandle, FTimerDelegate::CreateLambda([&]
 	{
-		Ult_BusterShot();
+		R_BusterShot();
 	}), 0.3f, false);
 
-	SetbUlt_False();
-	GetWorldTimerManager().SetTimer(Ult_CooltimeTimerHandle, this, &AOPTristana::SetbUlt_True, GetUlt_Cooltime(), false);
+	SetbR_False();
+	GetWorldTimerManager().SetTimer(R_CooldownTimerHandle, this, &AOPTristana::SetbR_True, GetR_Cooldown(), false);
 
-	if (ChampionAnimInstance && Ult_AnimMontage)
+	if (ChampionAnimInstance && R_AnimMontage)
 	{
-		ChampionAnimInstance->Montage_Play(Ult_AnimMontage, 1.0f);
+		ChampionAnimInstance->Montage_Play(R_AnimMontage, 1.0f);
 	}
 	
 	StopChampionMovement();
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.9f, false);
         
-    SetbUlt_False();
-    GetWorldTimerManager().SetTimer(Ult_CooltimeTimerHandle, this, &AOPTristana::SetbUlt_True, Ult_Cooltime, false);
+    SetbR_False();
+    GetWorldTimerManager().SetTimer(R_CooldownTimerHandle, this, &AOPTristana::SetbR_True, R_Cooldown, false);
 }
 
-void AOPTristana::Ult_BusterShot()
+void AOPTristana::R_BusterShot()
 {
 	UE_LOG(LogTemp, Log, TEXT("Ult_BusterShot"));
 
-	if (BusterShotClass == nullptr) return;
+	if (R_BusterShotClass == nullptr) return;
 
-	FRotator BusterShotRotator = FRotator(Ult_Angle, GetActorRotation().Yaw, GetActorRotation().Roll);
-	FVector BusterShotVelocity = Ult_Speed * BusterShotRotator.Vector();
+	FRotator BusterShotRotator = FRotator(R_Angle, GetActorRotation().Yaw, GetActorRotation().Roll);
+	FVector BusterShotVelocity = R_Speed * BusterShotRotator.Vector();
 
-	if (BusterShot = GetWorld()->SpawnActor<AOPTristanaBusterShot>(BusterShotClass, CannonBallSpawnPoint->GetComponentLocation(), GetActorRotation()))
+	if (R_BusterShotStorage = GetWorld()->SpawnActor<AOPTristanaBusterShot>(R_BusterShotClass, ProjectileSpawnPoint->GetComponentLocation(), BusterShotRotator))
 	{
-		BusterShot->GetOPProjectileMovementComponent()->Velocity = BusterShotVelocity;
-		BusterShot->SetOwner(this);
-		LaunchCharacter(-BusterShotRotator.Vector() * Ult_Rebound, true, true);
+		R_BusterShotStorage->GetOPProjectileMovementComponent()->Velocity = BusterShotVelocity;
+		R_BusterShotStorage->SetOwner(this);
+		LaunchCharacter(-BusterShotRotator.Vector() * R_Rebound, true, true);
 	}
 }
 

@@ -65,6 +65,7 @@ private:
 
     int32 BasicAttackComboCount = 0;
     FTimerHandle BasicAttackComboCountTimerHandle;
+    FTimerHandle BasicAttackTraceTimerHandle;
     
     FTimerHandle Skill_1_CastTimer;
     FTimerHandle ResonatingStrike_DiavoloMotionTimer;

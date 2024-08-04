@@ -42,7 +42,7 @@ void AOPLeeSin::BasicAttack()
     if (!MouseCursorHit.bBlockingHit) return;
     TurnCharacterToCursor(MouseCursorHit);
 
-    GetWorldTimerManager().SetTimer(BasicAttackTimer, FTimerDelegate::CreateLambda([&]
+    GetWorldTimerManager().SetTimer(BasicAttackTraceTimerHandle, FTimerDelegate::CreateLambda([&]
     {
         BasicAttackTrace();
     }), 0.25f, false);
@@ -124,7 +124,7 @@ void AOPLeeSin::Q()
 {
     Super::Q();
 
-    if (!bSkill_1) return;
+    if (!bQ) return;
     if (OPPlayerController == nullptr) return;
 
     if (bCanResonate)
@@ -160,10 +160,10 @@ void AOPLeeSin::Q()
         TurnCharacterToCursor(MouseCursorHit);
         
         UE_LOG(LogTemp, Log, TEXT("Skill_1_SonicWave"));
-        ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
-        ChampionAnimInstance->Montage_JumpToSection(FName("SonicWave"), GetSkill_1_AnimMontage());
+        ChampionAnimInstance->Montage_Play(GetQ_AnimMontage(), 1.0f);
+        ChampionAnimInstance->Montage_JumpToSection(FName("SonicWave"), GetQ_AnimMontage());
         GetWorldTimerManager().SetTimer(SonicWaveSpawnTimer, this, &AOPLeeSin::Skill_1_SonicWave, 0.25f, false);
-        GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimerHandle, this, &AOPLeeSin::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
+        GetWorldTimerManager().SetTimer(Q_CooldownTimerHandle, this, &AOPLeeSin::SetbQ_True, GetQ_Cooldown(), false);
 
         StopChampionMovement();
         GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPLeeSin::ResetChampionMovement, 0.9f, false);
@@ -186,7 +186,7 @@ void AOPLeeSin::W()
 {
     Super::W();
 
-    if (!GetbSkill_2()) return;
+    if (!GetbW()) return;
     if (!OPPlayerController) return;
 
     OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -206,8 +206,8 @@ void AOPLeeSin::W()
 
         GetWorldTimerManager().SetTimer(DashCompleteTimer, this, &AOPLeeSin::OnDashCompleted, 0.1f, false);
 
-        SetbSkill_2_False();
-        GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimerHandle, this, &AOPLeeSin::SetbSkill_2_True, GetSkill_2_Cooltime(), false);
+        SetbW_False();
+        GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPLeeSin::SetbW_True, GetW_Cooldown(), false);
     }
 }
 
@@ -230,8 +230,6 @@ void AOPLeeSin::ApplyShieldToAlly(AOPChampion* TargetChampion)
 {
     if (!TargetChampion) return;
 
-    TargetChampion->AddShield(ShieldAmountValue);
-
     if (ChampionAnimInstance && Passive_AnimMontage)
     {
         ChampionAnimInstance->Montage_Play(Passive_AnimMontage, 1.f);
@@ -243,20 +241,20 @@ void AOPLeeSin::E()
 {
     Super::E();
 
-    if (!GetbSkill_3()) return;
+    if (!GetbE()) return;
 
     GetWorldTimerManager().SetTimer(Skill_3_CastTimer, this, &AOPLeeSin::Skill_3_GroundSlam, 0.25f, false);
     
-    SetbSkill_3_False();
-    GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimerHandle, this, &AOPLeeSin::SetbSkill_3_True, GetSkill_3_Cooltime(), false);
+    SetbE_False();
+    GetWorldTimerManager().SetTimer(E_CooldownTimerHandle, this, &AOPLeeSin::SetbE_True, GetE_Cooldown(), false);
 
     StopChampionMovement();
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPLeeSin::ResetChampionMovement, 0.9f, false);
 
-    if (ChampionAnimInstance && Skill_3_AnimMontage)
+    if (ChampionAnimInstance && E_AnimMontage)
     {
-        ChampionAnimInstance->Montage_Play(Skill_3_AnimMontage, 1.f);
-        ChampionAnimInstance->Montage_JumpToSection(FName("GroundSlam"), Skill_3_AnimMontage);
+        ChampionAnimInstance->Montage_Play(E_AnimMontage, 1.f);
+        ChampionAnimInstance->Montage_JumpToSection(FName("GroundSlam"), E_AnimMontage);
     }
     
     // ���� ����ġ�� �����̶� Ŀ���� Hit ���� ��� �� �� ���ƿ�!!
@@ -332,7 +330,7 @@ void AOPLeeSin::R()
 {
     Super::R();
 
-    if (!bUlt) return;
+    if (!bR) return;
     if (!OPPlayerController) return;
 
     OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -345,16 +343,16 @@ void AOPLeeSin::R()
         UltTrace();
     }), 0.25f, false);
     
-    if (ChampionAnimInstance && Skill_2_AnimMontage)
+    if (ChampionAnimInstance && W_AnimMontage)
     {
-        ChampionAnimInstance->Montage_Play(GetUlt_AnimMontage(), 1.0f);
+        ChampionAnimInstance->Montage_Play(GetR_AnimMontage(), 1.0f);
     }
 
     StopChampionMovement();
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPLeeSin::ResetChampionMovement, 0.8f, false);
 
-    SetbUlt_False();
-    GetWorldTimerManager().SetTimer(Ult_CooltimeTimerHandle, this, &AOPLeeSin::SetbUlt_True, GetUlt_Cooltime(), false);
+    SetbR_False();
+    GetWorldTimerManager().SetTimer(R_CooldownTimerHandle, this, &AOPLeeSin::SetbR_True, GetR_Cooldown(), false);
 }
 
 bool AOPLeeSin::UltTrace()
@@ -427,13 +425,6 @@ void AOPLeeSin::AddShield(float ShieldAmount)
     ShieldAmountValue = ShieldAmount; // ��� ������ ���� �Ҵ�
 
     UE_LOG(LogTemp, Log, TEXT("Shield added: %f"), ShieldAmountValue);
-
-    if (ShieldEffectComponent && ShieldEffect)
-    {
-        ShieldEffectComponent->Activate(true);
-    }
-
-    GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &AOPChampion::DeactivateShieldEffect, 3.0f, false);
 }
 
 void AOPLeeSin::DashToTarget(AOPChampion* TargetChampion, float DashSpeed, float DashDistance)

@@ -17,6 +17,9 @@
 AOPYasuo::AOPYasuo()
 {
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component")); // 투사체 움직임 포인터에 동적 할당
+
+	Q_WhirlWindSpawnPoint = CreateDefaultSubobject<USceneComponent>(TEXT("Whirl Wind Spawn Point"));
+	Q_WhirlWindSpawnPoint->SetupAttachment(GetRootComponent());
 }
 
 void AOPYasuo::BeginPlay()
@@ -42,17 +45,18 @@ void AOPYasuo::BasicAttack()
 	if (!MouseCursorHit.bBlockingHit) return; 
 	TurnCharacterToCursor(MouseCursorHit); // 만약 반응이 block이라면 그 Hit 방향으로 캐릭터를 돌림
 
+	// 평타를 치고 1.4초 동안은 움직일 수 없게 함
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 1.4f, false);
 
-	// 평타 쿨타임 설정을 위한 두 줄
+	// 평타 쿨타임 설정
 	SetbBasicAttack_False();
 	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPYasuo::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
 
 	// 평타 시전시간 지나면 Trace하고 디아볼로가 Trace되면 피격 사운드 재생
 	GetWorldTimerManager().SetTimer(BasicAttackCastTimer, FTimerDelegate::CreateLambda([&]
 	{
-		if (MeleeAttackTrace())
+		if (BasicAttackTrace())
 		{
 			if (BasicAttack_Hit_SFX)
 			{
@@ -63,51 +67,54 @@ void AOPYasuo::BasicAttack()
 
 	if (!ChampionAnimInstance) return; // 애니메이션 인스턴스가 없을 시 return
 	if (!BasicAttackAnimMontage) return; // 평타 애니메이션 몽타주가 없을 시 return
-	
-	switch (BasicAttackComboCount) // 4번의 연결된 평타동작
+
+	if (ChampionAnimInstance && BasicAttackAnimMontage)
 	{
-	case 0:
-		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
-		GetWorldTimerManager().SetTimer(BasicAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
-		BasicAttackComboCount++;
-		break;
+		switch (BasicAttackComboCount) // 4번의 연결된 평타동작
+		{
+		case 0:
+			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
+			GetWorldTimerManager().SetTimer(BasicAttackComboCountTimer, this, &AOPYasuo::ResetBasicAttackComboCount, 5.f, false);
+			BasicAttackComboCount++;
+			break;
 
-	case 1:
-		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
-		GetWorldTimerManager().ClearTimer(BasicAttackComboCountTimer);
-		GetWorldTimerManager().SetTimer(BasicAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
-		BasicAttackComboCount++;
-		break;
+		case 1:
+			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
+			GetWorldTimerManager().ClearTimer(BasicAttackComboCountTimer);
+			GetWorldTimerManager().SetTimer(BasicAttackComboCountTimer, this, &AOPYasuo::ResetBasicAttackComboCount, 5.f, false);
+			BasicAttackComboCount++;
+			break;
 
-	case 2:
-		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("3"), BasicAttackAnimMontage);
-		GetWorldTimerManager().ClearTimer(BasicAttackComboCountTimer);
-		GetWorldTimerManager().SetTimer(BasicAttackComboCountTimer, this, &AOPYasuo::ResetMeleeAttackComboCount, 5.f, false);
-		BasicAttackComboCount++;
-		break;
+		case 2:
+			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("3"), BasicAttackAnimMontage);
+			GetWorldTimerManager().ClearTimer(BasicAttackComboCountTimer);
+			GetWorldTimerManager().SetTimer(BasicAttackComboCountTimer, this, &AOPYasuo::ResetBasicAttackComboCount, 5.f, false);
+			BasicAttackComboCount++;
+			break;
 
-	case 3:
-		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("4"), BasicAttackAnimMontage);
-		BasicAttackComboCount = 0;
-		break;
+		case 3:
+			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("4"), BasicAttackAnimMontage);
+			BasicAttackComboCount = 0;
+			break;
 
-	default:
-		;
+		default:
+			;
+		}
 	}
 }
 
-bool AOPYasuo::MeleeAttackTrace()
+bool AOPYasuo::BasicAttackTrace()
 {
 	TArray<FHitResult> HitResults; // Hit의 결과를 저장할 배열
 	TArray<AActor*> ActorsToIgnore; // 트레이스하지 않을 액터들
 	ActorsToIgnore.Add(this); // 트레이스하지 않을 액터에 야스오 본인을 포함
 
 	// 원 모양으로 어디부터 어디까지, 어떤 채널에서 트레이스할지 정하고 트레이스하는 함수
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 450.f, 80.f,
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Radius,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 	
 	for (auto& HitActor : HitResults) // 트레이스된 여러 액터들에 적용하기 위한 반복문
@@ -133,7 +140,7 @@ void AOPYasuo::Q()
 {
 	Super::Q();
 	
-	if(!bSkill_1) return;
+	if(!bQ) return;
 	if(!OPPlayerController) return;
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -141,51 +148,51 @@ void AOPYasuo::Q()
 	if(!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);
 
-	if(Skill_1_Stack == 2) // 강철폭풍 스택이 2일때 강철폭풍 사용 시 스택을 0으로 초기화하고 회오리 날리기
+	if(Q_Stack == 2) // 강철폭풍 스택이 2일때 강철폭풍 사용 시 스택을 0으로 초기화하고 회오리 날리기
 	{
 		UE_LOG(LogTemp, Log, TEXT("Skill_1_WhirlWind"));
-		GetWorldTimerManager().SetTimer(WhirlWindSpawnTimer, this, &AOPYasuo::Skill_1_WhirlWind, 0.25f, false);
-		GetWorldTimerManager().ClearTimer(Skill_1_StackTimer);
-		Skill_1_Stack = 0;
-		if (ChampionAnimInstance && Skill_1_AnimMontage)
+		GetWorldTimerManager().SetTimer(Q_WhirlWindSpawnTimer, this, &AOPYasuo::Q_WhirlWind, 0.25f, false);
+		GetWorldTimerManager().ClearTimer(Q_StackTimer);
+		Q_Stack = 0;
+		if (ChampionAnimInstance && Q_AnimMontage)
 		{
-			ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
-			ChampionAnimInstance->Montage_JumpToSection(FName("Wind"), GetSkill_1_AnimMontage());
+			ChampionAnimInstance->Montage_Play(Q_AnimMontage, 1.0f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("Wind"), Q_AnimMontage);
 		}
 	}
 
 	else
 	{
-		GetWorldTimerManager().SetTimer(Skill_1_CastTimer, FTimerDelegate::CreateLambda([&]
+		GetWorldTimerManager().SetTimer(Q_CastTimer, FTimerDelegate::CreateLambda([&]
 		{
-			if (Skill_1_Trace())
+			if (Q_Trace())
 			{
-				if (Skill_1_Hit_SFX)
+				if (Q_Hit_SFX)
 				{
-					UGameplayStatics::PlaySound2D(GetWorld(), Skill_1_Hit_SFX);
+					UGameplayStatics::PlaySound2D(GetWorld(), Q_Hit_SFX);
 				}
 
-				if (Skill_1_Stack == 2 && Skill_1_Charged_SFX)
+				if (Q_Stack == 2 && Q_Charged_SFX)
 				{
-					UGameplayStatics::PlaySound2D(GetWorld(), Skill_1_Charged_SFX);
+					UGameplayStatics::PlaySound2D(GetWorld(), Q_Charged_SFX);
 				}
 			}
 		}), 0.2f, false);
 
-		if (ChampionAnimInstance && Skill_1_AnimMontage)
+		if (ChampionAnimInstance && Q_AnimMontage)
 		{
-			if (bSkill_1_CanSwift)
+			if (bQ_CanSwift) // Q CanSwift 불리언 값이 true라면 초당 6번 Q를 시전하는 애니메이션을 재생하도록 함.
 			{
-				PlaySkill_1_OrdinaryAnimMontage();
-				GetWorldTimerManager().SetTimer(Skill_1_Swift_StartTimerHandle, FTimerDelegate::CreateLambda([&]
+				PlayQ_OrdinaryAnimMontage();
+				GetWorldTimerManager().SetTimer(Q_Swift_StartTimerHandle, FTimerDelegate::CreateLambda([&]
 				{
-					PlaySkill_1_OrdinaryAnimMontage();
+					PlayQ_OrdinaryAnimMontage();
 					UE_LOG(LogTemp, Warning, TEXT("Hello"));
 				}), 0.165f, true);
 
-				GetWorldTimerManager().SetTimer(Skill_1_Swift_EndTimerHandle, FTimerDelegate::CreateLambda([&]
+				GetWorldTimerManager().SetTimer(Q_Swift_EndTimerHandle, FTimerDelegate::CreateLambda([&]
 				{
-					GetWorldTimerManager().ClearTimer(Skill_1_Swift_StartTimerHandle);
+					GetWorldTimerManager().ClearTimer(Q_Swift_StartTimerHandle);
 				}), 1.f, false);
 			}
 
@@ -195,13 +202,13 @@ void AOPYasuo::Q()
 				switch (Section)
 				{
 				case 0:
-					ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
-					ChampionAnimInstance->Montage_JumpToSection(FName("1"), GetSkill_1_AnimMontage());
+					ChampionAnimInstance->Montage_Play(GetQ_AnimMontage(), 1.0f);
+					ChampionAnimInstance->Montage_JumpToSection(FName("1"), GetQ_AnimMontage());
 					break;
 
 				case 1:
-					ChampionAnimInstance->Montage_Play(GetSkill_1_AnimMontage(), 1.0f);
-					ChampionAnimInstance->Montage_JumpToSection(FName("2"), GetSkill_1_AnimMontage());
+					ChampionAnimInstance->Montage_Play(GetQ_AnimMontage(), 1.0f);
+					ChampionAnimInstance->Montage_JumpToSection(FName("2"), GetQ_AnimMontage());
 					break;
 
 				default:
@@ -214,23 +221,26 @@ void AOPYasuo::Q()
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 0.7f, false);
 	
-	SetbSkill_1_False();
-	GetWorldTimerManager().SetTimer(Skill_1_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_1_True, GetSkill_1_Cooltime(), false);
+	SetbQ_False();
+	GetWorldTimerManager().SetTimer(Q_CooldownTimerHandle, this, &AOPYasuo::SetbQ_True, GetQ_Cooldown(), false);
 }
 
-void AOPYasuo::PlaySkill_1_OrdinaryAnimMontage()
+void AOPYasuo::PlayQ_OrdinaryAnimMontage()
 {
+	if (ChampionAnimInstance == nullptr) return;
+	if (Q_Swift_AnimMontage == nullptr) return;
+	
 	int32 Section = FMath::RandRange(0, 1);
 	switch (Section)
 	{
 	case 0:
-		ChampionAnimInstance->Montage_Play(Skill_1_Swift_AnimMontage, 6.0f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("1"), Skill_1_Swift_AnimMontage);
+		ChampionAnimInstance->Montage_Play(Q_Swift_AnimMontage, 6.0f);
+		ChampionAnimInstance->Montage_JumpToSection(FName("1"), Q_Swift_AnimMontage);
 		break;
 
 	case 1:
-		ChampionAnimInstance->Montage_Play(Skill_1_Swift_AnimMontage, 6.0f);
-		ChampionAnimInstance->Montage_JumpToSection(FName("2"), Skill_1_Swift_AnimMontage);
+		ChampionAnimInstance->Montage_Play(Q_Swift_AnimMontage, 6.0f);
+		ChampionAnimInstance->Montage_JumpToSection(FName("2"), Q_Swift_AnimMontage);
 		break;
 
 	default:
@@ -238,13 +248,13 @@ void AOPYasuo::PlaySkill_1_OrdinaryAnimMontage()
 	}
 }
 
-bool AOPYasuo::Skill_1_Trace()
+bool AOPYasuo::Q_Trace()
 {
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 450.f, 40.f,
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * Q_Range, Q_Radius,
 	UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 
 	for (auto& HitActor : HitResults)
@@ -253,7 +263,7 @@ bool AOPYasuo::Skill_1_Trace()
 		{
 			Diavolo->SetbIsDamagedTrue();
 			Diavolo->PlayDiavoloRandomDeadMontage();
-			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * Skill_1_Impulse, true);
+			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * Q_Impulse, true);
 			Diavolo->TurnCharacterToLocation(GetActorLocation());
 			
 			if (!Diavolo->GetbCanBeTestedMultipleTimes())
@@ -263,13 +273,13 @@ bool AOPYasuo::Skill_1_Trace()
 		}
 	}
 	
-	if(HitResults.Num() > 0 && Skill_1_Stack < 2) // 1명이라도 맞추고 스택이 2 미만이라면
+	if(HitResults.Num() > 0 && Q_Stack < 2) // 1명이라도 맞추고 스택이 2 미만이라면
 	{
-		Skill_1_Stack++;
-		GetWorldTimerManager().ClearTimer(Skill_1_StackTimer);
-		GetWorldTimerManager().SetTimer(Skill_1_StackTimer, FTimerDelegate::CreateLambda([&]
+		Q_Stack++;
+		GetWorldTimerManager().ClearTimer(Q_StackTimer);
+		GetWorldTimerManager().SetTimer(Q_StackTimer, FTimerDelegate::CreateLambda([&]
 		{
-			Skill_1_Stack = 0;
+			Q_Stack = 0;
 			UE_LOG(LogTemp, Warning, TEXT("Stack Reset"));
 		}), 6.f, false);
 
@@ -279,26 +289,19 @@ bool AOPYasuo::Skill_1_Trace()
 	return false;
 }
 
-void AOPYasuo::Skill_1_WhirlWind() // 회오리 발사
+void AOPYasuo::Q_WhirlWind() // 회오리 발사
 {
-	if (WhirlWindClass == nullptr) return;
-	// 현재 위치와 방향을 가져옵니다.
-	FVector CurrentLocation = GetActorLocation();
-	FVector ForwardVector = GetActorForwardVector();
+	if (Q_WhirlWindClass == nullptr) return;
 
-	// ForwardVector에 적절한 거리를 곱하여 정면 조금 앞의 위치를 계산합니다.
-	// 여기서 100.0f는 스폰할 거리로, 원하는 대로 조정할 수 있습니다.
-	FVector SpawnLocation = CurrentLocation + ForwardVector * 100.0f;
-
-	WhirlWind = GetWorld()->SpawnActor<AOPYasuoWhirlWind>(WhirlWindClass, SpawnLocation, GetActorRotation());
-	WhirlWind->SetOwner(this);
+	Q_WhirlWindStorage = GetWorld()->SpawnActor<AOPYasuoWhirlWind>(Q_WhirlWindClass, Q_WhirlWindSpawnPoint->GetComponentLocation(), GetActorRotation());
+	Q_WhirlWindStorage->SetOwner(this);
 }
 
 void AOPYasuo::W()
 {
 	Super::W();
 	
-	if (!bSkill_2) return;
+	if (!bW) return;
 	if (!OPPlayerController) return;
 	
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -306,30 +309,30 @@ void AOPYasuo::W()
 	if (!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);
 
-	Skill_2_WindWall();
+	W_WindWall();
 
-	if (ChampionAnimInstance && Skill_2_AnimMontage)
+	if (ChampionAnimInstance && W_AnimMontage)
 	{
-		ChampionAnimInstance->Montage_Play(Skill_2_AnimMontage, 1.0f);
+		ChampionAnimInstance->Montage_Play(W_AnimMontage, 1.0f);
 	}
 
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 0.4f, false);
 
-	SetbSkill_2_False();
-	GetWorldTimerManager().SetTimer(Skill_2_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_2_True, GetSkill_2_Cooltime(), false);
+	SetbW_False();
+	GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPYasuo::SetbW_True, GetW_Cooldown(), false);
 }
 
-void AOPYasuo::Skill_2_WindWall()
+void AOPYasuo::W_WindWall()
 {
-	if (WindWallClass == nullptr) return;
+	if (W_WindWallClass == nullptr) return;
 
 	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 100.f; // 캐릭터보다 살짝 앞에 스폰
 	FRotator SpawnRotation = GetActorRotation();
 	
-	if (WindWall = GetWorld()->SpawnActor<AOPYasuoWindWall>(WindWallClass, SpawnLocation, SpawnRotation))
+	if (W_WindWallStorage = GetWorld()->SpawnActor<AOPYasuoWindWall>(W_WindWallClass, SpawnLocation, SpawnRotation))
 	{
-		WindWall->SetOwner(this);
+		W_WindWallStorage->SetOwner(this);
 		FVector LaunchDirection = GetActorForwardVector();
 	}
 }
@@ -338,7 +341,7 @@ void AOPYasuo::E()
 {
 	Super::E();
 	
-	if (!bSkill_3) return;
+	if (!bE) return;
 	if (OPPlayerController == nullptr) return;
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -347,25 +350,25 @@ void AOPYasuo::E()
 	TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
 	if (TestDiavolo == nullptr) return;
 	
-	Skill_3_DistanceBetweenEnemy = FVector::Dist(GetActorLocation(), TestDiavolo->GetActorLocation());
+	E_DistanceBetweenEnemy = FVector::Dist(GetActorLocation(), TestDiavolo->GetActorLocation());
 
 	FVector Skill3Vector = MouseCursorHit.Location - GetActorLocation();
 	Skill3Vector.Normalize();
-	Skill3Vector *= Skill_3_Speed;
+	Skill3Vector *= E_Speed;
 	Skill3Vector.Z = 0.f;
 	TurnCharacterToLocation(TestDiavolo->GetActorLocation());
 	ProjectileMovementComponent->Velocity = Skill3Vector;
 	// SetActorEnableCollision(false);
 	// GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AOPYasuo::OnProjectileHit);
 	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AOPYasuo::OnDrawingSword);
+	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AOPYasuo::E_OnDrawingSword);
 		
-	GetWorldTimerManager().SetTimer(Skill_3_EndTimer, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(E_EndTimer, FTimerDelegate::CreateLambda([&]
 	{
 		ProjectileMovementComponent->Velocity = FVector(0, 0, 0);
 		SetActorEnableCollision(true);
 		// GetCapsuleComponent()->OnComponentHit.RemoveDynamic(this, &AOPYasuo::OnProjectileHit);
-		GetCapsuleComponent()->OnComponentBeginOverlap.RemoveDynamic(this, &AOPYasuo::OnDrawingSword);
+		GetCapsuleComponent()->OnComponentBeginOverlap.RemoveDynamic(this, &AOPYasuo::E_OnDrawingSword);
 		GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
 		TestDiavolo->SetbIsDamagedTrue();
 		TestDiavolo->PlayDiavoloRandomDeadMontage();
@@ -374,22 +377,22 @@ void AOPYasuo::E()
 			TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 		}
 		TestDiavolo = nullptr;
-	}), Skill_3_CastTime, false);
+	}), E_CastTime, false);
 
-	if (ChampionAnimInstance && Skill_3_AnimMontage)
+	if (ChampionAnimInstance && E_AnimMontage)
 	{
-		ChampionAnimInstance->Montage_Play(Skill_3_AnimMontage, 1.0f);
+		ChampionAnimInstance->Montage_Play(E_AnimMontage, 1.0f);
 	}
 	
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 0.7f, false);
 	
-	SetbSkill_3_False();
-	GetWorldTimerManager().SetTimer(Skill_3_CooltimeTimerHandle, this, &AOPYasuo::SetbSkill_3_True, Skill_3_Cooltime, false);
+	SetbE_False();
+	GetWorldTimerManager().SetTimer(E_CooldownTimerHandle, this, &AOPYasuo::SetbE_True, E_Cooldown, false);
 }
 
 // Collision event handler
-void AOPYasuo::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void AOPYasuo::E_OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	UE_LOG(LogTemp, Warning, TEXT("OnProjectileHit Active 1"));
 	UE_LOG(LogTemp, Warning, TEXT("HitComponent: %s / OtherActor: %s / OtherComp: %s / Hit: %s"),
@@ -406,14 +409,14 @@ void AOPYasuo::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherA
 			FVector ImpactDirection = (TestDiavolo->GetActorLocation() - Hit.ImpactPoint).GetSafeNormal();
 
 			// Add an upward component to the impact direction
-			ImpactDirection.Z += Skill_4_Angle;
+			ImpactDirection.Z += E_Angle;
 			ImpactDirection = ImpactDirection.GetSafeNormal();
 
 			// Log the impact direction for debugging
 			UE_LOG(LogTemp, Warning, TEXT("Impact Direction: %s"), *ImpactDirection.ToString());
 
 			// Apply an impulse to the Diavolo character based on the impact direction and AirborneRate
-			TestDiavolo->GetCharacterMovement()->AddImpulse(Skill_3_DistanceBetweenEnemy * ImpactDirection * Skill_3_Impulse, true);
+			TestDiavolo->GetCharacterMovement()->AddImpulse(E_DistanceBetweenEnemy * ImpactDirection * E_Impulse, true);
 
 			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
 			{
@@ -429,7 +432,7 @@ void AOPYasuo::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherA
 	
 }
 
-void AOPYasuo::OnDrawingSword(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+void AOPYasuo::E_OnDrawingSword(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor && OtherActor != this)
@@ -439,7 +442,7 @@ void AOPYasuo::OnDrawingSword(UPrimitiveComponent* OverlappedComp, AActor* Other
 		if (SlicedChampion)
 		{
 			FVector Direction = (SlicedChampion->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-			SlicedChampion->LaunchCharacter(Direction * Skill_3_DistanceBetweenEnemy * Skill_3_Speed, true, true);
+			SlicedChampion->LaunchCharacter(Direction * E_DistanceBetweenEnemy * E_Speed, true, true);
 			UE_LOG(LogTemp, Warning, TEXT("Hello"));
 		}
 		
@@ -450,7 +453,7 @@ void AOPYasuo::R()
 {
 	Super::R();
 	
-	if (!bUlt) return;
+	if (!bR) return;
 	if (OPPlayerController == nullptr) return;
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
@@ -473,29 +476,29 @@ void AOPYasuo::R()
 		TestDiavolo->GetCharacterMovement()->DisableMovement();
 		GetCharacterMovement()->GravityScale = 0.f;
 		
-		GetWorldTimerManager().SetTimer(Ult_End_Timer, FTimerDelegate::CreateLambda([&]
+		GetWorldTimerManager().SetTimer(R_End_Timer, FTimerDelegate::CreateLambda([&]
 		{
 			GetCharacterMovement()->GravityScale = 1.f;
 			TestDiavolo->GetCharacterMovement()->SetMovementMode(MOVE_Falling);
-			TestDiavolo->GetCharacterMovement()->AddImpulse(FVector(0.f, 0.f, -Ult_Impulse), true);
+			TestDiavolo->GetCharacterMovement()->AddImpulse(FVector(0.f, 0.f, -R_Impulse), true);
 			TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-			GetCharacterMovement()->AddImpulse(FVector(0.f, 0.f, -Ult_Impulse), true);
+			GetCharacterMovement()->AddImpulse(FVector(0.f, 0.f, -R_Impulse), true);
 			TestDiavolo->PlayDiavoloRandomDeadMontage();
 			TestDiavolo = nullptr;
 		}), 1.f, false);
 	}
 
 
-	if (ChampionAnimInstance && Ult_AnimMontage)
+	if (ChampionAnimInstance && R_AnimMontage)
 	{
-		ChampionAnimInstance->Montage_Play(Ult_AnimMontage, 1.0f);
+		ChampionAnimInstance->Montage_Play(R_AnimMontage, 1.0f);
 	}
 
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 1.35f, false);
 	
-	SetbUlt_False();
-	GetWorldTimerManager().SetTimer(Ult_CooltimeTimerHandle, this, &AOPYasuo::SetbUlt_True, GetUlt_Cooltime(), false);
+	SetbR_False();
+	GetWorldTimerManager().SetTimer(R_CooldownTimerHandle, this, &AOPYasuo::SetbR_True, GetR_Cooldown(), false);
 }
 
 
