@@ -31,8 +31,8 @@ protected:
 	/************************************************************************ Basic Attack ************************************************************************/
 
 	virtual void BasicAttack() override;
-	bool BasicAttackTrace(int AnimationNum);
-	bool BasicAttackTrace_W();
+	void BasicAttackTrace();
+	void BasicAttackTrace_W();
 	
 	/****************************************************************************** Q ******************************************************************************/
 

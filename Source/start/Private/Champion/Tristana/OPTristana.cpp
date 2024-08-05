@@ -46,6 +46,15 @@ void AOPTristana::BeginPlay()
 
 void AOPTristana::Tick(float DeltaTime)
 {
+	if (bIsWJumping)
+	{
+		if (!GetCharacterMovement()->IsFalling())
+		{
+			W_OnLanding();
+			UE_LOG(LogTemp, Warning, TEXT("Falling End"));
+			bIsWJumping = false;
+		}
+	}
 }
 
 void AOPTristana::Passive()
@@ -186,6 +195,7 @@ void AOPTristana::W() //로켓 점프 (Rocket Jump) 효과: 트리스타나가 목표 지점으로
 	
 	GetWorldTimerManager().SetTimer(W_JumpTimerHandle, FTimerDelegate::CreateLambda([&]
 	{
+		bIsWJumping = true;
 		const FRotator FinalRotation = FRotator(W_JumpAngle, GetActorRotation().Yaw, GetActorRotation().Roll);
 		const FVector FinalVelocity = FinalRotation.Vector() * W_JumpSpeed;
 		
@@ -208,18 +218,29 @@ void AOPTristana::W() //로켓 점프 (Rocket Jump) 효과: 트리스타나가 목표 지점으로
 
 void AOPTristana::W_OnLanding()
 {
-	// Handle landing damage and effects
-	TArray<AActor*> IgnoredActors;
-	IgnoredActors.Add(this);
+	TArray<FHitResult> HitResults;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
 
-	// Apply damage to actors within radius 범위 내의 캐릭터들에게 슬로우 이펙트 부여
-	//UGameplayStatics::ApplyRadialDamage(this, Skill_2_LandingDamage, GetActorLocation(), Skill_2_LandingRadius, nullptr, IgnoredActors, this, GetController(), true);
-	// Apply slow effect to actors within radius (you need to implement the slow effect)
-	// 슬로우 이펙트 넣기
-	// This can be done via a gameplay ability system or custom logic
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation(), W_LandingRadius,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 
-	// Clear timer
-	GetWorldTimerManager().ClearTimer(W_CooldownTimerHandle);
+	for (auto& HitActor : HitResults)
+	{
+		if (AOPDiavolo* HitDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+		{
+			if (HitDiavolo)
+			{
+				FVector ImpactDirection = (HitDiavolo->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+				ImpactDirection.Z = 0.f;
+				ImpactDirection.Z = W_LandingImpulseAngle;
+				HitDiavolo->SetbIsDamagedTrue();
+				HitDiavolo->PlayDiavoloRandomDeadMontage();
+				HitDiavolo->LaunchCharacter(ImpactDirection * W_LandingImpulse, true, true);
+				// HitDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * R_Impulse, true);
+			}
+		}
+	}
 }
 
 void AOPTristana::W_Play_JumpAnimMontage()

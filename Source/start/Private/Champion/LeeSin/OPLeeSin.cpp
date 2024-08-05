@@ -283,7 +283,7 @@ void AOPLeeSin::Skill_3_GroundSlam()
     float SlowDuration = Skill_3_slowDuration;
 
     UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * EffectRadius, EffectRadius,
-        UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+        UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
 
     for (auto& HitActor : HitResults)
     {

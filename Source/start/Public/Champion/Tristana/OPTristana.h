@@ -117,7 +117,7 @@ private:
 	float W_JumpStrength;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float W_LandingDamage;
+	float W_LandingImpulse;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float W_LandingRadius;
@@ -125,8 +125,13 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float W_SlowDuration;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float W_LandingImpulseAngle;
+
 	FTimerHandle W_JumpTimerHandle; 
 	FVector W_FinalLocation;
+
+	bool bIsWJumping;
 	
 	/****************************************************************************** E ******************************************************************************/
 

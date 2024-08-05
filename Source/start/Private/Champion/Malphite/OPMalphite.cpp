@@ -53,8 +53,8 @@ void AOPMalphite::BasicAttack()
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 
 	if (!MouseCursorHit.bBlockingHit) return;
-	TurnCharacterToCursor(MouseCursorHit);
-
+	TurnCharacterToCursor(MouseCursorHit);	
+	
 	if (ChampionAnimInstance && BasicAttackAnimMontage)
 	{
 		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
@@ -71,28 +71,11 @@ void AOPMalphite::BasicAttack()
 		
 		else
 		{
-			int32 Section = FMath::RandRange(0, 1);
-			switch (Section)
+			ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
+			GetWorldTimerManager().SetTimer(BasicAttackTraceTimerHandle, FTimerDelegate::CreateLambda([&]
 			{
-			case 0:
-				ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
-				GetWorldTimerManager().SetTimer(BasicAttackTraceTimerHandle, FTimerDelegate::CreateLambda([&]
-				{
-					BasicAttackTrace(1);
-				}), 0.25f, false);
-				break;
-
-			case 1:
-				ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
-				GetWorldTimerManager().SetTimer(BasicAttackTraceTimerHandle, FTimerDelegate::CreateLambda([&]
-				{
-					BasicAttackTrace(2);
-				}), 0.25f, false);
-				break;
-
-			default:
-				break;
-			}
+				BasicAttackTrace();
+			}), 0.4f, false);
 		}
 	}
 
@@ -103,34 +86,21 @@ void AOPMalphite::BasicAttack()
 	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPMalphite::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
 }
 
-bool AOPMalphite::BasicAttackTrace(int AnimationNum)
+void AOPMalphite::BasicAttackTrace()
 {
-	TArray<FHitResult> HitResults;
+	TArray<FHitResult> HitEnemies;
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
-
+	
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Radius,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
-
-	for (auto& HitActor : HitResults)
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitEnemies, true);
+	
+	for (auto& HitActor : HitEnemies)
 	{
 		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
 		{
 			float Distance = FVector::Dist(GetActorLocation(), Diavolo->GetActorLocation());
-			switch (AnimationNum)
-			{
-			case 1:
-				Diavolo->LaunchCharacter(GetActorRightVector() * BasicAttack_Impulse / Distance, true, true);
-				break;
-
-			case 2:
-				Diavolo->LaunchCharacter(GetActorUpVector() * BasicAttack_Impulse / Distance, true, true);
-				break;
-
-			default:
-				break;
-					
-			}
+			Diavolo->LaunchCharacter(GetActorRightVector() * BasicAttack_Impulse / Distance, true, true);
 			
 			Diavolo->SetbIsDamagedTrue();
 			Diavolo->PlayDiavoloRandomDeadMontage();
@@ -139,15 +109,11 @@ bool AOPMalphite::BasicAttackTrace(int AnimationNum)
 			{
 				Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 			}
-
-			return true;
 		}
 	}
-
-	return false;
 }
 
-bool AOPMalphite::BasicAttackTrace_W()
+void AOPMalphite::BasicAttackTrace_W()
 {
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
@@ -174,12 +140,8 @@ bool AOPMalphite::BasicAttackTrace_W()
 					Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 				}
 			}
-
-			return true;
 		}
 	}
-
-	return false;
 }
 
 void AOPMalphite::Q()
