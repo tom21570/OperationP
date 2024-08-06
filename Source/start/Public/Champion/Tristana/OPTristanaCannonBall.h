@@ -23,12 +23,12 @@ public:
 private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	float InitialSpeed = 200.f;
+	float BasicAttack_InitialSpeed = 200.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	float AngleOfFloating;
+	float BasicAttack_AngleOfFloating;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
-	float ForceOfCannonBall;
+	float BasicAttack_Force;
 };
 

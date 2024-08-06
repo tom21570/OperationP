@@ -2,6 +2,8 @@
 
 
 #include "Champion/Tristana/OPTristana.h"
+
+#include "NiagaraFunctionLibrary.h"
 #include "Animation/OPAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Diavolo/OPDiavolo.h"
@@ -84,49 +86,7 @@ void AOPTristana::BasicAttack()
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.7f, false);
 
 	SetbBasicAttack_False();
-	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPTristana::SetbBasicAttack_True, BasicAttackCooldown, false);
-	//GetWorldTimerManager().SetTimer(MeleeAttackCooltimeTimer, this, &AOPTristana::SetbMeleeAttack, GetMeleeAttackCooltime(), false); //이부분은 왜 SetTimer가 빨간줄이 쳐질까요
-	
-	
-	// FVector Start = GetActorLocation();
-	// FVector TestDiavoloLocation = TestDiavolo->GetActorLocation();
-	//
-	// float DistanceToTarget = CalculateMinDistanceToActorEdge(Start, TestDiavoloLocation, LongDistanceAttack_Range);
-	//
-	// FTimerHandle LongDistanceAttack_EndTimer;
-	//
-	//
-	// if (DistanceToTarget <= LongDistanceAttack_Range)
-	// {
-	// 	// 공격 범위 내에 있으면 공격
-	// 	FHitResult HitResult;
-	// 	FCollisionQueryParams Params;
-	// 	Params.AddIgnoredActor(this);
-	//
-	// 	GetChampionAnimInstance()->Montage_Play(LongDistanceAttackAnimMontage, 1.f);
-	//
-	// 	if (GetWorld()->LineTraceSingleByChannel(HitResult, Start, TestDiavoloLocation, ECC_Visibility, Params))
-	// 	{
-	// 		// 데미지 적용
-	// 		if (AActor* HitActor = HitResult.GetActor())
-	// 		{
-	// 			// 임시로 로그 출력
-	// 			UE_LOG(LogTemp, Warning, TEXT("Hit: %s"), *HitActor->GetName());
-	// 			//디아볼로 쓰러지는 모션 혹은 공격당하는 모션 추가
-	// 		}
-	// 	}
-	// }
-	// else
-	// {
-	// 	// 공격 범위 밖에 있으면 이동
-	// 	FVector Direction = (TestDiavoloLocation - Start).GetSafeNormal();
-	// 	FVector MoveLocation = TestDiavoloLocation - Direction * LongDistanceAttack_Range;
-	//
-	// 	UE_LOG(LogTemp, Warning, TEXT("Moving to: %s"), *MoveLocation.ToString());
-	// 	MoveToLocation(MoveLocation);
-	//
-	// }
-		
+	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPTristana::SetbBasicAttack_True, BasicAttackCooldown, false);		
 }
 
 void AOPTristana::BasicAttack_CannonBall()
@@ -217,7 +177,7 @@ void AOPTristana::W() //로켓 점프 (Rocket Jump) 효과: 트리스타나가 목표 지점으로
 }
 
 void AOPTristana::W_OnLanding()
-{
+{	
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
@@ -231,20 +191,18 @@ void AOPTristana::W_OnLanding()
 		{
 			if (HitDiavolo)
 			{
-				FVector ImpactDirection = (HitDiavolo->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-				ImpactDirection.Z = 0.f;
-				ImpactDirection.Z = W_LandingImpulseAngle;
+				FRotator ExplosionRotation = (HitDiavolo->GetActorLocation() - GetActorLocation()).Rotation();
+				FRotator FinalRotation = FRotator(W_LandingStrengthAngle, ExplosionRotation.Yaw, ExplosionRotation.Roll);
+				HitDiavolo->GetCharacterMovement()->AddRadialImpulse(GetActorLocation(), W_LandingRadius, W_LandingStrength, RIF_Linear, true);
+				HitDiavolo->GetCharacterMovement()->AddImpulse(FinalRotation.Vector() * W_LandingStrength, true);
 				HitDiavolo->SetbIsDamagedTrue();
 				HitDiavolo->PlayDiavoloRandomDeadMontage();
-				HitDiavolo->LaunchCharacter(ImpactDirection * W_LandingImpulse, true, true);
-				// HitDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * R_Impulse, true);
 			}
 		}
 	}
-}
 
-void AOPTristana::W_Play_JumpAnimMontage()
-{
+	FVector NiagaraSpawnLocation = FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - 40.f);
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), W_NiagaraComponent, NiagaraSpawnLocation);
 }
 
 
@@ -257,28 +215,20 @@ void AOPTristana::E() //폭발 화약(Explosive Charge) 		효과: 패시브로, 트리스타나
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 	if (!MouseCursorHit.bBlockingHit) return;
-	UE_LOG(LogTemp, Warning, TEXT("cursor Hit"));
 	TurnCharacterToCursor(MouseCursorHit);
 
 	TestDiavolo = Cast<AOPDiavolo>(MouseCursorHit.GetActor());
 	if (TestDiavolo == nullptr) return;
-
-	FVector DiavoloLocation = TestDiavolo->GetActorLocation();
-
-	FVector CurrentLocation = GetActorLocation();
-	float Distance = FVector::Dist(CurrentLocation, DiavoloLocation);
-
-	if (Distance <= E_MaxThrowRange)
+	
+	if (ChampionAnimInstance && E_AnimMontage)
 	{
-		if (ChampionAnimInstance && E_AnimMontage)
-		{
 			ChampionAnimInstance->Montage_Play(E_AnimMontage, 1.0f);
-		}
-		GetWorldTimerManager().SetTimer(E_SpawnTimerHandle, FTimerDelegate::CreateLambda([&]
-		{
-			E_UseExplosiveCharge(TestDiavolo);
-		}), 0.2f, false);
 	}
+	
+	GetWorldTimerManager().SetTimer(E_SpawnTimerHandle, FTimerDelegate::CreateLambda([&]
+	{
+		E_UseExplosiveCharge(TestDiavolo);
+	}), 0.2f, false);
 	
 	StopChampionMovement();
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.7f, false);
@@ -291,18 +241,15 @@ void AOPTristana::E_UseExplosiveCharge(AOPDiavolo* Target)
 {
 	if (E_ExplosiveChargeClass && Target)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UseExplosiveCharge"));
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.Owner = this;
-		SpawnParams.Instigator = GetInstigator();
-
-		// Spawn the explosive charge
-		AOPTristanaExplosiveCharge* ExplosiveChargeNow = GetWorld()->SpawnActor<AOPTristanaExplosiveCharge>(E_ExplosiveChargeClass, Target->GetActorLocation(), FRotator::ZeroRotator, SpawnParams);
-		if (ExplosiveChargeNow)
+		FRotator ExplosiveChargeRotator = FRotator(E_SpawnAngle, GetActorRotation().Yaw, GetActorRotation().Roll);
+		FVector ExplosiveChargeVelocity = E_Speed * ExplosiveChargeRotator.Vector();
+		
+		E_ExplosiveChargeStorage = GetWorld()->SpawnActor<AOPTristanaExplosiveCharge>(E_ExplosiveChargeClass, ProjectileSpawnPoint->GetComponentLocation(), ExplosiveChargeRotator);
+		if (E_ExplosiveChargeStorage)
 		{
-			// ExplosiveChargeNow->AttachToComponent(Target->GetCapsuleComponent(), FAttachmentTransformRules::KeepWorldTransform);
-			ExplosiveChargeNow->InitializeCharge(Target, E_Damage, E_ExplosionRadius, E_TimeToExplode);
-			E_CurrentExplosiveCharge = ExplosiveChargeNow;
+			E_ExplosiveChargeStorage->GetOPProjectileMovementComponent()->HomingAccelerationMagnitude = 100000.f;
+			E_ExplosiveChargeStorage->GetOPProjectileMovementComponent()->bIsHomingProjectile = true;
+			E_ExplosiveChargeStorage->GetOPProjectileMovementComponent()->HomingTargetComponent = Target->GetRootComponent();
 		}
 	}
 }
@@ -356,27 +303,3 @@ void AOPTristana::R_BusterShot()
 		LaunchCharacter(-BusterShotRotator.Vector() * R_Rebound, true, true);
 	}
 }
-
-/* 범위와 이동 공격은 나중에 구현
-// 공격 범위 끝의 모든 점과 대상 위치의 최단 거리를 계산
-float AOPTristana::CalculateMinDistanceToActorEdge(FVector ActorLocation, FVector TargetLocation, float Radius)
-{
-	// 공격 범위 끝의 모든 점과 대상 위치의 최단 거리를 계산
-	FVector Direction = (TargetLocation - ActorLocation).GetSafeNormal();
-	FVector EdgePoint = ActorLocation + Direction * Radius;
-
-	return FVector::Dist(EdgePoint, TargetLocation);
-}
-
-void AOPTristana::MoveToLocation(FVector TargetLocation)
-{
-	FVector Start = GetActorLocation();
-	FVector Direction = (TargetLocation - Start).GetSafeNormal();
-	MoveTargetLocation = TargetLocation - Direction * LongDistanceAttack_Range;
-	bIsMoving = true;
-}
-*/
-
-
-
-

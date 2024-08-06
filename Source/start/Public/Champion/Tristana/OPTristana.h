@@ -59,12 +59,15 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"));
 	class UProjectileMovementComponent* ProjectileMovementComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USceneComponent> ProjectileSpawnPoint;
+	
 	/*************************************************************************** Passive ***************************************************************************/
 
 	/************************************************************************ Basic Attack ************************************************************************/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float BasicAttack_Impulse = 0.f;
+	float BasicAttack_Force = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float BasicAttack_Range = 0.f;
@@ -74,10 +77,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float BasicAttack_Angle = 0.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Gameplay Methods", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<USceneComponent> ProjectileSpawnPoint;
-
+	
 	TObjectPtr<AOPTristanaCannonBall> BasicAttack_CannonBallStorage; 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AOPTristanaCannonBall> BasicAttack_CannonBallClass;
@@ -91,15 +91,16 @@ private:
 	
 	/****************************************************************************** Q ******************************************************************************/
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Q_RapidFireValue = 0.5f;
 	
 	FTimerHandle Q_TimerHandle; 
-	bool bIsQActive = false; 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
+	bool bIsQActive = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	float Q_Duration = 10.f; 
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UNiagaraComponent> Q_NiagaraComponent;
 
 	/****************************************************************************** W ******************************************************************************/
@@ -108,28 +109,24 @@ private:
 	float W_MaxJumpRange = 1000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float W_JumpAngle = 0.f; // ??? 4 ???
+	float W_JumpAngle = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float W_JumpSpeed = 0.f; // ??? 4 ???
+	float W_JumpSpeed = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float W_JumpStrength;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float W_LandingImpulse;
+	float W_LandingStrength;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float W_LandingRadius;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float W_SlowDuration;
+	float W_LandingStrengthAngle;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float W_LandingImpulseAngle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> W_NiagaraComponent;
 
-	FTimerHandle W_JumpTimerHandle; 
-	FVector W_FinalLocation;
+	FTimerHandle W_JumpTimerHandle;
 
 	bool bIsWJumping;
 	
@@ -138,17 +135,11 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	AOPDiavolo* E_Target;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
-	float E_Damage;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float E_Speed = 2400.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float E_ExplosionRadius;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float E_TimeToExplode;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float E_MaxThrowRange;
+	float E_SpawnAngle = 60.f;
 
 	TObjectPtr<AOPTristanaExplosiveCharge> E_ExplosiveChargeStorage; 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill3", meta = (AllowPrivateAccess = "true"))

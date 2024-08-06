@@ -20,26 +20,27 @@ protected:
 
 
 public:
-	// Function to initialize the explosive charge
-	void InitializeCharge(AActor* TargetActor, float Damage, float ExplosionRadius, float TimeToExplode);
-
 	// Function to apply damage and handle explosion
 	void Explode();
 
-	// Function to handle hit and increment hit count
-	void OnHit();
-
 private:
-
-	//skill Explosive Charge
-// Variables to store the target, damage, radius, and time to explode
-	AActor* ExplosiveCharge_Target;
-	float ExplosiveCharge_Damage;
-	float ExplosiveCharge_ExplosionRadius;
-	float ExplosiveCharge_TimeToExplode;
-	int32 ExplosiveCharge_HitCount = 0;
-	int32 ExplosiveCharge_RequiredHits = 3;
-
 	// Timer handle for explosion
 	FTimerHandle ExplosiveCharge_ExplosionTimerHandle;
+
+	FTimerHandle DecreaseVelocityTimerHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E", meta = (AllowPrivateAccess = "true"))
+	float E_ExplosionRadius = 1000.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E", meta = (AllowPrivateAccess = "true"))
+	float E_KnockbackStrength = 300.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E", meta = (AllowPrivateAccess = "true"))
+	float E_Angle = 80.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E", meta = (AllowPrivateAccess = "true"))
+	float E_TimeToExplode = 5.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E", meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* ExplodeEffect;
 };

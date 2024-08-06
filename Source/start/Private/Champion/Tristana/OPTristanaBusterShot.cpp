@@ -9,34 +9,31 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
+void AOPTristanaBusterShot::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
 void AOPTristanaBusterShot::OnDamageCollisionBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	Super::OnDamageCollisionBeginOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep,
-		SweepResult);
+	Super::OnDamageCollisionBeginOverlap(OverlappedComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 
 	if (OtherActor && OtherActor != this && GetOwner() != nullptr && OtherActor != GetOwner())
 	{
 		AOPDiavolo* TestDiavolo = Cast<AOPDiavolo>(OtherActor);
 		AOPMalphite* TestMalphite = Cast<AOPMalphite>(OtherActor);
+		
 		if (TestDiavolo)
-		{            // Calculate the direction of the impulse
-			FVector ImpactDirection = (TestDiavolo->GetActorLocation() - SweepResult.ImpactPoint).GetSafeNormal();
-
-			// Add an upward component to the impact direction
-			ImpactDirection.Z = 0;
-			ImpactDirection = ImpactDirection.GetSafeNormal();
-
-			// Log the impact direction for debugging
-			UE_LOG(LogTemp, Log, TEXT("Impact Direction: %s"), *ImpactDirection.ToString());
-
-			// Apply an impulse to the Diavolo character based on the impact direction and AirborneRate
-			TestDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * ImpactForce, true);
-
+		{            
+			FVector ImpactDirection = (TestDiavolo->GetActorLocation() - GetActorLocation()).GetSafeNormal();
+			ImpactDirection.Z = 0.f;
+			ImpactDirection.Z += R_AngleOfFloating;
+		
+			TestDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * R_Strength, true);
+		
 			if (!TestDiavolo->GetbCanBeTestedMultipleTimes())
 			{
-				// TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 				TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
-				// TestDiavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
 			}
 		}
 

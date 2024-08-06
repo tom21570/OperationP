@@ -11,6 +11,7 @@
 #include "Champion/Tristana/OPTristana.h"
 #include "Diavolo/OPDiavolo.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 void AOPTristanaExplosiveCharge::BeginPlay()
@@ -18,46 +19,31 @@ void AOPTristanaExplosiveCharge::BeginPlay()
     Super::BeginPlay();
 
     // Set a timer to automatically explode after a certain time
-    GetWorld()->GetTimerManager().SetTimer(ExplosiveCharge_ExplosionTimerHandle, this, &AOPTristanaExplosiveCharge::Explode, ExplosiveCharge_TimeToExplode, false);
-}
+    GetWorld()->GetTimerManager().SetTimer(ExplosiveCharge_ExplosionTimerHandle, this, &AOPTristanaExplosiveCharge::Explode, E_TimeToExplode, false);
 
-void AOPTristanaExplosiveCharge::InitializeCharge(AActor* TargetActor, float Damage, float ExplosionRadius, float TimeToExplode)
-{
-    if (Cast<AOPDiavolo>(TargetActor)) 
+    GetWorldTimerManager().SetTimer(DecreaseVelocityTimerHandle, FTimerDelegate::CreateLambda([&]
     {
-        ExplosiveCharge_Target = TargetActor;
-        ExplosiveCharge_Damage = Damage;
-        ExplosiveCharge_ExplosionRadius = ExplosionRadius;
-        ExplosiveCharge_TimeToExplode = TimeToExplode;
-
-        // Attach to the target actor
-        if (ExplosiveCharge_Target)
-        {
-            AttachToActor(ExplosiveCharge_Target, FAttachmentTransformRules::KeepWorldTransform);
-        }
-    }
-    
-}
-
-void AOPTristanaExplosiveCharge::OnHit()
-{
-    ExplosiveCharge_HitCount++;
-    if (ExplosiveCharge_HitCount >= ExplosiveCharge_RequiredHits)
-    {
-        ExplosiveCharge_HitCount = 0;
-        Explode();
-    }
+        GetOPProjectileMovementComponent()->HomingAccelerationMagnitude = 20000.f;
+    }), 1.f, false);
 }
 
 void AOPTristanaExplosiveCharge::Explode()
 {
-    // Apply radial damage
-    //UGameplayStatics::ApplyRadialDamage(this, Skill_3_Damage, GetActorLocation(), Skill_3_ExplosionRadius, nullptr, TArray<AActor*>(), this, GetInstigatorController(), true);
-    //데미지 입히기 대신 디아볼로가 쓰러지는 모션 삽입
-    // Optionally, spawn particle effects or play sound here
+    TArray<AActor*> OverlappingActors;
+    RootCapsule->GetOverlappingActors(OverlappingActors);
 
-    // Destroy the explosive charge actor
+    for (auto Actor : OverlappingActors)
+    {
+        UE_LOG(LogTemp, Warning,  TEXT("Explode"));
+        if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(Actor))
+        {
+            FRotator ExplosionRotation = (Diavolo->GetActorLocation() - GetActorLocation()).Rotation();
+            FRotator FinalRotation = FRotator(E_Angle, ExplosionRotation.Yaw, ExplosionRotation.Roll);
+            Diavolo->GetCharacterMovement()->AddRadialImpulse(GetActorLocation(), E_ExplosionRadius, E_KnockbackStrength, RIF_Linear, true);
+            Diavolo->GetCharacterMovement()->AddImpulse(FinalRotation.Vector() * E_KnockbackStrength, true);
+        }
+    }
+
+    UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplodeEffect, GetActorLocation());
     Destroy();
 }
-
-
