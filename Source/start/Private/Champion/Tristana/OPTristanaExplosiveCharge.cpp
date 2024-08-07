@@ -32,7 +32,7 @@ void AOPTristanaExplosiveCharge::Explode()
     TArray<AActor*> OverlappingActors;
     RootCapsule->GetOverlappingActors(OverlappingActors);
 
-    for (auto Actor : OverlappingActors)
+    for (auto& Actor : OverlappingActors)
     {
         UE_LOG(LogTemp, Warning,  TEXT("Explode"));
         if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(Actor))

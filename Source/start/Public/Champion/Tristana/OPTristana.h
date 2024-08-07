@@ -6,6 +6,7 @@
 #include "Champion/OPChampion.h"
 #include "OPTristana.generated.h"
 
+class USphereComponent;
 class AOPTristanaCannonBall;
 class AOPTristanaBusterShot;
 class AOPTristanaExplosiveCharge;
@@ -44,6 +45,10 @@ protected:
 	virtual void W() override;
 	void W_OnLanding();
 	void W_Play_JumpAnimMontage();
+	
+	UFUNCTION()
+	void OnOverlappingDiavolo(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
 	/****************************************************************************** E ******************************************************************************/
 
@@ -109,10 +114,10 @@ private:
 	float W_MaxJumpRange = 1000.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float W_JumpAngle = 0.f;
+	float W_Speed_XY = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float W_JumpSpeed = 0.f;
+	float W_Speed_Z = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float W_LandingStrength;
@@ -123,12 +128,20 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float W_LandingStrengthAngle;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USphereComponent> W_Collision;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UNiagaraSystem> W_NiagaraComponent;
+	TObjectPtr<UParticleSystem> W_ParticleSystem_JumpStart;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> W_NiagaraComponent_Landing;
 
 	FTimerHandle W_JumpTimerHandle;
-
+	
 	bool bIsWJumping;
+
+	TArray<TObjectPtr<AOPDiavolo>> SteppedDiavolo;
 	
 	/****************************************************************************** E ******************************************************************************/
 
