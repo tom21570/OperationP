@@ -3,26 +3,31 @@
 #include "Champion/LeeSin/OPLeeSin.h"
 #include "Animation/OPAnimInstance.h"
 #include "Champion/LeeSin/OPLeeSinSonicWave.h"
-#include "Champion/LeeSin/OPLeeSinDragonsRage.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Diavolo/OPDiavolo.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
-#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Player/OPPlayerController.h"
-#include "Sound/SoundCue.h"
 #include "TimerManager.h"
 
 AOPLeeSin::AOPLeeSin()
 {
     ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component"));
+
+    SafeGuardMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SafeGuard Mesh"));
+    SafeGuardMesh->SetupAttachment(GetRootComponent());
+
+    MarkerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MarkerMesh"));
 }
 
 void AOPLeeSin::BeginPlay()
 {
     Super::BeginPlay();
+
+    SafeGuardMesh->SetHiddenInGame(true);
+    MarkerMesh->SetHiddenInGame(true);
 }
 
 void AOPLeeSin::Passive()
@@ -138,18 +143,19 @@ void AOPLeeSin::Q()
             UE_LOG(LogTemp, Log, TEXT("Skill_1_CanResonate"));
             FVector TargetLocation = TestDiavolo->GetActorLocation();
             FVector Direction = TargetLocation - GetActorLocation();
+            Direction.Z = 0.f;
             float Distance = Direction.Size();
-            float LaunchSpeed = Distance * Skill_1_Velocity;
-            FVector LaunchVelocity = Direction.GetSafeNormal() * Skill_1_ResonateSpeed;
+            FVector LaunchVelocity = Direction.GetSafeNormal() * Q_ResonateSpeed;
             ProjectileMovementComponent->Velocity = LaunchVelocity;
 
             GetWorldTimerManager().SetTimer(ResonatingStrike_DiavoloMotionTimer, FTimerDelegate::CreateLambda([&]
             {
                 ProjectileMovementComponent->Velocity = FVector::Zero();
                 TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinResonatingStrike_AnimMontage());
+                TestDiavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * Q_ResonateStrength, true);
                 SetbIsResonating_False();
                 ResetChampionMovement();
-            }), Distance / Skill_1_ResonateSpeed, false);
+            }), (Distance / Q_ResonateSpeed) * 0.92f, false);
         }
     }
     else
@@ -188,27 +194,21 @@ void AOPLeeSin::W()
 
     if (!GetbW()) return;
     if (!OPPlayerController) return;
-
-    OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
-    if (!MouseCursorHit.bBlockingHit) return;
-    if (MouseCursorHit.bBlockingHit) // ���� ������ block�̶�� �� Hit �������� ĳ���͸� ����
+    
+    SafeGuardMesh->SetHiddenInGame(false);
+    SafeGuardMesh->SetCollisionObjectType(ECC_WorldStatic);
+    SafeGuardMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    SafeGuardMesh->SetCollisionResponseToAllChannels(ECR_Block);
+    GetWorldTimerManager().SetTimer(W_MaintainTimerHandle, FTimerDelegate::CreateLambda([&]
     {
-        TurnCharacterToCursor(MouseCursorHit);
-    }
-    AOPChampion* TargetChampion = Cast<AOPChampion>(MouseCursorHit.GetActor());
-    if (TargetChampion && TargetChampion != this)
-    {
-        float DashSpeed = 2000.0f;
-        float DashDistance = 600.0f;
-
-
-        DashToTarget(TargetChampion, DashSpeed, DashDistance);
-
-        GetWorldTimerManager().SetTimer(DashCompleteTimer, this, &AOPLeeSin::OnDashCompleted, 0.1f, false);
-
-        SetbW_False();
-        GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPLeeSin::SetbW_True, GetW_Cooldown(), false);
-    }
+        SafeGuardMesh->SetHiddenInGame(true);
+        SafeGuardMesh->SetCollisionObjectType(ECC_WorldStatic);
+        SafeGuardMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        SafeGuardMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+    }), W_MaintainTime, false);
+    
+    SetbW_False();
+    GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPLeeSin::SetbW_True, GetW_Cooldown(), false);
 }
 
 void AOPLeeSin::OnDashCompleted()
@@ -243,7 +243,24 @@ void AOPLeeSin::E()
 
     if (!GetbE()) return;
 
-    GetWorldTimerManager().SetTimer(Skill_3_CastTimer, this, &AOPLeeSin::Skill_3_GroundSlam, 0.25f, false);
+    if (!bE_SecondInput)
+    {
+        bE_SecondInput = true;
+        GetWorldTimerManager().SetTimer(Skill_3_CastTimer, this, &AOPLeeSin::Skill_3_GroundSlam, 0.25f, false);
+
+        if (ChampionAnimInstance && E_AnimMontage)
+        {
+            ChampionAnimInstance->Montage_Play(E_AnimMontage, 1.f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("GroundSlam"), E_AnimMontage);
+        }
+    }
+
+    else if (bE_SecondInput)
+    {
+        Skill_3_Cripple();
+        bE_SecondInput = false;
+    }
+
     
     SetbE_False();
     GetWorldTimerManager().SetTimer(E_CooldownTimerHandle, this, &AOPLeeSin::SetbE_True, GetE_Cooldown(), false);
@@ -251,11 +268,7 @@ void AOPLeeSin::E()
     StopChampionMovement();
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPLeeSin::ResetChampionMovement, 0.9f, false);
 
-    if (ChampionAnimInstance && E_AnimMontage)
-    {
-        ChampionAnimInstance->Montage_Play(E_AnimMontage, 1.f);
-        ChampionAnimInstance->Montage_JumpToSection(FName("GroundSlam"), E_AnimMontage);
-    }
+    
     
     // ���� ����ġ�� �����̶� Ŀ���� Hit ���� ��� �� �� ���ƿ�!!
     // if (!OPPlayerController) return;
@@ -278,24 +291,52 @@ void AOPLeeSin::Skill_3_GroundSlam()
     TArray<AActor*> ActorsToIgnore;
     ActorsToIgnore.Add(this);
 
-    float EffectRadius = Skill_3_radious;
-    float SlowAmount = Skill_3_slowAmount;
-    float SlowDuration = Skill_3_slowDuration;
-
-    UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * EffectRadius, EffectRadius,
+    UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * E_Radius, E_Radius,
         UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
 
     for (auto& HitActor : HitResults)
     {
-        if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+        if (TestDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
         {
-            Diavolo->SetbIsDamagedTrue();
-            Diavolo->SetbIsDeadTrue();
-            Diavolo->GetChampionAnimInstance()->Montage_Play(Diavolo->GetDiavolo_DamagedByLeeSinSkill_3_AnimMontage());
-            Diavolo->ApplySlowEffect(SlowAmount, SlowDuration);
+            // Diavolo->SetbIsDamagedTrue();
+            // Diavolo->SetbIsDeadTrue();
+            // Diavolo->GetChampionAnimInstance()->Montage_Play(Diavolo->GetDiavolo_DamagedByLeeSinSkill_3_AnimMontage());
+            TestDiavolo->GetCharacterMovement()->AddImpulse(TestDiavolo->GetActorUpVector() * E_Strength, true);
+
+            GetWorldTimerManager().SetTimer(E_EndTimer, FTimerDelegate::CreateLambda([this]
+            {
+                // TestDiavolo->SetbStumbledByLeeSinE_False();
+                RemoveMarkerOnTarget(TestDiavolo);
+            }), 4.f, false);
         }
     }
     // Skill_3_ApplySlowEffect();
+}
+
+void AOPLeeSin::Skill_3_Cripple()
+{
+    TArray<FHitResult> HitResults;
+    TArray<AActor*> ActorsToIgnore;
+    ActorsToIgnore.Add(this);
+
+    UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * E_Radius, E_Radius,
+        UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+
+    for (auto& HitActor : HitResults)
+    {
+        if (TestDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+        {
+            TestDiavolo->GetMarkerMesh()->SetVisibility(false);
+            TestDiavolo->SetbStumbledByLeeSinE_True();
+            CreateMarkerOnTarget(TestDiavolo);
+
+            GetWorldTimerManager().SetTimer(E_EndTimer, FTimerDelegate::CreateLambda([this]
+            {
+                // TestDiavolo->GetMarkerMesh()->SetVisibility(false);
+                RemoveMarkerOnTarget(TestDiavolo);
+            }), 4.f, false);
+        }
+    }
 }
 
 void AOPLeeSin::Skill_3_ApplySlowEffect()
@@ -366,19 +407,19 @@ bool AOPLeeSin::UltTrace()
 
     for (auto& HitActor : HitResults)
     {
-        HitActor.Component->AddImpulse(Ult_Impulse * GetActorForwardVector());
+        HitActor.Component->AddImpulse(R_Strength * GetActorForwardVector());
         if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
         {
-            FVector ImpactDirection = (Diavolo->GetActorLocation() - HitActor.ImpactPoint).GetSafeNormal();
-            ImpactDirection.Z += Ult_Angle;
-            ImpactDirection = ImpactDirection.GetSafeNormal();
+            FRotator ImpactDirection = (Diavolo->GetActorLocation() - HitActor.ImpactPoint).GetSafeNormal().Rotation();
+            // FVector ImpactDirection = (Diavolo->GetActorLocation() - HitActor.ImpactPoint).GetSafeNormal();
+            ImpactDirection.Pitch = R_Angle;
 
             UE_LOG(LogTemp, Log, TEXT("Impact Direction: %s"), *ImpactDirection.ToString());
 
             Diavolo->SetbIsDamagedTrue();
             Diavolo->SetbIsDeadTrue();
             Diavolo->GetChampionAnimInstance()->Montage_Play(Diavolo->GetDiavolo_DamagedByLeeSinDragonsRage_AnimMontage());
-            Diavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * Ult_Impulse, true);
+            Diavolo->GetCharacterMovement()->AddImpulse(ImpactDirection.Vector() * R_Strength, true);
             Diavolo->TurnCharacterToLocation(GetActorLocation());
             if (!Diavolo->GetbCanBeTestedMultipleTimes())
             {
@@ -406,8 +447,8 @@ void AOPLeeSin::CreateMarkerOnTarget(AOPDiavolo* Target)
     if (MarkerMesh && Target)
     {
         MarkerMesh->AttachToComponent(Target->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-        MarkerMesh->SetRelativeLocation(FVector(0, 0, 100));
-        MarkerMesh->SetVisibility(true);
+        MarkerMesh->SetRelativeLocation(FVector(0, 0, 50));
+        MarkerMesh->SetHiddenInGame(false);
     }
 }
 
@@ -416,7 +457,9 @@ void AOPLeeSin::RemoveMarkerOnTarget(AOPDiavolo* Target)
     if (MarkerMesh && Target)
     {
         MarkerMesh->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
-        MarkerMesh->SetVisibility(false);
+        MarkerMesh->SetHiddenInGame(true);
+        MarkerMesh->DestroyComponent();
+        GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Black, FString(TEXT("End")));;
     }
 }
 

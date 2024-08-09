@@ -7,6 +7,12 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "TimerManager.h"
 
+AOPDiavolo::AOPDiavolo()
+{
+    MarkerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MarkerMesh"));
+    MarkerMesh->SetupAttachment(GetRootComponent());
+}
+
 void AOPDiavolo::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);

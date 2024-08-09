@@ -99,6 +99,7 @@ protected:
     TObjectPtr<UAnimMontage> DeadAnimMontage;
     
     bool bTrueSightOn = false; // 리신 음파 (Q)에 피격되면 표식에 생겨서 true가 되는 boolean 값
+    bool bStumbledByLeeSinE = false; // 리신 음파 (Q)에 피격되면 표식에 생겨서 true가 되는 boolean 값
     bool bFrenziedMaulOn = false; // 볼리베어 W 1타에 피격되어 표식이 생겨서 true가 되는 boolean 값
 
     /*************************************************************************** Passive ***************************************************************************/
@@ -254,6 +255,11 @@ public:
     FORCEINLINE bool GetbTrueSightOn() const { return bTrueSightOn; }
     FORCEINLINE void SetbTrueSightOn_True() { bTrueSightOn = true; }
     FORCEINLINE void SetbTrueSightOn_False() { bTrueSightOn = false; }
+
+    FORCEINLINE bool GetbStumbledByLeeSinE() const { return bStumbledByLeeSinE; }
+    FORCEINLINE void SetbStumbledByLeeSinE_True() { bStumbledByLeeSinE = true; }
+    FORCEINLINE void SetbStumbledByLeeSinE_False() { bStumbledByLeeSinE = false; }
+    
     FORCEINLINE bool GetbFrenziedMaulOn() const { return bFrenziedMaulOn; }
     FORCEINLINE void SetbFrenziedMaulOn_True() { bFrenziedMaulOn = true; }
     FORCEINLINE void SetbFrenziedMaulOn_False() { bFrenziedMaulOn = false; }

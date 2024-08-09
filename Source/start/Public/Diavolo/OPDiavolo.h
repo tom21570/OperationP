@@ -10,7 +10,8 @@ class START_API AOPDiavolo : public AOPChampion
 {
     GENERATED_BODY()
 
-    public:
+public:
+    AOPDiavolo();    
     virtual void Tick(float DeltaTime) override;
 
     void ApplySlowEffect(float SlowAmount, float Duration);
@@ -25,6 +26,9 @@ protected:
     
 
 private:
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marker", meta = (AllowPrivateAccess = "true"))
+    UStaticMeshComponent* MarkerMesh;
+    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
     bool bCanBeTestedMultipleTimes = false;
 
@@ -66,5 +70,7 @@ public:
     TObjectPtr<UAnimMontage> GetDiavolo_DamagedByLeeSinResonatingStrike_AnimMontage() { return Diavolo_DamagedByLeeSinResonatingStrike_AnimMontage; }
     TObjectPtr<UAnimMontage> GetDiavolo_DamagedByLeeSinSkill_3_AnimMontage() { return Diavolo_DamagedByLeeSinSkill_3_AnimMontage; }
     TObjectPtr<UAnimMontage> GetDiavolo_DamagedByLeeSinDragonsRage_AnimMontage() { return Diavolo_DamagedByLeeSinDragonsRage_AnimMontage; }
+
+    FORCEINLINE UStaticMeshComponent* GetMarkerMesh() const { return MarkerMesh; }
 
 };

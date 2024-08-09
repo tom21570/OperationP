@@ -10,7 +10,20 @@
 #include "Champion/LeeSin/OPLeeSin.h"
 #include "Diavolo/OPDiavolo.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
+
+void AOPLeeSinSonicWave::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+
+    TraceStaticMesh();
+    
+    if (bStaticMeshTraceSucceeded)
+    {
+        TraceLeeSin();
+    }
+}
 
 void AOPLeeSinSonicWave::OnDamageCollisionBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -44,7 +57,53 @@ void AOPLeeSinSonicWave::OnDamageCollisionBeginOverlap(UPrimitiveComponent* Over
 
                 LeeSinOwner->CreateMarkerOnTarget(Diavolo);
             }
+            Destroy();
         }
     }
-    Destroy();
+
+    if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(OtherComp))
+    {
+        OPProjectileMovementComponent->Velocity = FVector::ZeroVector;
+        GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Black, FString(TEXT("Block")));;
+    }
+}
+
+void AOPLeeSinSonicWave::TraceStaticMesh()
+{
+    if (GetOwner() == nullptr) return;
+    
+    FHitResult HitResult;
+    TArray<AActor*> ActorsToIgnore;
+    ActorsToIgnore.Add(this);
+
+    UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation(), 22.f,
+        UEngineTypes::ConvertToTraceType(ECC_WorldStatic), false, ActorsToIgnore, EDrawDebugTrace::None, HitResult, true);
+    
+    if (UStaticMeshComponent* StaticMeshComponent = Cast<UStaticMeshComponent>(HitResult.GetComponent()))
+    {
+        AOPLeeSin* LeeSinOwner = Cast<AOPLeeSin>(GetOwner());
+        SetActorRotation(FRotator(-180.f, GetActorRotation().Yaw, GetActorRotation().Roll))     ;
+        GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Black, FString(TEXT("Block")));
+        OPProjectileMovementComponent->Velocity = (LeeSinOwner->GetActorLocation() - GetActorLocation());
+        TraceLeeSin();
+
+        bStaticMeshTraceSucceeded = true;
+    }
+}
+
+void AOPLeeSinSonicWave::TraceLeeSin()
+{
+    if (GetOwner() == nullptr) return;
+    
+    FHitResult HitResult;
+    TArray<AActor*> ActorsToIgnore;
+    ActorsToIgnore.Add(this);
+
+    UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation(), 22.f,
+        UEngineTypes::ConvertToTraceType(ECC_Pawn), false, ActorsToIgnore, EDrawDebugTrace::None, HitResult, true);
+    
+    if (AOPLeeSin* LeeSin = Cast<AOPLeeSin>(HitResult.GetActor()))
+    {
+        Destroy();
+    }
 }

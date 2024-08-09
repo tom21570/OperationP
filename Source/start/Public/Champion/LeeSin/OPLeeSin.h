@@ -5,6 +5,7 @@
 #include "Champion/OPChampion.h"
 #include "OPLeeSin.generated.h"
 
+class USphereComponent;
 class AOPLeeSinSonicWave;
 class AOPLeeSinDragonsRage;
 UCLASS()
@@ -37,31 +38,37 @@ private:
     float BasicAttack_Impulse = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float Skill_1_Impulse = 0.f;
+    float Q_Strength = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float Skill_1_Velocity = 0.f;
+    float Q_Speed = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float Skill_1_ResonateSpeed = 0.f;
+    float Q_ResonateSpeed = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    float Q_ResonateStrength = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    float W_MaintainTime = 5.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float Skill_3_Impulse = 0.f;
+    float E_Strength = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float Skill_3_radious = 0.f;
+    float E_Radius = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float Skill_3_slowAmount = 0.f;
+    float E_slowAmount = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float Skill_3_slowDuration = 0.f;
+    float E_slowDuration = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float Ult_Impulse = 0.f;
+    float R_Strength = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float Ult_Angle = 0.f;
+    float R_Angle = 0.f;
 
     int32 BasicAttackComboCount = 0;
     FTimerHandle BasicAttackComboCountTimerHandle;
@@ -70,6 +77,7 @@ private:
     FTimerHandle Skill_1_CastTimer;
     FTimerHandle ResonatingStrike_DiavoloMotionTimer;
 
+    FTimerHandle W_MaintainTimerHandle;
     int32 Skill_3_Stack = 0;
     FTimerHandle Skill_3_CastTimer;
     FTimerHandle Skill_3_StackTimer;
@@ -78,15 +86,17 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
     TSubclassOf<AOPLeeSinSonicWave> SonicWaveClass;
 
-    // UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
-    // TObjectPtr<UCapsuleComponent> ResonatingStrikeCapsule;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UStaticMeshComponent> SafeGuardMesh;
 
     bool bCanResonate = false;
     bool bIsResonating = false;
     TObjectPtr<AOPChampion> ResonateTarget;
 
-    FTimerHandle SonicWaveSpawnTimer;
+    bool bE_SecondInput = false;
 
+    FTimerHandle SonicWaveSpawnTimer;
+    FTimerHandle E_EndTimer;
     FTimerHandle DragonsRageSpawnTimer;
 
     TObjectPtr<AOPLeeSinDragonsRage> DragonsRage;
@@ -99,6 +109,7 @@ private:
     void ApplyShieldToAlly(AOPChampion* TargetChampion);
     void AddShield(float ShieldAmount);
     void Skill_3_GroundSlam();
+    void Skill_3_Cripple();
     void Skill_3_ApplySlowEffect();
     void OnDashCompleted();
     void ResetMeleeAttackComboCount();
@@ -132,4 +143,3 @@ public:
 
     FORCEINLINE void SetResonateTarget(AOPChampion* Target) { ResonateTarget = Target; }
 };
-
