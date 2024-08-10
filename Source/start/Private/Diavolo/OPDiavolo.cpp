@@ -13,6 +13,48 @@ AOPDiavolo::AOPDiavolo()
     MarkerMesh->SetupAttachment(GetRootComponent());
 }
 
+void AOPDiavolo::BeginPlay()
+{
+    Super::BeginPlay();
+    UE_LOG(LogTemp, Log, TEXT("Diavolo BeginPlay called"));
+    
+    
+    // 콜리전 설정 확인
+    UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
+    if (CapsuleComp)
+    {
+        CapsuleComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+        CapsuleComp->SetCollisionObjectType(ECC_Pawn);
+        CapsuleComp->SetCollisionResponseToAllChannels(ECR_Block);  // 모든 채널에 대해 블록 설정
+    }
+
+    // 충돌 대상(벽, 메쉬 등)의 콜리전 설정 (여기서는 일례로 벽에 대한 설정을 예시로 들었습니다)
+    // 만약 벽이 AOPDiavolo 클래스 내부에서 생성된 것이 아니라 외부에서 설정된 것이라면, 별도로 설정할 필요가 없습니다.
+    /*
+    UStaticMeshComponent* WallMesh = FindComponentByClass<UStaticMeshComponent>();
+    if (WallMesh)
+    {
+        WallMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+        WallMesh->SetCollisionObjectType(ECC_WorldStatic);
+        WallMesh->SetCollisionResponseToAllChannels(ECR_Block);  // 모든 채널에 대해 블록 설정
+    }
+    */
+    
+    
+    // 콜라이더의 부딪힘 이벤트 바인딩
+        // 콜리전 컴포넌트의 Hit 이벤트를 바인딩
+    UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(GetRootComponent());
+    if (RootComp)
+    {
+        UE_LOG(LogTemp, Log, TEXT("RootComp found, binding OnHit"));
+        RootComp->OnComponentHit.AddDynamic(this, &AOPDiavolo::OnHit);
+    }
+    else
+    {
+        UE_LOG(LogTemp, Warning, TEXT("RootComp is not valid"));
+    }
+}
+
 void AOPDiavolo::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
@@ -67,6 +109,30 @@ void AOPDiavolo::PlayDeadMontage4()
         ChampionAnimInstance->Montage_JumpToSection(FName("Dead_Backwards"));
     }
 }
+
+void AOPDiavolo::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+
+    HitComp->SetSimulatePhysics(true);
+    // 충돌한 후 입사각 계산
+    FVector IncomingVelocity = GetCharacterMovement()->Velocity;
+
+    // 충돌면의 노멀 벡터
+    FVector HitNormal = Hit.ImpactNormal;
+
+    // 입사각 반사 계산 (Z축을 무시)
+    FVector ReflectedVelocity = FVector::ZeroVector;
+    ReflectedVelocity.X = FMath::GetReflectionVector(IncomingVelocity, HitNormal).X;
+    ReflectedVelocity.Y = FMath::GetReflectionVector(IncomingVelocity, HitNormal).Y;
+
+    // Z축 속도 고정 (원래 속도를 유지)
+    ReflectedVelocity.Z = IncomingVelocity.Z;
+
+    // 새로운 속도로 업데이트
+    GetCharacterMovement()->Velocity = ReflectedVelocity * ReflectedVelocityRatio;
+    HitComp->SetSimulatePhysics(false);
+}
+
 
 TObjectPtr<USkeletalMeshComponent> AOPDiavolo::GetDiavoloMesh() const
 {

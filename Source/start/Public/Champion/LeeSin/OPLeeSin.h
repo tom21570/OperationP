@@ -52,6 +52,9 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float W_MaintainTime = 5.f;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    float W_ShieldStrength = 1000.f;
+
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float E_Strength = 0.f;
 

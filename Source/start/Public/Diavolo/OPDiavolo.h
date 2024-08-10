@@ -13,7 +13,7 @@ class START_API AOPDiavolo : public AOPChampion
 public:
     AOPDiavolo();    
     virtual void Tick(float DeltaTime) override;
-
+    virtual void BeginPlay() override;
     void ApplySlowEffect(float SlowAmount, float Duration);
     void ApplySlowAttackEffect(float SlowAmount, float Duration);
     void ResetSpeed();
@@ -23,14 +23,20 @@ protected:
     void PlayDeadMontage2();
     void PlayDeadMontage3();
     void PlayDeadMontage4();
+    UFUNCTION()
+    void OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
     
-
 private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marker", meta = (AllowPrivateAccess = "true"))
     UStaticMeshComponent* MarkerMesh;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
     bool bCanBeTestedMultipleTimes = false;
+
+    /***********당구대 반사 관련**********/
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Physical Tests", meta = (AllowPrivateAccess = "true"))
+    float ReflectedVelocityRatio = 0.8f;
+    /***********당구대 반사 관련**********/
 
     FTimerHandle SlowEffectTimerHandle;
     float OriginalSpeed;
