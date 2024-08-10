@@ -99,7 +99,7 @@ void AOPChampion::BeginPlay()
 
 	ChampionAnimInstance = Cast<UOPAnimInstance>(GetMesh()->GetAnimInstance());
 
-	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 }
 
 void AOPChampion::PlayDeadAnimMontage() const
@@ -109,7 +109,7 @@ void AOPChampion::PlayDeadAnimMontage() const
 
 void AOPChampion::ResetChampionMovement() const
 {
-	GetCharacterMovement()->MaxWalkSpeed = DefaultWalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 	GetCharacterMovement()->JumpZVelocity = 700.f;
 }

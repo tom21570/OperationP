@@ -19,30 +19,30 @@ void AOPDiavolo::BeginPlay()
     UE_LOG(LogTemp, Log, TEXT("Diavolo BeginPlay called"));
     
     
-    // ÄÝ¸®Àü ¼³Á¤ È®ÀÎ
+    // ï¿½Ý¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
     UCapsuleComponent* CapsuleComp = GetCapsuleComponent();
     if (CapsuleComp)
     {
         CapsuleComp->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
         CapsuleComp->SetCollisionObjectType(ECC_Pawn);
-        CapsuleComp->SetCollisionResponseToAllChannels(ECR_Block);  // ¸ðµç Ã¤³Î¿¡ ´ëÇØ ºí·Ï ¼³Á¤
+        CapsuleComp->SetCollisionResponseToAllChannels(ECR_Block);  // ï¿½ï¿½ï¿½ Ã¤ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     }
 
-    // Ãæµ¹ ´ë»ó(º®, ¸Þ½¬ µî)ÀÇ ÄÝ¸®Àü ¼³Á¤ (¿©±â¼­´Â ÀÏ·Ê·Î º®¿¡ ´ëÇÑ ¼³Á¤À» ¿¹½Ã·Î µé¾ú½À´Ï´Ù)
-    // ¸¸¾à º®ÀÌ AOPDiavolo Å¬·¡½º ³»ºÎ¿¡¼­ »ý¼ºµÈ °ÍÀÌ ¾Æ´Ï¶ó ¿ÜºÎ¿¡¼­ ¼³Á¤µÈ °ÍÀÌ¶ó¸é, º°µµ·Î ¼³Á¤ÇÒ ÇÊ¿ä°¡ ¾ø½À´Ï´Ù.
+    // ï¿½æµ¹ ï¿½ï¿½ï¿½(ï¿½ï¿½, ï¿½Þ½ï¿½ ï¿½ï¿½)ï¿½ï¿½ ï¿½Ý¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½â¼­ï¿½ï¿½ ï¿½Ï·Ê·ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ã·ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½)
+    // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ AOPDiavolo Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Î¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï¶ï¿½ ï¿½ÜºÎ¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì¶ï¿½ï¿½, ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê¿ä°¡ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
     /*
     UStaticMeshComponent* WallMesh = FindComponentByClass<UStaticMeshComponent>();
     if (WallMesh)
     {
         WallMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
         WallMesh->SetCollisionObjectType(ECC_WorldStatic);
-        WallMesh->SetCollisionResponseToAllChannels(ECR_Block);  // ¸ðµç Ã¤³Î¿¡ ´ëÇØ ºí·Ï ¼³Á¤
+        WallMesh->SetCollisionResponseToAllChannels(ECR_Block);  // ï¿½ï¿½ï¿½ Ã¤ï¿½Î¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     }
     */
     
     
-    // ÄÝ¶óÀÌ´õÀÇ ºÎµúÈû ÀÌº¥Æ® ¹ÙÀÎµù
-        // ÄÝ¸®Àü ÄÄÆ÷³ÍÆ®ÀÇ Hit ÀÌº¥Æ®¸¦ ¹ÙÀÎµù
+    // ï¿½Ý¶ï¿½ï¿½Ì´ï¿½ï¿½ï¿½ ï¿½Îµï¿½ï¿½ï¿½ ï¿½Ìºï¿½Æ® ï¿½ï¿½ï¿½Îµï¿½
+        // ï¿½Ý¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ Hit ï¿½Ìºï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ï¿½Îµï¿½
     UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(GetRootComponent());
     if (RootComp)
     {
@@ -114,21 +114,21 @@ void AOPDiavolo::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimit
 {
 
     HitComp->SetSimulatePhysics(true);
-    // Ãæµ¹ÇÑ ÈÄ ÀÔ»ç°¢ °è»ê
+    // ï¿½æµ¹ï¿½ï¿½ ï¿½ï¿½ ï¿½Ô»ç°¢ ï¿½ï¿½ï¿½
     FVector IncomingVelocity = GetCharacterMovement()->Velocity;
 
-    // Ãæµ¹¸éÀÇ ³ë¸Ö º¤ÅÍ
+    // ï¿½æµ¹ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     FVector HitNormal = Hit.ImpactNormal;
 
-    // ÀÔ»ç°¢ ¹Ý»ç °è»ê (ZÃàÀ» ¹«½Ã)
+    // ï¿½Ô»ç°¢ ï¿½Ý»ï¿½ ï¿½ï¿½ï¿½ (Zï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
     FVector ReflectedVelocity = FVector::ZeroVector;
     ReflectedVelocity.X = FMath::GetReflectionVector(IncomingVelocity, HitNormal).X;
     ReflectedVelocity.Y = FMath::GetReflectionVector(IncomingVelocity, HitNormal).Y;
 
-    // ZÃà ¼Óµµ °íÁ¤ (¿ø·¡ ¼Óµµ¸¦ À¯Áö)
+    // Zï¿½ï¿½ ï¿½Óµï¿½ ï¿½ï¿½ï¿½ï¿½ (ï¿½ï¿½ï¿½ï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½)
     ReflectedVelocity.Z = IncomingVelocity.Z;
 
-    // »õ·Î¿î ¼Óµµ·Î ¾÷µ¥ÀÌÆ®
+    // ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½Óµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ®
     GetCharacterMovement()->Velocity = ReflectedVelocity * ReflectedVelocityRatio;
     HitComp->SetSimulatePhysics(false);
 }

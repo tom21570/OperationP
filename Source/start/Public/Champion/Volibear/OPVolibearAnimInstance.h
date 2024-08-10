@@ -14,4 +14,15 @@ class START_API UOPVolibearAnimInstance : public UOPAnimInstance
 {
 	GENERATED_BODY()
 	
+protected:
+	virtual void UpdateAnimationProperties(float DeltaTime);
+
+	virtual void NativeInitializeAnimation() override;
+
+private:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	class AOPVolibear* Volibear;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	bool bIsThunderingSmashOn;
 };

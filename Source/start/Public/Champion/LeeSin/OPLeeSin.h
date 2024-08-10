@@ -8,6 +8,7 @@
 class USphereComponent;
 class AOPLeeSinSonicWave;
 class AOPLeeSinDragonsRage;
+
 UCLASS()
 class START_API AOPLeeSin : public AOPChampion
 {

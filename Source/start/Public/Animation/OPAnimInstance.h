@@ -50,5 +50,7 @@ private:
 
 public:
 	FORCEINLINE bool GetbIsInAir() const { return bIsInAir; }
+	FORCEINLINE void SetbIsInAir_True() { bIsInAir = true; }
+	FORCEINLINE void SetbIsInAir_False() { bIsInAir = false; }
 	
 };

@@ -21,6 +21,21 @@ void AOPVolibear::BeginPlay()
 	Super::BeginPlay();
 }
 
+void AOPVolibear::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (bR_IsJumping)
+	{
+		if (!GetCharacterMovement()->IsFalling())
+		{
+			R_OnLanding();
+			UE_LOG(LogTemp, Warning, TEXT("Falling End"));
+			bR_IsJumping = false;
+		}
+	}
+}
+
 void AOPVolibear::Passive()
 {
 	Super::Passive();
@@ -30,99 +45,113 @@ void AOPVolibear::BasicAttack()
 {
 	Super::BasicAttack();
 
-	if(!bBasicAttack) return; // 평타 쿨타임 시 return
-	if(OPPlayerController == nullptr) return; // 플레이어 컨트롤러가 nullptr 시 return
+	if (!bBasicAttack) return; // 평타 쿨타임 시 return
+	if (OPPlayerController == nullptr) return; // 플레이어 컨트롤러가 nullptr 시 return
 
 	// ECC_Visibility 채널에 대한 반응이 overlap 또는 block인 액터에 hit 했을 시 GetHitResultUnderCursor는 그 액터에 대한 HitResult를 MouseCursorHit에 저장.
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 
-	if(MouseCursorHit.bBlockingHit) // 만약 반응이 block이라면 그 Hit 방향으로 캐릭터를 돌림
-	{
-		TurnCharacterToCursor(MouseCursorHit);
-	}
-
-	// 평타 쿨타임 설정을 위한 두 줄
-	SetbBasicAttack_False();
-	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPVolibear::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
-
-	// 평타 시전시간 지나면 Trace하고 디아볼로가 Trace되면 피격 사운드 재생
-	GetWorldTimerManager().SetTimer(BasicAttackCastTimerHandle, FTimerDelegate::CreateLambda([&]
-	{
-		if (MeleeAttackTrace())
-		{
-			
-		}
-	}), 0.25f, false);
-
-	if (!ChampionAnimInstance) return; // 애니메이션 인스턴스가 없을 시 return
-	if (!BasicAttackAnimMontage) return; // 평타 애니메이션 몽타주가 없을 시 return
+	if (!MouseCursorHit.bBlockingHit) return; // 만약 반응이 block이라면 그 Hit 방향으로 캐릭터를 돌림
+	TurnCharacterToCursor(MouseCursorHit);
 
 	if (ChampionAnimInstance && BasicAttackAnimMontage)
 	{
-		if (bThunderingSmash)
+		if (bQ_ThunderingSmash)
 		{
+			GetWorldTimerManager().SetTimer(BasicAttack_Cast_TimerHandle, FTimerDelegate::CreateLambda([&]
+			{
+				BasicAttack_Trace_Q();
+			}), 0.5f, false);
+
+			bQ_ThunderingSmash = false;
+			WalkSpeed = DefaultWalkSpeed;
+			GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+			
 			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
 			ChampionAnimInstance->Montage_JumpToSection(FName("Thundering Smash"), BasicAttackAnimMontage);
+			StopChampionMovement();
+			GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 2.5f, false);
 		}
 
 		else
 		{
-			switch (BasicAttackComboCount) // 2번의 연결된 평타동작
+			GetWorldTimerManager().SetTimer(BasicAttack_Cast_TimerHandle, FTimerDelegate::CreateLambda([&]
+			{
+				BasicAttack_Trace();
+			}), 0.25f, false);
+			
+			switch (BasicAttack_ComboCount) // 2번의 연결된 평타동작
 			{
 			case 0:
 				ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
 				ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
-				GetWorldTimerManager().SetTimer(BasicAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
-				BasicAttackComboCount++;
+				GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPVolibear::BasicAttack_ResetComboCount, 5.f, false);
+				BasicAttack_ComboCount++;
 				break;
 
 			case 1:
 				ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
 				ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
-				GetWorldTimerManager().ClearTimer(BasicAttackComboCountTimerHandle);
-				GetWorldTimerManager().SetTimer(BasicAttackComboCountTimerHandle, this, &AOPVolibear::ResetMeleeAttackComboCount, 5.f, false);
-				BasicAttackComboCount = 0;
+				GetWorldTimerManager().ClearTimer(BasicAttack_ComboCount_TimerHandle);
+				GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPVolibear::BasicAttack_ResetComboCount, 5.f, false);
+				BasicAttack_ComboCount = 0;
 				break;
 				
 			default:
 				;
 			}
+
+			StopChampionMovement();
+			GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 1.05f, false);
 		}
 	}
-
-	StopChampionMovement();
-	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 1.05f, false);
-    
+	
 	SetbBasicAttack_False();
 	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPVolibear::SetbBasicAttack_True, BasicAttackCooldown, false);
 }
 
-bool AOPVolibear::MeleeAttackTrace()
+void AOPVolibear::BasicAttack_Trace()
 {
-	TArray<FHitResult> HitResults;
+	FHitResult HitResult;
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 200.f, 80.f,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Radius,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResult, true);
 
-	for (auto& HitActor : HitResults)
+	if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitResult.GetActor()))
 	{
-		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+		Diavolo->SetbIsDamagedTrue();
+		Diavolo->PlayDiavoloRandomDeadMontage();
+		Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Strength, true);
+		if (!Diavolo->GetbCanBeTestedMultipleTimes())
 		{
-			Diavolo->SetbIsDamagedTrue();
-			Diavolo->PlayDiavoloRandomDeadMontage();
-			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Impulse, true);
-			if (!Diavolo->GetbCanBeTestedMultipleTimes())
-			{
-				Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
-			}
-
-			return true;
+			Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 		}
 	}
+}
 
-	return false;
+void AOPVolibear::BasicAttack_Trace_Q()
+{
+	FHitResult HitResult;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Radius,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResult, true);
+
+	if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitResult.GetActor()))
+	{
+		// Diavolo->GetChampionAnimInstance()->SetbIsInAir_True();
+		// Diavolo->GetChampionAnimInstance()->SetbIsInAir_False();
+		// Diavolo->SetbIsDamagedTrue();
+		// Diavolo->PlayDiavoloRandomDeadMontage();
+		Diavolo->GetCharacterMovement()->AddImpulse(GetActorUpVector() * Q_Strength_Z + GetActorForwardVector() * Q_Strength_XY, true);
+		if (!Diavolo->GetbCanBeTestedMultipleTimes())
+		{
+			Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+		}
+	}
 }
 
 void AOPVolibear::Q() //번개 강타 Q 볼리베어가 적을 향해 이동할 때 이동 속도가 증가하며 처음으로 기본 공격하는 대상을 기절시키고 피해를 입힙니다.
@@ -132,7 +161,19 @@ void AOPVolibear::Q() //번개 강타 Q 볼리베어가 적을 향해 이동할 
 	if (!bQ) return;
 	if (OPPlayerController == nullptr) return;
 
-	bThunderingSmash = true;
+	bQ_ThunderingSmash = true;
+	WalkSpeed = Q_WalkSpeed;
+	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+
+	GetWorldTimerManager().SetTimer(Q_End_TimerHandle, FTimerDelegate::CreateLambda([&]
+	{
+		bQ_ThunderingSmash = false;
+		WalkSpeed = DefaultWalkSpeed;
+		GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	}), Q_MaintainTime, false);
+	
+	SetbQ_False();
+	GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPVolibear::SetbQ_True, Q_Cooldown, false);
 }
 
 void AOPVolibear::W() //광란의 상처 W 볼리베어가 적에게 피해를 입혀 적중 시 효과를 적용하고 표식을 남깁니다.표식을 남긴 대상에게 다시 이 스킬을 사용하면 추가 피해를 입히고 체력을 회복합니다.
@@ -142,28 +183,26 @@ void AOPVolibear::W() //광란의 상처 W 볼리베어가 적에게 피해를 �
 	if (!bW) return;
 	if (OPPlayerController == nullptr) return;
 
+	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
+	if (!MouseCursorHit.bBlockingHit) return;
+	TurnCharacterToCursor(MouseCursorHit);
+
 	ChampionAnimInstance->Montage_Play(W_AnimMontage, 1.f);
-
-	if (AOPDiavolo * ReturnedDiavolo = Cast<AOPDiavolo>(Skill_2_Trace()))
+	
+	if (W_TraceForMaul())
 	{
-		GetWorldTimerManager().SetTimer(Skill_2_SpawnTimerHandle, [this, ReturnedDiavolo]()
-		{
-				SetbW_True();
-				RemoveMarkerOnTarget(ReturnedDiavolo);
-		}, 8.0, false);
-
-		if (ReturnedDiavolo->GetbFrenziedMaulOn())
-		{
-			//추가피해 + 체력 회복
-		}
-		else
-		{
-			// 마커생성
-			CreateMarkerOnTarget(ReturnedDiavolo);
-		}
-
+		ChampionAnimInstance->Montage_JumpToSection(FName("Reinforced"), W_AnimMontage);
+	}
+	else
+	{
+		ChampionAnimInstance->Montage_JumpToSection(FName("Default"), W_AnimMontage);
 	}
 
+	GetWorldTimerManager().SetTimer(W_Cast_TimerHandle, FTimerDelegate::CreateLambda([&]
+	{
+		W_Trace();
+	}), 0.25f, false);
+	
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 1.f, false);
 
@@ -171,32 +210,49 @@ void AOPVolibear::W() //광란의 상처 W 볼리베어가 적에게 피해를 �
 	GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPVolibear::SetbW_True, W_Cooldown, false);
 }
 
-AOPDiavolo* AOPVolibear::Skill_2_Trace()
+bool AOPVolibear::W_TraceForMaul()
 {
-	TArray<FHitResult> HitResults;
+	FHitResult HitResult;
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 200.f, 80.f,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * W_Range, W_Radius,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResult, true);
 
-	for (auto& HitActor : HitResults)
+	if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitResult.GetActor()))
 	{
-		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+		if (Diavolo->GetbFrenziedMaulOn())
 		{
-			Diavolo->SetbIsDamagedTrue();
-			Diavolo->PlayDiavoloRandomDeadMontage();
-			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * Skill_2_Impulse, true);
-			if (!Diavolo->GetbCanBeTestedMultipleTimes())
-			{
-				Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
-			}
-
-			return Diavolo;
+			return true;
 		}
 	}
+	return false;
+}
 
-	return nullptr;
+void AOPVolibear::W_Trace()
+{
+	FHitResult HitResult;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+
+	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * W_Range, W_Radius,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResult, true);
+
+	if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitResult.GetActor()))
+	{
+		if (!Diavolo->GetbFrenziedMaulOn())
+		{
+			Diavolo->SetbFrenziedMaulOn_True();
+		}
+		
+		Diavolo->SetbIsDamagedTrue();
+		Diavolo->PlayDiavoloRandomDeadMontage();
+		Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * W_Strength, true);
+		if (!Diavolo->GetbCanBeTestedMultipleTimes())
+		{
+			Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+		}
+	}
 }
 
 void AOPVolibear::E() //천공 분열E 볼리베어가 지정한 위치에 번개를 소환해 적에게 피해를 입히고 둔화시킵니다.볼리베어가 폭발 반경 안에 있으면 보호막을 얻습니다.
@@ -211,11 +267,11 @@ void AOPVolibear::E() //천공 분열E 볼리베어가 지정한 위치에 번�
 	if (!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);
 
-	Skill_3_FinalLocation = MouseCursorHit.Location;
+	E_FinalLocation = MouseCursorHit.Location;
 
-	GetWorldTimerManager().SetTimer(LightningboltSpawnTimerHandle, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(E_LightningboltSpawn_TimerHandle, FTimerDelegate::CreateLambda([&]
 	{
-		Skill_3_Lightningbolt();
+		E_Lightningbolt();
 	}), 2.f, false);
 
 	if (ChampionAnimInstance && R_AnimMontage)
@@ -230,12 +286,12 @@ void AOPVolibear::E() //천공 분열E 볼리베어가 지정한 위치에 번�
 	GetWorldTimerManager().SetTimer(E_CooldownTimerHandle, this, &AOPVolibear::SetbE_True, E_Cooldown, false);
 }
 
-void AOPVolibear::Skill_3_Lightningbolt() //
+void AOPVolibear::E_Lightningbolt() //
 {
-	if (LightningboltClass)
+	if (E_LightningboltClass)
 	{
-		Lightningbolt = GetWorld()->SpawnActor<AOPVolibearLightningbolt>(LightningboltClass, Skill_3_FinalLocation, GetActorRotation());
-		Lightningbolt->SetOwner(this);
+		E_LightningboltStorage = GetWorld()->SpawnActor<AOPVolibearLightningbolt>(E_LightningboltClass, E_FinalLocation, GetActorRotation());
+		E_LightningboltStorage->SetOwner(this);
 	}
 }
 
@@ -251,68 +307,95 @@ void AOPVolibear::R() //폭풍을 부르는 자 R 볼리베어가 지정한 위�
 	if (!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);
 
-	Ult_FinalLocation = MouseCursorHit.Location;
-	FVector UltVector = Ult_FinalLocation - GetActorLocation();
+	R_FinalLocation = MouseCursorHit.Location;
+	FVector UltVector = R_FinalLocation - GetActorLocation();
 	
 	FVector UltVector_XY = UltVector.GetSafeNormal();
 	UltVector_XY.Z = 0.f;
 
-	// ProjectileMovementComponent->Velocity = GetActorForwardVector() * 100000.f;
-	
-	// Launch 방식
-	if (bUlt_ActAsProjectile)
-	{
-		LaunchCharacter(UltVector_XY * Ult_Velocity_XY + GetActorUpVector() * Ult_Velocity_Z, true, true); // 속도
-	}
+	LaunchCharacter(UltVector_XY * R_Velocity_XY + GetActorUpVector() * R_Velocity_Z, true, true); // 속도
 
-	// Game 방식
-	if (bUlt_ActAsGame)
-	{
-		if (ProjectileMovementComponent == nullptr) return;
-		
-		const FVector FinalVelocity = GetActorForwardVector() * Ult_Velocity_XY + GetActorUpVector() * Ult_Velocity_Z;;
+	bR_IsJumping = true;
 
-		ProjectileMovementComponent->Velocity = FinalVelocity;
-		ProjectileMovementComponent->ProjectileGravityScale = 0.f;
-		GetWorldTimerManager().SetTimer(Ult_StopTimerHandle, FTimerDelegate::CreateLambda([&]
-		{
-			ProjectileMovementComponent->Velocity = FVector::Zero();
-			ProjectileMovementComponent->ProjectileGravityScale = 1.f;
-		}), 0.1f, false);
-	}
-
-	// 포물선 운동 방식
-	else if (bUlt_ActAsParabola)
-	{
-		if (ProjectileMovementComponent == nullptr) return;
-		
-		UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, Ult_Velocity_Parabola, GetActorLocation(), Ult_FinalLocation, 1.f, 0.5);
-		GetCharacterMovement()->AddImpulse(Ult_Velocity_Parabola, true);
-	}
-
-	// Game 방식
-	
-	// 포물선 운동
-	// if (ProjectileMovementComponent)
-	// {
-	// 	UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, Ult_Velocity_Parabola, GetActorLocation(), Ult_FinalLocation, 1.f, 0.5);
-	// 	GetCharacterMovement()->AddImpulse(Ult_Velocity_Parabola, true);
-	// }
+	GetMesh()->SetWorldScale3D(FVector(R_SizeIncreaseIndex, R_SizeIncreaseIndex, R_SizeIncreaseIndex));
 
 	if (ChampionAnimInstance && R_AnimMontage)
 	{
 		ChampionAnimInstance->Montage_Play(R_AnimMontage, 1.f);
 	}
 
+	GetWorldTimerManager().SetTimer(R_End_TimerHandle, FTimerDelegate::CreateLambda([&]
+	{
+		GetMesh()->SetWorldScale3D(FVector(1.f, 1.f, 1.f));
+	}), 12.f, false);
+
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 2.f, false);
 
 	SetbR_False();
 	GetWorldTimerManager().SetTimer(R_CooldownTimerHandle, this, &AOPVolibear::SetbR_True, R_Cooldown, false);
+
+	// ProjectileMovementComponent->Velocity = GetActorForwardVector() * 100000.f;
+	
+	// Launch 방식
+	// if (bUlt_ActAsProjectile)
+	// {
+	// 	
+	// }
+
+	// // Game 방식
+	// if (bUlt_ActAsGame)
+	// {
+	// 	if (ProjectileMovementComponent == nullptr) return;
+	// 	
+	// 	const FVector FinalVelocity = GetActorForwardVector() * R_Velocity_XY + GetActorUpVector() * R_Velocity_Z;;
+	//
+	// 	ProjectileMovementComponent->Velocity = FinalVelocity;
+	// 	ProjectileMovementComponent->ProjectileGravityScale = 0.f;
+	// 	GetWorldTimerManager().SetTimer(Ult_StopTimerHandle, FTimerDelegate::CreateLambda([&]
+	// 	{
+	// 		ProjectileMovementComponent->Velocity = FVector::Zero();
+	// 		ProjectileMovementComponent->ProjectileGravityScale = 1.f;
+	// 	}), 0.1f, false);
+	// }
+	//
+	// // 포물선 운동 방식
+	// else if (bUlt_ActAsParabola)
+	// {
+	// 	if (ProjectileMovementComponent == nullptr) return;
+	// 	
+	// 	UGameplayStatics::SuggestProjectileVelocity_CustomArc(this, Ult_Velocity_Parabola, GetActorLocation(), Ult_FinalLocation, 1.f, 0.5);
+	// 	GetCharacterMovement()->AddImpulse(Ult_Velocity_Parabola, true);
+	// }
+}
+
+void AOPVolibear::R_OnLanding()
+{
+	TArray<FHitResult> HitResults;
+	TArray<AActor*> ActorsToIgnore;
+	ActorsToIgnore.Add(this);
+	
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation(), R_LandingRadius,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+	
+	for (auto& HitActor : HitResults)
+	{
+		if (AOPDiavolo* HitDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+		{
+			if (HitDiavolo)
+			{
+				FRotator ExplosionRotation = (HitDiavolo->GetActorLocation() - GetActorLocation()).Rotation();
+				FRotator FinalRotation = FRotator(R_LandingStrengthAngle, ExplosionRotation.Yaw, ExplosionRotation.Roll);
+				HitDiavolo->GetCharacterMovement()->AddImpulse(FinalRotation.Vector() * R_LandingStrength, true);
+				HitDiavolo->SetbIsDamagedTrue();
+				HitDiavolo->PlayDiavoloRandomDeadMontage();
+			}
+		}
+	}
 }
 
 void AOPVolibear::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-	FVector NormalImpulse, const FHitResult& Hit)
+                                  FVector NormalImpulse, const FHitResult& Hit)
 {
 }
 

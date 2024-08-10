@@ -19,6 +19,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
 
 	/***************************************************************************** 패시브 *****************************************************************************/
 	
@@ -27,30 +28,33 @@ protected:
 	/****************************************************************************** 평타 ******************************************************************************/
 	
 	virtual void BasicAttack() override;
-	void ResetMeleeAttackComboCount() { BasicAttackComboCount = 0; }
-	bool MeleeAttackTrace();
+	void BasicAttack_ResetComboCount() { BasicAttack_ComboCount = 0; }
+	void BasicAttack_Trace();
+	void BasicAttack_Trace_Q();
 
-	/***************************************************************************** 스킬 1 *****************************************************************************/
+	/***************************************************************************** Q *****************************************************************************/
 
 	virtual void Q() override;
 
-	/***************************************************************************** 스킬 2 *****************************************************************************/
+	/***************************************************************************** W *****************************************************************************/
 
 	virtual void W() override;
+	void W_Trace();
+	bool W_TraceForMaul();
 
-	AOPDiavolo* Skill_2_Trace();
 
 	void CreateMarkerOnTarget(AOPDiavolo* Target);
 	void RemoveMarkerOnTarget(AOPDiavolo* Target);
 
-	/***************************************************************************** 스킬 3 *****************************************************************************/
+	/***************************************************************************** E *****************************************************************************/
 	
 	virtual void E() override;
 	
-	void Skill_3_Lightningbolt();
+	void E_Lightningbolt();
 
-	/***************************************************************************** 궁극기 *****************************************************************************/
+	/***************************************************************************** R *****************************************************************************/
 	virtual void R() override;
+	void R_OnLanding();
 
 	/****************************************************************** Hit 이벤트 발생 시 호출할 함수 ******************************************************************/
 	UFUNCTION()
@@ -64,91 +68,121 @@ private:
 
 	/****************************************************************************** 평타 ******************************************************************************/
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MeleeAttack | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float BasicAttack_Impulse = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float BasicAttack_Strength = 0.f;
 
-	FTimerHandle BasicAttackCastTimerHandle;
-	FTimerHandle BasicAttackComboCountTimerHandle;
-	int32 BasicAttackComboCount = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float BasicAttack_Range = 150.f;
 
-	/***************************************************************************** 스킬 1 *****************************************************************************/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float BasicAttack_Radius = 80.f;
+
+	FTimerHandle BasicAttack_Cast_TimerHandle;
+	FTimerHandle BasicAttack_ComboCount_TimerHandle;
+	int32 BasicAttack_ComboCount = 0;
+
+	/***************************************************************************** Q *****************************************************************************/
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_1_Impulse = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Q_Strength_XY = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_1_SlowDuration = 3.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Q_Strength_Z = 0.f;
 
-	bool bThunderingSmash = false; // Q 강화평타가 켜져있는지에 대한 bool
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	float Q_MaintainTime = 4.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	float Q_WalkSpeed = 500.f;
 
-	FTimerHandle Skill_1_SpawnTimerHandle;
-	FTimerHandle Skill_1_RestTimer;
+	bool bQ_ThunderingSmash = false; // Q 강화평타가 켜져있는지에 대한 bool
+
+	FTimerHandle Q_End_TimerHandle;
 	
 	/***************************************************************************** 스킬 2 *****************************************************************************/
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 2 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_2_Impulse = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float W_Strength = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float W_Range = 350.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float W_Radius = 30.f;
 
 	//볼리베어 w스킬 갈퀴 마커 메쉬 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 2 | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	UStaticMeshComponent* MarkerMesh;
 	
-	FTimerHandle Skill_2_SpawnTimerHandle;
-	FTimerHandle Skill_2_RestTimer;
+	FTimerHandle W_Cast_TimerHandle;
 
 	/***************************************************************************** 스킬 3 *****************************************************************************/
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_3_Impulse = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float E_Strength = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_3_Radius = 0.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float E_Radius = 350.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_3_SlowAmount = 0.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Skill_3_SlowDuration = 0.f;
-
-	TObjectPtr<class AOPVolibearLightningbolt> Lightningbolt;
+	TObjectPtr<class AOPVolibearLightningbolt> E_LightningboltStorage;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | GameplayMethods", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<AOPVolibearLightningbolt> LightningboltClass;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | GameplayMethods", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AOPVolibearLightningbolt> E_LightningboltClass;
 
-	FVector Skill_3_FinalLocation;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | GameplayMethods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> E_LightningboltNiagara;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | GameplayMethods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> E_LightningMarkNiagara;
+
+	FVector E_FinalLocation;
 	
-	FTimerHandle LightningboltSpawnTimerHandle;
-	FTimerHandle Skill_3_CastTimerHandle;
+	FTimerHandle E_LightningboltSpawn_TimerHandle;
+	FTimerHandle E_Cast_TimerHandle;
+	FTimerHandle E_NiagaraSpawn_TimerHandle;
 
 	/***************************************************************************** 궁극기 *****************************************************************************/
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Ult_Velocity_XY = 0.f; // ��ų 4 �ӵ�
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float R_Velocity_XY = 0.f; // ��ų 4 �ӵ�
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Ult_Velocity_Z = 0.f; // ��ų 4 �ӵ�
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float R_Velocity_Z = 0.f; // ��ų 4 �ӵ�
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	FVector Ult_Velocity_Parabola = FVector::ZeroVector; // ��ų 4 �ӵ�
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	// FVector Ult_Velocity_Parabola = FVector::ZeroVector; // ��ų 4 �ӵ�
+	//
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	// float Ult_Angle = 0.f; // ��ų 4 ����
+	//
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	// float Ult_Distance = 0.f; // ��ų 4 �Ÿ�
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Ult_Angle = 0.f; // ��ų 4 ����
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float R_LandingStrength = 0.f; // �ñر� ��ݷ�
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Ult_Distance = 0.f; // ��ų 4 �Ÿ�
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Ult_Impulse = 0.f; // �ñر� ��ݷ�
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float R_LandingRadius = 700.f;
 	
-	bool bStormbringer = false; // 궁으로 변신한 상태인지
-	
-	FVector Ult_FinalLocation;
-	FTimerHandle Ult_StopTimerHandle;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float R_LandingStrengthAngle = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	bool bUlt_ActAsProjectile = true;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	bool bUlt_ActAsGame = false;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	bool bUlt_ActAsParabola = false;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float R_SizeIncreaseIndex = 1.35f;
+	
+	bool bR_Stormbringer = false; // 궁으로 변신한 상태인지
+
+	bool bR_IsJumping = false;
+	
+	FVector R_FinalLocation;
+	FTimerHandle R_End_TimerHandle;
+
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	// bool bUlt_ActAsProjectile = true;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	// bool bUlt_ActAsGame = false;
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	// bool bUlt_ActAsParabola = false;
+
+public:
+	FORCEINLINE bool GetbQThunderingSmash() const { return bQ_ThunderingSmash; }
 };

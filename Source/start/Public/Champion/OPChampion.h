@@ -177,6 +177,9 @@ protected:
     /********************************************************************** Champion Movements **********************************************************************/
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Champion Movement", meta = (AllowPrivateAccess = "true"))
+    float WalkSpeed = 350.f; // 챔피언의 이동 속도
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Champion Movement", meta = (AllowPrivateAccess = "true"))
     float DefaultWalkSpeed = 350.f; // 챔피언의 기본 이동 속도
     
     void ResetChampionMovement() const; // 챔피언의 이동속도 및 다른 움직임들을 디폴트 값으로 리셋시킴
