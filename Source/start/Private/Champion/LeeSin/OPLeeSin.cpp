@@ -221,7 +221,18 @@ void AOPLeeSin::OnDashCompleted()
         AOPChampion* OverlappingChampion = Cast<AOPChampion>(Actor);
         if (OverlappingChampion && OverlappingChampion != this)
         {
-            ApplyShieldToAlly(OverlappingChampion);
+            ApplyShieldToAlly(OverlappingChampion); // 맞은 챔피언에게 쉴드 생성
+
+            // 물체를 튕겨나가게 함
+            FVector KnockbackDirection = (GetActorLocation() - OverlappingChampion->GetActorLocation()).GetSafeNormal();
+            float KnockbackStrength = W_ShieldStrength; // 튕겨나가는 힘의 크기
+            FVector KnockbackForce = KnockbackDirection * KnockbackStrength;
+
+            UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(OverlappingChampion->GetRootComponent());
+            if (RootComp && RootComp->IsSimulatingPhysics())
+            {
+                RootComp->AddImpulse(KnockbackForce, NAME_None, true);
+            }
         }
     }
 }
