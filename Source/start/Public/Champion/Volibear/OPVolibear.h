@@ -41,16 +41,15 @@ protected:
 	virtual void W() override;
 	void W_Trace();
 	bool W_TraceForMaul();
-
-
+	
 	void CreateMarkerOnTarget(AOPDiavolo* Target);
 	void RemoveMarkerOnTarget(AOPDiavolo* Target);
 
 	/***************************************************************************** E *****************************************************************************/
 	
 	virtual void E() override;
-	
 	void E_Lightningbolt();
+	void E_Lightningbolt_Trace();
 
 	/***************************************************************************** R *****************************************************************************/
 	virtual void R() override;
@@ -116,10 +115,16 @@ private:
 	
 	FTimerHandle W_Cast_TimerHandle;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> W_BloodNiagara;
+
 	/***************************************************************************** 스킬 3 *****************************************************************************/
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float E_Strength = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float E_StrengthAngle = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float E_Radius = 350.f;
@@ -130,7 +135,7 @@ private:
 	TSubclassOf<AOPVolibearLightningbolt> E_LightningboltClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | GameplayMethods", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UNiagaraSystem> E_LightningboltNiagara;
+	TObjectPtr<UNiagaraComponent> E_LightningShield_NiagaraComponent;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | GameplayMethods", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UNiagaraSystem> E_LightningMarkNiagara;
 
@@ -168,6 +173,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float R_SizeIncreaseIndex = 1.35f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | GameplayMethods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UParticleSystem> R_LightningEffect;
 	
 	bool bR_Stormbringer = false; // 궁으로 변신한 상태인지
 

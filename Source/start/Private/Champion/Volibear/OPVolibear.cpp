@@ -2,6 +2,8 @@
 
 
 #include "Champion/Volibear/OPVolibear.h"
+
+#include "NiagaraFunctionLibrary.h"
 #include "Animation/OPAnimInstance.h"
 #include "Champion/Volibear/OPVolibearLightningbolt.h"
 #include "Components/CapsuleComponent.h"
@@ -14,11 +16,15 @@
 AOPVolibear::AOPVolibear()
 {
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("ProjectileMovementComponent"));
+
+	E_LightningShield_NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("E_LightningShield_NiagaraComponent"));
+	E_LightningShield_NiagaraComponent->SetupAttachment(GetRootComponent());
 }
 
 void AOPVolibear::BeginPlay()
 {
 	Super::BeginPlay();
+	E_LightningShield_NiagaraComponent->SetVisibility(false);
 }
 
 void AOPVolibear::Tick(float DeltaSeconds)
@@ -31,6 +37,7 @@ void AOPVolibear::Tick(float DeltaSeconds)
 		{
 			R_OnLanding();
 			UE_LOG(LogTemp, Warning, TEXT("Falling End"));
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), R_LightningEffect, GetActorLocation());
 			bR_IsJumping = false;
 		}
 	}
@@ -244,6 +251,11 @@ void AOPVolibear::W_Trace()
 		{
 			Diavolo->SetbFrenziedMaulOn_True();
 		}
+
+		else if (Diavolo->GetbFrenziedMaulOn())
+		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), W_BloodNiagara, Diavolo->GetActorLocation());
+		}
 		
 		Diavolo->SetbIsDamagedTrue();
 		Diavolo->PlayDiavoloRandomDeadMontage();
@@ -290,8 +302,39 @@ void AOPVolibear::E_Lightningbolt() //
 {
 	if (E_LightningboltClass)
 	{
+		E_Lightningbolt_Trace();
 		E_LightningboltStorage = GetWorld()->SpawnActor<AOPVolibearLightningbolt>(E_LightningboltClass, E_FinalLocation, GetActorRotation());
 		E_LightningboltStorage->SetOwner(this);
+	}
+}
+
+void AOPVolibear::E_Lightningbolt_Trace()
+{
+	TArray<FHitResult> HitResults;
+	TArray<AActor*> ActorsToIgnore;
+	
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), E_FinalLocation, E_FinalLocation, E_Radius,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, false);
+	
+	for (auto& HitActor : HitResults)
+	{
+		if (AOPDiavolo* HitDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+		{
+			if (HitDiavolo)
+			{
+				FRotator ExplosionRotation = (HitDiavolo->GetActorLocation() - E_FinalLocation).Rotation();
+				FRotator FinalRotation = FRotator(E_StrengthAngle, ExplosionRotation.Yaw, ExplosionRotation.Roll);
+				HitDiavolo->GetCharacterMovement()->AddImpulse(FinalRotation.Vector() * E_Strength, true);
+				HitDiavolo->SetbIsDamagedTrue();
+				HitDiavolo->PlayDiavoloRandomDeadMontage();
+			}
+		}
+
+		if (AOPVolibear* HitVolibear = Cast<AOPVolibear>(HitActor.GetActor()))
+		{
+			HitVolibear->E_LightningShield_NiagaraComponent->SetVisibility(true);
+			UE_LOG(LogTemp, Warning, TEXT("Hello"));
+		}
 	}
 }
 
