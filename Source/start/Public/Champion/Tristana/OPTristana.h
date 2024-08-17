@@ -21,11 +21,10 @@ class START_API AOPTristana : public AOPChampion
 public:
 	AOPTristana();
 
-protected:
 	virtual void BeginPlay() override;
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	
+protected:
 	/*************************************************************************** Passive ***************************************************************************/
 
 	virtual void Passive() override;
@@ -47,7 +46,7 @@ protected:
 	void W_Play_JumpAnimMontage();
 	
 	UFUNCTION()
-	void OnOverlappingDiavolo(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	void W_OnOverlappingDiavolo(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
 	/****************************************************************************** E ******************************************************************************/
@@ -72,7 +71,7 @@ private:
 	/************************************************************************ Basic Attack ************************************************************************/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float BasicAttack_Force = 0.f;
+	float BasicAttack_Strength = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float BasicAttack_Range = 0.f;
@@ -90,7 +89,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack", meta = (AllowPrivateAccess = "true"))
 	const TObjectPtr<USkeletalMeshSocket> ProjectileSpawnSocket;
 
-	FTimerHandle BasicAttack_CannonBallSpawnTimerHandle; 
+	FTimerHandle BasicAttack_CannonBallSpawn_TimerHandle; 
 	
 	float BasicAttack_DefaultAttackSpeed;
 	
@@ -100,7 +99,7 @@ private:
 	float Q_RapidFireValue = 0.5f;
 	
 	FTimerHandle Q_TimerHandle; 
-	bool bIsQActive = false;
+	bool bQ_IsActive = false;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	float Q_Duration = 10.f; 
@@ -137,7 +136,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UNiagaraSystem> W_NiagaraComponent_Landing;
 
-	FTimerHandle W_JumpTimerHandle;
+	FTimerHandle W_Jump_TimerHandle;
 	
 	bool bIsWJumping;
 
@@ -160,7 +159,7 @@ private:
 	
 	AOPTristanaExplosiveCharge* E_CurrentExplosiveCharge;
 
-	FTimerHandle E_SpawnTimerHandle;
+	FTimerHandle E_Spawn_TimerHandle;
 	
 	/****************************************************************************** R ******************************************************************************/
 
@@ -168,7 +167,7 @@ private:
 	float R_Angle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float R_Impulse;
+	float R_Strength;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float R_Speed = 1000.f;
@@ -180,5 +179,5 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ult", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AOPTristanaBusterShot> R_BusterShotClass; 
 
-	FTimerHandle R_SpawnTimerHandle; 
+	FTimerHandle R_Spawn_TimerHandle; 
 };

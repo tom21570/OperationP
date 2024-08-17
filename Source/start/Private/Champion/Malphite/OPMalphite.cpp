@@ -16,8 +16,8 @@ AOPMalphite::AOPMalphite()
 {
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component"));
 
-	ShardSpawnLocation = CreateDefaultSubobject<USceneComponent>(TEXT("Shard Spawn Location"));
-	ShardSpawnLocation->SetupAttachment(GetRootComponent());
+	Q_ShardSpawnLocation = CreateDefaultSubobject<USceneComponent>(TEXT("Shard Spawn Location"));
+	Q_ShardSpawnLocation->SetupAttachment(GetRootComponent());
 
 	W_ClapPoint = CreateDefaultSubobject<USceneComponent>(TEXT("W_ClapPoint Component"));
 	W_ClapPoint->SetupAttachment(GetRootComponent());
@@ -32,7 +32,7 @@ void AOPMalphite::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 
-	if (bRIsCasting)
+	if (bR_IsCasting)
 	{
 		R_Trace();
 	}
@@ -59,20 +59,20 @@ void AOPMalphite::BasicAttack()
 	{
 		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
 		
-		if (bThunderClapOn == true)
+		if (bW_ThunderClapOn == true)
 		{
 			ChampionAnimInstance->Montage_JumpToSection(FName("clap"), BasicAttackAnimMontage);
-			GetWorldTimerManager().SetTimer(BasicAttackTraceTimerHandle, FTimerDelegate::CreateLambda([&]
+			GetWorldTimerManager().SetTimer(BasicAttack_Trace_TimerHandle, FTimerDelegate::CreateLambda([&]
 			{
 				BasicAttackTrace_W();
 			}), 0.45f, false);
-			bThunderClapOn = false;
+			bW_ThunderClapOn = false;
 		}
 		
 		else
 		{
 			ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
-			GetWorldTimerManager().SetTimer(BasicAttackTraceTimerHandle, FTimerDelegate::CreateLambda([&]
+			GetWorldTimerManager().SetTimer(BasicAttack_Trace_TimerHandle, FTimerDelegate::CreateLambda([&]
 			{
 				BasicAttackTrace();
 			}), 0.4f, false);
@@ -100,7 +100,7 @@ void AOPMalphite::BasicAttackTrace()
 		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
 		{
 			float Distance = FVector::Dist(GetActorLocation(), Diavolo->GetActorLocation());
-			Diavolo->LaunchCharacter(GetActorRightVector() * BasicAttack_Impulse / Distance, true, true);
+			Diavolo->LaunchCharacter(GetActorRightVector() * BasicAttack_Strength / Distance, true, true);
 			
 			Diavolo->SetbIsDamagedTrue();
 			Diavolo->PlayDiavoloRandomDeadMontage();
@@ -130,7 +130,7 @@ void AOPMalphite::BasicAttackTrace_W()
 			{
 				const float Distance = FVector::Dist(GetActorLocation(), Diavolo->GetActorLocation());
 				FVector ImpulseDirection = Diavolo->GetActorLocation() - W_ClapPoint->GetComponentLocation();
-				Diavolo->LaunchCharacter(ImpulseDirection * BasicAttack_Impulse_W / Distance, true, true);
+				Diavolo->LaunchCharacter(ImpulseDirection * BasicAttack_Strength_W / Distance, true, true);
 				
 				Diavolo->SetbIsDamagedTrue();
 				Diavolo->PlayDiavoloRandomDeadMontage();
@@ -157,7 +157,7 @@ void AOPMalphite::Q()
 	UE_LOG(LogTemp, Log, TEXT("Skill_1_ShardOfTheEarth"));
 	ChampionAnimInstance->Montage_Play(Q_AnimMontage, 1.0f);
 
-	GetWorldTimerManager().SetTimer(ShardOfTheEarthSpawnTimer, this, &AOPMalphite::Q_ShardOfTheEarth, 0.25f, false);
+	GetWorldTimerManager().SetTimer(Q_Spawn_TimerHandle, this, &AOPMalphite::Q_ShardOfTheEarth, 0.25f, false);
 
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPMalphite::ResetChampionMovement, 0.9f, false);
@@ -182,7 +182,7 @@ void AOPMalphite::ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* O
 			GetCharacterMovement()->MaxWalkSpeed = OriginalSpeed;
 			
 			SourceCharacter->GetCharacterMovement()->MaxWalkSpeed -= SpeedIncrease;
-		}, Skill_1_SlowDuration, false);
+		}, Q_SlowDuration, false);
 	}
 }
 
@@ -208,17 +208,17 @@ void AOPMalphite::SetMalphite_HP(float hp)
 
 void AOPMalphite::Q_ShardOfTheEarth()
 {
-	if (ShardOfTheEarthClass == nullptr) return;
+	if (Q_ShardOfTheEarthClass == nullptr) return;
 
-	ShardOfTheEarth = GetWorld()->SpawnActor<AOPMalphiteShardOfTheEarth>(ShardOfTheEarthClass, ShardSpawnLocation->GetComponentLocation(), GetActorRotation());
-	ShardOfTheEarth->SetOwner(this);
+	Q_ShardOfTheEarthStorage = GetWorld()->SpawnActor<AOPMalphiteShardOfTheEarth>(Q_ShardOfTheEarthClass, Q_ShardSpawnLocation->GetComponentLocation(), GetActorRotation());
+	Q_ShardOfTheEarthStorage->SetOwner(this);
 }
 
 void AOPMalphite::W()
 {
 	Super::W();
 
-	bThunderClapOn = true;
+	bW_ThunderClapOn = true;
 
 	if (ChampionAnimInstance && W_AnimMontage)
 	{
@@ -247,7 +247,7 @@ void AOPMalphite::E()
 		TurnCharacterToCursor(MouseCursorHit);
 	}
 
-	GetWorldTimerManager().SetTimer(E_CastTimer, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(E_Cast_TimerHandle, FTimerDelegate::CreateLambda([&]
 	{
 		E_GroundSlam();
 	}), 0.25f, false);
@@ -283,11 +283,10 @@ void AOPMalphite::E_GroundSlam()
 				FVector ImpulseDirection = (HitDiavolo->GetActorLocation() - GetActorLocation()).GetSafeNormal();
 				ImpulseDirection.Z = 0.f;
 				ImpulseDirection.Z = E_Angle;
-				HitDiavolo->LaunchCharacter(ImpulseDirection * E_Impulse, true, true);
+				HitDiavolo->LaunchCharacter(ImpulseDirection * E_Strength, true, true);
 				
 				HitDiavolo->SetbIsDamagedTrue();
 				HitDiavolo->PlayDiavoloRandomDeadMontage();
-				HitDiavolo->ApplySlowAttackEffect(E_SlowAmount, E_SlowDuration); //��ƺ��ο� ���ݸ���� �������� �Լ� �����ʿ�
 			}
 		}
 	}
@@ -317,11 +316,11 @@ void AOPMalphite::R()
 	
 	// GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AOPMalphite::R_OnProjectileHit);
 	ProjectileMovementComponent->Velocity = LaunchVector * R_Speed;
-	bRIsCasting = true;
+	bR_IsCasting = true;
 	
-	GetWorldTimerManager().SetTimer(R_StopTimerHandle, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(R_Stop_TimerHandle, FTimerDelegate::CreateLambda([&]
 	{
-		bRIsCasting = false;
+		bR_IsCasting = false;
 		// GetCapsuleComponent()->OnComponentHit.RemoveDynamic(this, &AOPMalphite::R_OnProjectileHit);
 		ProjectileMovementComponent->Velocity = FVector::ZeroVector;
 	}), FinalDistance / R_Speed, false);
@@ -356,9 +355,8 @@ void AOPMalphite::R_Trace()
 				ImpactDirection.Z = R_Angle;
 				HitDiavolo->SetbIsDamagedTrue();
 				HitDiavolo->PlayDiavoloRandomDeadMontage();
-				HitDiavolo->LaunchCharacter(ImpactDirection * R_Impulse, true, true);
+				HitDiavolo->LaunchCharacter(ImpactDirection * R_Strength, true, true);
 				// HitDiavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * R_Impulse, true);
-				HitDiavolo->ApplySlowAttackEffect(E_SlowAmount, E_SlowDuration); //��ƺ��ο� ���ݸ���� �������� �Լ� �����ʿ�
 			}
 		}
 	}
@@ -388,7 +386,7 @@ void AOPMalphite::R_OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* O
 			UE_LOG(LogTemp, Log, TEXT("Impact Direction: %s"), *ImpactDirection.ToString());
 
 			// Apply an impulse to the Diavolo character based on the impact direction and AirborneRate
-			Diavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * R_Impulse, true);
+			Diavolo->GetCharacterMovement()->AddImpulse(ImpactDirection * R_Strength, true);
 
 			if (!Diavolo->GetbCanBeTestedMultipleTimes())
 			{

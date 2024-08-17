@@ -17,10 +17,10 @@ class START_API AOPVolibear : public AOPChampion
 public:
 	AOPVolibear();
 
-protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
-
+	
+protected:
 	/***************************************************************************** 패시브 *****************************************************************************/
 	
 	virtual void Passive() override;

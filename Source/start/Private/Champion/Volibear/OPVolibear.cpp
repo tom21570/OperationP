@@ -145,7 +145,7 @@ void AOPVolibear::BasicAttack_Trace_Q()
 	ActorsToIgnore.Add(this);
 
 	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Radius,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResult, true);
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResult, true);
 
 	if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitResult.GetActor()))
 	{
@@ -224,7 +224,7 @@ bool AOPVolibear::W_TraceForMaul()
 	ActorsToIgnore.Add(this);
 
 	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * W_Range, W_Radius,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResult, true);
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResult, true);
 
 	if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitResult.GetActor()))
 	{
@@ -243,7 +243,7 @@ void AOPVolibear::W_Trace()
 	ActorsToIgnore.Add(this);
 
 	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * W_Range, W_Radius,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResult, true);
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResult, true);
 
 	if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitResult.GetActor()))
 	{
@@ -314,7 +314,7 @@ void AOPVolibear::E_Lightningbolt_Trace()
 	TArray<AActor*> ActorsToIgnore;
 	
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), E_FinalLocation, E_FinalLocation, E_Radius,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, false);
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, false);
 	
 	for (auto& HitActor : HitResults)
 	{

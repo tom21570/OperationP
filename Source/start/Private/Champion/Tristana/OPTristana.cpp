@@ -57,7 +57,7 @@ void AOPTristana::Tick(float DeltaTime)
 		if (!GetCharacterMovement()->IsFalling())
 		{
 			W_OnLanding();
-			W_Collision->OnComponentBeginOverlap.RemoveDynamic(this, &AOPTristana::OnOverlappingDiavolo);
+			W_Collision->OnComponentBeginOverlap.RemoveDynamic(this, &AOPTristana::W_OnOverlappingDiavolo);
 			UE_LOG(LogTemp, Warning, TEXT("Falling End"));
 			bIsWJumping = false;
 		}
@@ -80,7 +80,7 @@ void AOPTristana::BasicAttack()
 	if (!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);
 
-	GetWorldTimerManager().SetTimer(BasicAttack_CannonBallSpawnTimerHandle, this, &AOPTristana::BasicAttack_CannonBall, 0.25f, false);
+	GetWorldTimerManager().SetTimer(BasicAttack_CannonBallSpawn_TimerHandle, this, &AOPTristana::BasicAttack_CannonBall, 0.25f, false);
 
 	if (ChampionAnimInstance && BasicAttackAnimMontage)
 	{
@@ -112,7 +112,7 @@ void AOPTristana::Q()  //ºü¸¥ ¹ß»ç (Rapid Fire) È¿°ú: ÀÏÁ¤ ½Ã°£ µ¿¾È Æ®¸®½ºÅ¸³ªÀ
 {
 	Super::Q();
 
-	bIsQActive = true;
+	bQ_IsActive = true;
 
 	BasicAttackCooldown *= Q_RapidFireValue;
 
@@ -127,7 +127,7 @@ void AOPTristana::Q()  //ºü¸¥ ¹ß»ç (Rapid Fire) È¿°ú: ÀÏÁ¤ ½Ã°£ µ¿¾È Æ®¸®½ºÅ¸³ªÀ
 
 void AOPTristana::Q_EndRapidFire()
 {
-	bIsQActive = false;
+	bQ_IsActive = false;
 
 	BasicAttackCooldown = BasicAttack_DefaultAttackSpeed;
 
@@ -150,11 +150,11 @@ void AOPTristana::W() //·ÎÄÏ Á¡ÇÁ (Rocket Jump) È¿°ú: Æ®¸®½ºÅ¸³ª°¡ ¸ñÇ¥ ÁöÁ¡À¸·Î
 	if (!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);
 	
-	GetWorldTimerManager().SetTimer(W_JumpTimerHandle, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(W_Jump_TimerHandle, FTimerDelegate::CreateLambda([&]
 	{
 		bIsWJumping = true;
 		LaunchCharacter(GetActorForwardVector() * W_Speed_XY + GetActorUpVector() * W_Speed_Z, true, true);
-		W_Collision->OnComponentBeginOverlap.AddDynamic(this, &AOPTristana::OnOverlappingDiavolo);
+		W_Collision->OnComponentBeginOverlap.AddDynamic(this, &AOPTristana::W_OnOverlappingDiavolo);
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), W_ParticleSystem_JumpStart, FVector(GetActorLocation().X, GetActorLocation().Y, GetActorLocation().Z - 18.f)
 			, FRotator::ZeroRotator);
 	}), 0.25f, false);
@@ -206,7 +206,7 @@ void AOPTristana::W_Play_JumpAnimMontage()
 {
 }
 
-void AOPTristana::OnOverlappingDiavolo(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+void AOPTristana::W_OnOverlappingDiavolo(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (OtherActor && OtherActor != this)
@@ -240,7 +240,7 @@ void AOPTristana::E() //Æø¹ß È­¾à(Explosive Charge) 		È¿°ú: ÆÐ½Ãºê·Î, Æ®¸®½ºÅ¸³ª
 		ChampionAnimInstance->Montage_Play(E_AnimMontage, 1.0f);
 	}
 	
-	GetWorldTimerManager().SetTimer(E_SpawnTimerHandle, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(E_Spawn_TimerHandle, FTimerDelegate::CreateLambda([&]
 	{
 		E_UseExplosiveCharge(TestDiavolo);
 	}), 0.2f, false);
@@ -282,7 +282,7 @@ void AOPTristana::R() //´ë±¸°æ ÅºÈ¯ (Buster Shot)È¿°ú: Æ®¸®½ºÅ¸³ª°¡ °­·ÂÇÑ ÅºÈ¯À
 	if (!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);
 
-	GetWorldTimerManager().SetTimer(R_SpawnTimerHandle, FTimerDelegate::CreateLambda([&]
+	GetWorldTimerManager().SetTimer(R_Spawn_TimerHandle, FTimerDelegate::CreateLambda([&]
 	{
 		R_BusterShot();
 	}), 0.3f, false);

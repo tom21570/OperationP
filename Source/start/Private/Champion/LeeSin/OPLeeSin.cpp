@@ -16,18 +16,18 @@ AOPLeeSin::AOPLeeSin()
 {
     ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Projectile Movement Component"));
 
-    SafeGuardMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SafeGuard Mesh"));
-    SafeGuardMesh->SetupAttachment(GetRootComponent());
+    W_SafeGuardMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SafeGuard Mesh"));
+    W_SafeGuardMesh->SetupAttachment(GetRootComponent());
 
-    MarkerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MarkerMesh"));
+    E_MarkerMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MarkerMesh"));
 }
 
 void AOPLeeSin::BeginPlay()
 {
     Super::BeginPlay();
 
-    SafeGuardMesh->SetHiddenInGame(true);
-    MarkerMesh->SetHiddenInGame(true);
+    W_SafeGuardMesh->SetHiddenInGame(true);
+    E_MarkerMesh->SetHiddenInGame(true);
 }
 
 void AOPLeeSin::Passive()
@@ -47,7 +47,7 @@ void AOPLeeSin::BasicAttack()
     if (!MouseCursorHit.bBlockingHit) return;
     TurnCharacterToCursor(MouseCursorHit);
 
-    GetWorldTimerManager().SetTimer(BasicAttackTraceTimerHandle, FTimerDelegate::CreateLambda([&]
+    GetWorldTimerManager().SetTimer(BasicAttack_Trace_TimerHandle, FTimerDelegate::CreateLambda([&]
     {
         BasicAttackTrace();
     }), 0.25f, false);
@@ -59,23 +59,23 @@ void AOPLeeSin::BasicAttack()
         case 0:
             ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
             ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
-            GetWorldTimerManager().SetTimer(BasicAttackComboCountTimerHandle, this, &AOPLeeSin::ResetMeleeAttackComboCount, 5.f, false);
+            GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPLeeSin::BasicAttack_ResetComboCount, 5.f, false);
             BasicAttackComboCount++;
             break;
 
         case 1:
             ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
             ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
-            GetWorldTimerManager().ClearTimer(BasicAttackComboCountTimerHandle);
-            GetWorldTimerManager().SetTimer(BasicAttackComboCountTimerHandle, this, &AOPLeeSin::ResetMeleeAttackComboCount, 5.f, false);
+            GetWorldTimerManager().ClearTimer(BasicAttack_ComboCount_TimerHandle);
+            GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPLeeSin::BasicAttack_ResetComboCount, 5.f, false);
             BasicAttackComboCount++;
             break;
 
         case 2:
             ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
             ChampionAnimInstance->Montage_JumpToSection(FName("3"), BasicAttackAnimMontage);
-            GetWorldTimerManager().ClearTimer(BasicAttackComboCountTimerHandle);
-            GetWorldTimerManager().SetTimer(BasicAttackComboCountTimerHandle, this, &AOPLeeSin::ResetMeleeAttackComboCount, 5.f, false);
+            GetWorldTimerManager().ClearTimer(BasicAttack_ComboCount_TimerHandle);
+            GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPLeeSin::BasicAttack_ResetComboCount, 5.f, false);
             BasicAttackComboCount++;
             break;
 
@@ -107,12 +107,12 @@ bool AOPLeeSin::BasicAttackTrace()
 
     for (auto& HitActor : HitResults)
     {
-        HitActor.Component->AddImpulse(BasicAttack_Impulse * GetActorForwardVector());
+        HitActor.Component->AddImpulse(BasicAttack_Strength * GetActorForwardVector());
         if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
         {
             Diavolo->SetbIsDamagedTrue();
             Diavolo->GetChampionAnimInstance()->Montage_Play(Diavolo->GetDiavolo_DamagedByLeeSinMeleeAttack_AnimMontage());
-            Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Impulse, true);
+            Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Strength, true);
             if (!Diavolo->GetbCanBeTestedMultipleTimes())
             {
                 Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
@@ -132,9 +132,8 @@ void AOPLeeSin::Q()
     if (!bQ) return;
     if (OPPlayerController == nullptr) return;
 
-    if (bCanResonate)
+    if (bQ_CanResonate)
     {
-        GetWorldTimerManager().ClearTimer(Skill_1_StackTimer);
         if (TestDiavolo && TestDiavolo->GetbTrueSightOn())
         {
             SetbIsResonating_True();
@@ -148,7 +147,7 @@ void AOPLeeSin::Q()
             FVector LaunchVelocity = Direction.GetSafeNormal() * Q_ResonateSpeed;
             ProjectileMovementComponent->Velocity = LaunchVelocity;
 
-            GetWorldTimerManager().SetTimer(ResonatingStrike_DiavoloMotionTimer, FTimerDelegate::CreateLambda([&]
+            GetWorldTimerManager().SetTimer(Q_ResonatingStrikeDiavoloMotion_TimerHandle, FTimerDelegate::CreateLambda([&]
             {
                 ProjectileMovementComponent->Velocity = FVector::Zero();
                 TestDiavolo->GetChampionAnimInstance()->Montage_Play(TestDiavolo->GetDiavolo_DamagedByLeeSinResonatingStrike_AnimMontage());
@@ -168,7 +167,7 @@ void AOPLeeSin::Q()
         UE_LOG(LogTemp, Log, TEXT("Skill_1_SonicWave"));
         ChampionAnimInstance->Montage_Play(GetQ_AnimMontage(), 1.0f);
         ChampionAnimInstance->Montage_JumpToSection(FName("SonicWave"), GetQ_AnimMontage());
-        GetWorldTimerManager().SetTimer(SonicWaveSpawnTimer, this, &AOPLeeSin::Skill_1_SonicWave, 0.25f, false);
+        GetWorldTimerManager().SetTimer(Q_SonicWaveSpawn_TimerHandle, this, &AOPLeeSin::Q_SonicWave, 0.25f, false);
         GetWorldTimerManager().SetTimer(Q_CooldownTimerHandle, this, &AOPLeeSin::SetbQ_True, GetQ_Cooldown(), false);
 
         StopChampionMovement();
@@ -176,16 +175,16 @@ void AOPLeeSin::Q()
     }
 }
 
-void AOPLeeSin::Skill_1_SonicWave()
+void AOPLeeSin::Q_SonicWave()
 {
-    if (SonicWaveClass == nullptr) return;
+    if (Q_SonicWaveClass == nullptr) return;
 
     FVector CurrentLocation = GetActorLocation();
     FVector ForwardVector = GetActorForwardVector();
     FVector SpawnLocation = CurrentLocation + ForwardVector * 100.0f;
 
-    SonicWave = GetWorld()->SpawnActor<AOPLeeSinSonicWave>(SonicWaveClass, SpawnLocation, GetActorRotation());
-    SonicWave->SetOwner(this);
+    Q_SonicWaveStorage = GetWorld()->SpawnActor<AOPLeeSinSonicWave>(Q_SonicWaveClass, SpawnLocation, GetActorRotation());
+    Q_SonicWaveStorage->SetOwner(this);
 }
 
 void AOPLeeSin::W()
@@ -195,56 +194,43 @@ void AOPLeeSin::W()
     if (!GetbW()) return;
     if (!OPPlayerController) return;
     
-    SafeGuardMesh->SetHiddenInGame(false);
-    SafeGuardMesh->SetCollisionObjectType(ECC_WorldStatic);
-    SafeGuardMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-    SafeGuardMesh->SetCollisionResponseToAllChannels(ECR_Block);
-    GetWorldTimerManager().SetTimer(W_MaintainTimerHandle, FTimerDelegate::CreateLambda([&]
+    W_SafeGuardMesh->SetHiddenInGame(false);
+    W_SafeGuardMesh->SetCollisionObjectType(ECC_WorldStatic);
+    W_SafeGuardMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    W_SafeGuardMesh->SetCollisionResponseToAllChannels(ECR_Overlap);
+    W_SafeGuardMesh->OnComponentBeginOverlap.AddDynamic(this, &AOPLeeSin::W_OnOverlap);
+    GetWorldTimerManager().SetTimer(W_Maintain_TimerHandle, FTimerDelegate::CreateLambda([&]
     {
-        SafeGuardMesh->SetHiddenInGame(true);
-        SafeGuardMesh->SetCollisionObjectType(ECC_WorldStatic);
-        SafeGuardMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-        SafeGuardMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+        W_SafeGuardMesh->SetHiddenInGame(true);
+        W_SafeGuardMesh->SetCollisionObjectType(ECC_WorldStatic);
+        W_SafeGuardMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+        W_SafeGuardMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+        W_SafeGuardMesh->OnComponentBeginOverlap.RemoveDynamic(this, &AOPLeeSin::W_OnOverlap);
     }), W_MaintainTime, false);
     
     SetbW_False();
     GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPLeeSin::SetbW_True, GetW_Cooldown(), false);
 }
 
-void AOPLeeSin::OnDashCompleted()
+void AOPLeeSin::W_OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+    int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-    TArray<AActor*> OverlappingActors;
-    GetOverlappingActors(OverlappingActors, AOPChampion::StaticClass());
-
-    for (AActor* Actor : OverlappingActors)
+    if (OtherActor && OtherActor != this)
     {
-        AOPChampion* OverlappingChampion = Cast<AOPChampion>(Actor);
-        if (OverlappingChampion && OverlappingChampion != this)
+        AOPProjectile* OtherProjectile = Cast<AOPProjectile>(OtherActor);
+        if (OtherProjectile)
         {
-            ApplyShieldToAlly(OverlappingChampion); // 맞은 챔피언에게 쉴드 생성
-
-            // 물체를 튕겨나가게 함
-            FVector KnockbackDirection = (GetActorLocation() - OverlappingChampion->GetActorLocation()).GetSafeNormal();
-            float KnockbackStrength = W_ShieldStrength; // 튕겨나가는 힘의 크기
-            FVector KnockbackForce = KnockbackDirection * KnockbackStrength;
-
-            UPrimitiveComponent* RootComp = Cast<UPrimitiveComponent>(OverlappingChampion->GetRootComponent());
-            if (RootComp && RootComp->IsSimulatingPhysics())
+            FRotator ImpactRotation = (OtherProjectile->GetActorLocation() - W_SafeGuardMesh->GetComponentLocation()).GetSafeNormal().Rotation();
+            FRotator FinalRotation = FRotator(W_ReflectAngle, ImpactRotation.Yaw, ImpactRotation.Roll);
+            FVector ImpactDirection = FinalRotation.Vector();
+            
+            UProjectileMovementComponent* ProjectileMovement = OtherProjectile->FindComponentByClass<UProjectileMovementComponent>();
+            if (ProjectileMovement)
             {
-                RootComp->AddImpulse(KnockbackForce, NAME_None, true);
+                ProjectileMovement->Velocity = ImpactDirection * W_Strength; // 투사체의 속도를 충격 방향으로 설정
             }
         }
-    }
-}
-
-void AOPLeeSin::ApplyShieldToAlly(AOPChampion* TargetChampion)
-{
-    if (!TargetChampion) return;
-
-    if (ChampionAnimInstance && Passive_AnimMontage)
-    {
-        ChampionAnimInstance->Montage_Play(Passive_AnimMontage, 1.f);
-        ChampionAnimInstance->Montage_JumpToSection(FName("Shield"), Passive_AnimMontage);
+        //DestroyProjectile();
     }
 }
 
@@ -257,7 +243,7 @@ void AOPLeeSin::E()
     if (!bE_SecondInput)
     {
         bE_SecondInput = true;
-        GetWorldTimerManager().SetTimer(Skill_3_CastTimer, this, &AOPLeeSin::Skill_3_GroundSlam, 0.25f, false);
+        GetWorldTimerManager().SetTimer(E_Cast_TimerHandle, this, &AOPLeeSin::E_GroundSlam, 0.25f, false);
 
         if (ChampionAnimInstance && E_AnimMontage)
         {
@@ -268,7 +254,7 @@ void AOPLeeSin::E()
 
     else if (bE_SecondInput)
     {
-        Skill_3_Cripple();
+        E_Cripple();
         bE_SecondInput = false;
     }
 
@@ -296,7 +282,7 @@ void AOPLeeSin::E()
     // }
 }
 
-void AOPLeeSin::Skill_3_GroundSlam()
+void AOPLeeSin::E_GroundSlam()
 {
     TArray<FHitResult> HitResults;
     TArray<AActor*> ActorsToIgnore;
@@ -314,7 +300,7 @@ void AOPLeeSin::Skill_3_GroundSlam()
             // Diavolo->GetChampionAnimInstance()->Montage_Play(Diavolo->GetDiavolo_DamagedByLeeSinSkill_3_AnimMontage());
             TestDiavolo->GetCharacterMovement()->AddImpulse(TestDiavolo->GetActorUpVector() * E_Strength, true);
 
-            GetWorldTimerManager().SetTimer(E_EndTimer, FTimerDelegate::CreateLambda([this]
+            GetWorldTimerManager().SetTimer(E_End_TimerHandle, FTimerDelegate::CreateLambda([this]
             {
                 // TestDiavolo->SetbStumbledByLeeSinE_False();
                 RemoveMarkerOnTarget(TestDiavolo);
@@ -324,7 +310,7 @@ void AOPLeeSin::Skill_3_GroundSlam()
     // Skill_3_ApplySlowEffect();
 }
 
-void AOPLeeSin::Skill_3_Cripple()
+void AOPLeeSin::E_Cripple()
 {
     TArray<FHitResult> HitResults;
     TArray<AActor*> ActorsToIgnore;
@@ -341,41 +327,13 @@ void AOPLeeSin::Skill_3_Cripple()
             TestDiavolo->SetbStumbledByLeeSinE_True();
             CreateMarkerOnTarget(TestDiavolo);
 
-            GetWorldTimerManager().SetTimer(E_EndTimer, FTimerDelegate::CreateLambda([this]
+            GetWorldTimerManager().SetTimer(E_End_TimerHandle, FTimerDelegate::CreateLambda([this]
             {
                 // TestDiavolo->GetMarkerMesh()->SetVisibility(false);
                 RemoveMarkerOnTarget(TestDiavolo);
             }), 4.f, false);
         }
     }
-}
-
-void AOPLeeSin::Skill_3_ApplySlowEffect()
-{
-    // ���� �ؾ���
-    // TArray<FHitResult> HitResults;
-    // TArray<AActor*> ActorsToIgnore;
-    // ActorsToIgnore.Add(this);
-    //
-    // float EffectRadius = Skill_3_radious;
-    // float SlowAmount = Skill_3_slowAmount;
-    // float SlowDuration = Skill_3_slowDuration;
-    //
-    // UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * EffectRadius, EffectRadius,
-    //     UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
-    //
-    // for (auto& HitActor : HitResults)
-    // {
-    //     if (AOPDiavolo* HitDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
-    //     {
-    //         if (HitDiavolo)
-    //         {
-    //             HitDiavolo->SetbIsDamagedTrue();
-    //             PlayDiavoloRandomDeadMontage();
-    //             HitDiavolo->ApplySlowEffect(SlowAmount, SlowDuration);
-    //         }
-    //     }
-    // }
 }
 
 void AOPLeeSin::R()
@@ -390,9 +348,9 @@ void AOPLeeSin::R()
     if (!MouseCursorHit.bBlockingHit) return;
     TurnCharacterToCursor(MouseCursorHit);
 
-    GetWorldTimerManager().SetTimer(DragonsRageSpawnTimer, FTimerDelegate::CreateLambda([&]
+    GetWorldTimerManager().SetTimer(R_Trace_TimerHandle, FTimerDelegate::CreateLambda([&]
     {
-        UltTrace();
+        R_Trace();
     }), 0.25f, false);
     
     if (ChampionAnimInstance && W_AnimMontage)
@@ -407,7 +365,7 @@ void AOPLeeSin::R()
     GetWorldTimerManager().SetTimer(R_CooldownTimerHandle, this, &AOPLeeSin::SetbR_True, GetR_Cooldown(), false);
 }
 
-bool AOPLeeSin::UltTrace()
+bool AOPLeeSin::R_Trace()
 {
     TArray<FHitResult> HitResults;
     TArray<AActor*> ActorsToIgnore;
@@ -455,45 +413,26 @@ void AOPLeeSin::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AOPLeeSin::CreateMarkerOnTarget(AOPDiavolo* Target)
 {
-    if (MarkerMesh && Target)
+    if (E_MarkerMesh && Target)
     {
-        MarkerMesh->AttachToComponent(Target->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-        MarkerMesh->SetRelativeLocation(FVector(0, 0, 50));
-        MarkerMesh->SetHiddenInGame(false);
+        E_MarkerMesh->AttachToComponent(Target->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+        E_MarkerMesh->SetRelativeLocation(FVector(0, 0, 50));
+        E_MarkerMesh->SetHiddenInGame(false);
     }
 }
 
 void AOPLeeSin::RemoveMarkerOnTarget(AOPDiavolo* Target)
 {
-    if (MarkerMesh && Target)
+    if (E_MarkerMesh && Target)
     {
-        MarkerMesh->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
-        MarkerMesh->SetHiddenInGame(true);
-        MarkerMesh->DestroyComponent();
-        GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Black, FString(TEXT("End")));;
+        E_MarkerMesh->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+        E_MarkerMesh->SetHiddenInGame(true);
+        E_MarkerMesh->DestroyComponent();
+        GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Black, FString(TEXT("End")));
     }
 }
 
-void AOPLeeSin::AddShield(float ShieldAmount)
-{
-    ShieldAmountValue = ShieldAmount; // ��� ������ ���� �Ҵ�
-
-    UE_LOG(LogTemp, Log, TEXT("Shield added: %f"), ShieldAmountValue);
-}
-
-void AOPLeeSin::DashToTarget(AOPChampion* TargetChampion, float DashSpeed, float DashDistance)
-{
-    if (!TargetChampion) return;
-
-    FVector TargetLocation = TargetChampion->GetActorLocation();
-    FVector StartLocation = GetActorLocation();
-    FVector DashDirection = (TargetLocation - StartLocation).GetSafeNormal();
-
-    FVector DashVelocity = DashDirection * DashSpeed;
-    LaunchCharacter(DashVelocity, true, true);
-}
-
-void AOPLeeSin::ResetMeleeAttackComboCount()
+void AOPLeeSin::BasicAttack_ResetComboCount()
 {
     BasicAttackComboCount = 0;
 }

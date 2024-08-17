@@ -47,16 +47,6 @@ void AOPLeeSinSonicWave::OnDamageCollisionBeginOverlap(UPrimitiveComponent* Over
             {
                 Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Ignore);
             }
-            if (LeeSinOwner)
-            {
-                LeeSinOwner->GetWorldTimerManager().SetTimer(LeeSinOwner->Skill_1_StackTimer, [LeeSinOwner, Diavolo]()
-                {
-                    LeeSinOwner->SetbQ_True();
-                    LeeSinOwner->RemoveMarkerOnTarget(Diavolo);
-                }, LeeSinOwner->Skill_1_StackTime, false); // ���� ����
-
-                LeeSinOwner->CreateMarkerOnTarget(Diavolo);
-            }
             Destroy();
         }
     }

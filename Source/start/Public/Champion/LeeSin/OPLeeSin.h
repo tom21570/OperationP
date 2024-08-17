@@ -17,133 +17,139 @@ class START_API AOPLeeSin : public AOPChampion
 public:
     AOPLeeSin();
 
-protected:
     virtual void BeginPlay() override;
-
+    virtual void Tick(float DeltaTime) override;
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    
+protected:
+    /*************************************************************************** Passive ***************************************************************************/
+    
     virtual void Passive() override;
+
+    /************************************************************************ Basic Attack ************************************************************************/
+    
     virtual void BasicAttack() override;
     bool BasicAttackTrace();
+    void BasicAttack_ResetComboCount();
+
+    /****************************************************************************** Q ******************************************************************************/
+
     virtual void Q() override;
-    void Skill_1_SonicWave();
+    void Q_SonicWave();
+    
+    /****************************************************************************** W ******************************************************************************/
 
     virtual void W() override;
-    virtual void E() override;
-    virtual void R() override;
-    bool UltTrace();
 
-private:    
+    UFUNCTION()
+    void W_OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+    
+    /****************************************************************************** E ******************************************************************************/
+
+    virtual void E() override;
+    void E_GroundSlam();
+    void E_Cripple();
+    
+    /****************************************************************************** R ******************************************************************************/
+    
+    virtual void R() override;
+    bool R_Trace();
+
+private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"))
     class UProjectileMovementComponent* ProjectileMovementComponent;
+    
+    /************************************************************************ Basic Attack ************************************************************************/
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float BasicAttack_Impulse = 0.f;
+    float BasicAttack_Strength = 0.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float Q_Strength = 0.f;
+    int32 BasicAttackComboCount = 0;
+    FTimerHandle BasicAttack_ComboCount_TimerHandle;
+    FTimerHandle BasicAttack_Trace_TimerHandle;
+    
+    /****************************************************************************** Q ******************************************************************************/
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float Q_Speed = 0.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    float Q_SonicWaveStrength = 0.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    float Q_SonicWaveSpeed = 0.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float Q_ResonateSpeed = 0.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1 | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float Q_ResonateStrength = 0.f;
+
+    TObjectPtr<AOPLeeSinSonicWave> Q_SonicWaveStorage;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q", meta = (AllowPrivateAccess = "true"))
+    TSubclassOf<AOPLeeSinSonicWave> Q_SonicWaveClass;
+
+    int32 Q_Stack = 0;
+    
+    bool bQ_CanResonate = false;
+    bool bQ_IsResonating = false;
+    TObjectPtr<AOPChampion> Q_ResonateTarget;
+
+    FTimerHandle Q_Cast_TimerHandle;
+    FTimerHandle Q_ResonatingStrikeDiavoloMotion_TimerHandle;
+    FTimerHandle Q_SonicWaveSpawn_TimerHandle;
+    
+    /****************************************************************************** W ******************************************************************************/
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float W_MaintainTime = 5.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float W_ShieldStrength = 1000.f;
+    float W_Strength = 1000.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    float W_ReflectAngle = 1000.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UStaticMeshComponent> W_SafeGuardMesh;
+
+    FTimerHandle W_Maintain_TimerHandle;
+    
+    /****************************************************************************** E ******************************************************************************/
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float E_Strength = 0.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float E_Radius = 0.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float E_slowAmount = 0.f;
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E", meta = (AllowPrivateAccess = "true"))
+    UStaticMeshComponent* E_MarkerMesh;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 3 | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float E_slowDuration = 0.f;
+    int32 E_Stack = 0;
+    FTimerHandle E_Cast_TimerHandle;
+    FTimerHandle E_Stack_TimerHandle;
+    bool bE_SecondInput = false;
+    FTimerHandle E_End_TimerHandle;
+    
+    /****************************************************************************** R ******************************************************************************/
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float R_Strength = 0.f;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float R_Angle = 0.f;
 
-    int32 BasicAttackComboCount = 0;
-    FTimerHandle BasicAttackComboCountTimerHandle;
-    FTimerHandle BasicAttackTraceTimerHandle;
-    
-    FTimerHandle Skill_1_CastTimer;
-    FTimerHandle ResonatingStrike_DiavoloMotionTimer;
+    FTimerHandle R_Trace_TimerHandle;
 
-    FTimerHandle W_MaintainTimerHandle;
-    int32 Skill_3_Stack = 0;
-    FTimerHandle Skill_3_CastTimer;
-    FTimerHandle Skill_3_StackTimer;
-
-    TObjectPtr<AOPLeeSinSonicWave> SonicWave;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
-    TSubclassOf<AOPLeeSinSonicWave> SonicWaveClass;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UStaticMeshComponent> SafeGuardMesh;
-
-    bool bCanResonate = false;
-    bool bIsResonating = false;
-    TObjectPtr<AOPChampion> ResonateTarget;
-
-    bool bE_SecondInput = false;
-
-    FTimerHandle SonicWaveSpawnTimer;
-    FTimerHandle E_EndTimer;
-    FTimerHandle DragonsRageSpawnTimer;
-
-    TObjectPtr<AOPLeeSinDragonsRage> DragonsRage;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ult", meta = (AllowPrivateAccess = "true"))
-    TSubclassOf<AOPLeeSinDragonsRage> DragonsRageClass;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Marker", meta = (AllowPrivateAccess = "true"))
-    UStaticMeshComponent* MarkerMesh;
-
-    void ApplyShieldToAlly(AOPChampion* TargetChampion);
-    void AddShield(float ShieldAmount);
-    void Skill_3_GroundSlam();
-    void Skill_3_Cripple();
-    void Skill_3_ApplySlowEffect();
-    void OnDashCompleted();
-    void ResetMeleeAttackComboCount();
-    void DashToTarget(AOPChampion* TargetChampion, float DashSpeed, float DashDistance);
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill", meta = (AllowPrivateAccess = "true"))
-    float ShieldAmountValue;
-
-    FTimerHandle DashCompleteTimer;
-
-public:
-    int32 Skill_1_Stack = 0;
-    FTimerHandle Skill_1_StackTimer;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Skill 1", meta = (AllowPrivateAccess = "true"))
-    float Skill_1_StackTime = 0.25f;
-
-    virtual void Tick(float DeltaTime) override;
-    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+public:    
     void CreateMarkerOnTarget(AOPDiavolo* Target);
     void RemoveMarkerOnTarget(AOPDiavolo* Target);
 
-    FORCEINLINE bool GetbCanResonate() const { return bCanResonate; }
-    FORCEINLINE void SetbCanResonate_True() { bCanResonate = true; }
-    FORCEINLINE void SetbCanResonate_False() { bCanResonate = false; }
+    FORCEINLINE bool GetbCanResonate() const { return bQ_CanResonate; }
+    FORCEINLINE void SetbCanResonate_True() { bQ_CanResonate = true; }
+    FORCEINLINE void SetbCanResonate_False() { bQ_CanResonate = false; }
 
-    FORCEINLINE bool GetbIsResonating() const { return bIsResonating; }
-    FORCEINLINE void SetbIsResonating_True() { bIsResonating = true; }
-    FORCEINLINE void SetbIsResonating_False() { bIsResonating = false; }
+    FORCEINLINE bool GetbIsResonating() const { return bQ_IsResonating; }
+    FORCEINLINE void SetbIsResonating_True() { bQ_IsResonating = true; }
+    FORCEINLINE void SetbIsResonating_False() { bQ_IsResonating = false; }
 
-    FORCEINLINE void SetResonateTarget(AOPChampion* Target) { ResonateTarget = Target; }
+    FORCEINLINE void SetResonateTarget(AOPChampion* Target) { Q_ResonateTarget = Target; }
 };

@@ -20,9 +20,9 @@ class START_API AOPYasuo : public AOPChampion
 public:
 	AOPYasuo();
 
-protected:
 	virtual void BeginPlay() override;
-
+	
+protected:
 	/*************************************************************************** Passive ***************************************************************************/
 	
 	virtual void Passive() override;
@@ -30,32 +30,23 @@ protected:
 	/************************************************************************ Basic Attack ************************************************************************/
 	
 	virtual void BasicAttack() override;
-	
-	UFUNCTION()
 	bool BasicAttackTrace(); // 평타 발동 시 트레이스하는 함수
 
 	/****************************************************************************** Q ******************************************************************************/
 
 	virtual void Q() override;
-	void PlayQ_OrdinaryAnimMontage();
-
-	UFUNCTION()
+	void Q_PlayOrdinaryAnimMontage();
 	bool Q_Trace(); // 강철폭풍 발동 시 트레이스하는 함수
-	
 	void Q_WhirlWind(); // 강철폭풍 3타에서 회오리 날리기
 
 	/****************************************************************************** W ******************************************************************************/
 
 	virtual void W() override;
-	
 	void W_WindWall();
 
 	/****************************************************************************** E ******************************************************************************/
 
 	virtual void E() override;
-
-	UFUNCTION()
-	void E_OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 	UFUNCTION()
 	void E_OnDrawingSword(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -83,9 +74,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float BasicAttack_Impulse = 0.f; // 평타 충격량
 
-	FTimerHandle BasicAttackCastTimer; // 평타 시전을 위한 타이머
+	FTimerHandle BasicAttack_Cast_TimerHandle; // 평타 시전을 위한 타이머
 
-	FTimerHandle BasicAttackComboCountTimer; // 평타 연결된 동작 타이머
+	FTimerHandle BasicAttack_ComboCount_TimerHandle; // 평타 연결된 동작 타이머
 
 	FORCEINLINE void ResetBasicAttackComboCount() { BasicAttackComboCount = 0; }
 
@@ -95,7 +86,7 @@ private:
 	/****************************************************************************** Q ******************************************************************************/
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float Q_Impulse = 0.f; // 스킬 1 충격량
+	float Q_Strength = 0.f; // 스킬 1 충격량
 
 	int32 Q_Stack = 0; // 강철폭풍 스택
 	
@@ -105,8 +96,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	float Q_Radius = 80.f; // 평타 너비
 	
-	FTimerHandle Q_CastTimer; // 강철폭풍 트레이스 시전시간을 위한 타이머
-	FTimerHandle Q_StackTimer; // 강철폭풍 스택 유지를 위한 타이머
+	FTimerHandle Q_Cast_TimerHandle; // 강철폭풍 트레이스 시전시간을 위한 타이머
+	FTimerHandle Q_Stack_TimerHandle; // 강철폭풍 스택 유지를 위한 타이머
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	bool bQ_CanSwift = false;
@@ -114,8 +105,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAnimMontage> Q_Swift_AnimMontage;
 
-	FTimerHandle Q_Swift_StartTimerHandle;
-	FTimerHandle Q_Swift_EndTimerHandle;
+	FTimerHandle Q_SwiftStart_TimerHandle;
+	FTimerHandle Q_SwiftEnd_TimerHandle;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> Q_WhirlWindSpawnPoint;
@@ -124,15 +115,14 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AOPYasuoWhirlWind> Q_WhirlWindClass; // 위 변수에 담아서 실제로 날릴 회오리
 
-	FTimerHandle Q_WhirlWindSpawnTimer; // 회오리를 소환하는데 걸리는 시간을 설정하기 위한 타이머
+	FTimerHandle Q_WhirlWindSpawn_TimerHandle; // 회오리를 소환하는데 걸리는 시간을 설정하기 위한 타이머
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USoundCue> Q_Hit_SFX; // 디아볼로가 강철폭풍 에 피격시 재생할 사운드 이펙트 
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USoundCue> Q_Charged_SFX;
-
-
+	
 	/****************************************************************************** W ******************************************************************************/
 
 	TObjectPtr<AOPYasuoWindWall> W_WindWallStorage; // 바랑장막을 담을 변수
@@ -142,7 +132,7 @@ private:
 	/****************************************************************************** E ******************************************************************************/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float E_Impulse = 0.f; // 발도술 중 적과 충돌했을 시의 충격량
+	float E_Strength = 0.f; // 발도술 중 적과 충돌했을 시의 충격량
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float E_DistanceBetweenEnemy = 0.f; // 발도술 시 적과 야스오 사이의 거리
@@ -156,12 +146,12 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float E_Angle = 0.f; // 발도술을 시전하는 시간
 
-	FTimerHandle E_EndTimer;
+	FTimerHandle E_End_TimerHandle;
 
 	/****************************************************************************** R ******************************************************************************/
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float R_Impulse = 0.f; // 궁극기 시전 후 디아볼로가 땅에 박히는 강도
+	float R_Strength = 0.f; // 궁극기 시전 후 디아볼로가 땅에 박히는 강도
 	
-	FTimerHandle R_End_Timer;
+	FTimerHandle R_End_TimerHandle;
 };

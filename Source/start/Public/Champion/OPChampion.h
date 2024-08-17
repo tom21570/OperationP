@@ -16,9 +16,12 @@ class START_API AOPChampion : public ACharacter
 public:
     AOPChampion();
 
+    virtual void BeginPlay() override; // 게임이 시작될 때 실행될 함수
+    virtual void Tick(float DeltaTime) override; // 매 프레임마다 실행되는 함수
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override; // 조작키
+    
 protected:
     FHitResult MouseCursorHit; // 마우스 커서에서 받아오는 정보를 담을 HitResult
-    virtual void BeginPlay() override; // 게임이 시작될 때 실행될 함수
 
     virtual void Passive();
     virtual void BasicAttack(); // 평타
@@ -28,9 +31,6 @@ protected:
     virtual void R();
 
 public:
-    virtual void Tick(float DeltaTime) override; // 매 프레임마다 실행되는 함수
-    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override; // 조작키
-
     void TurnCharacterToLocation(FVector TurnPoint);
     void TurnCharacterToCursor(FHitResult HitResult);
 
