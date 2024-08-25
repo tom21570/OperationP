@@ -58,25 +58,31 @@ AOPChampion::AOPChampion()
 	// 	JumpAction = JumpInput.Object;
 	// }
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> QInput(TEXT("/Game/Input/IA_Skill_1.IA_Skill_1"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> BasicAttackInput(TEXT("/Game/Input/IA_BasicAttack.IA_BasicAttack"));
+	if(MoveInput.Succeeded())
+	{
+		BasicAttackAction = BasicAttackInput.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> QInput(TEXT("/Game/Input/IA_Q.IA_Q"));
 	if(MoveInput.Succeeded())
 	{
 		Q_Action = QInput.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> WInput(TEXT("/Game/Input/IA_Skill_2.IA_Skill_2"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> WInput(TEXT("/Game/Input/IA_W.IA_W"));
 	if(MoveInput.Succeeded())
 	{
 		W_Action = WInput.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> EInput(TEXT("/Game/Input/IA_Skill_3.IA_Skill_3"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> EInput(TEXT("/Game/Input/IA_E.IA_E"));
 	if(MoveInput.Succeeded())
 	{
 		E_Action = EInput.Object;
 	}
 
-	static ConstructorHelpers::FObjectFinder<UInputAction> RInput(TEXT("/Game/Input/IA_Ult.IA_Ult"));
+	static ConstructorHelpers::FObjectFinder<UInputAction> RInput(TEXT("/Game/Input/IA_R.IA_R"));
 	if(MoveInput.Succeeded())
 	{
 		R_Action = RInput.Object;

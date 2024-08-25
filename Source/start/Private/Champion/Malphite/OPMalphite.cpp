@@ -55,13 +55,13 @@ void AOPMalphite::BasicAttack()
 	if (!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);	
 	
-	if (ChampionAnimInstance && BasicAttackAnimMontage)
+	if (ChampionAnimInstance && BasicAttack_AnimMontage)
 	{
-		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
+		ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
 		
 		if (bW_ThunderClapOn == true)
 		{
-			ChampionAnimInstance->Montage_JumpToSection(FName("clap"), BasicAttackAnimMontage);
+			ChampionAnimInstance->Montage_JumpToSection(FName("clap"), BasicAttack_AnimMontage);
 			GetWorldTimerManager().SetTimer(BasicAttack_Trace_TimerHandle, FTimerDelegate::CreateLambda([&]
 			{
 				BasicAttackTrace_W();
@@ -71,7 +71,7 @@ void AOPMalphite::BasicAttack()
 		
 		else
 		{
-			ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
+			ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttack_AnimMontage);
 			GetWorldTimerManager().SetTimer(BasicAttack_Trace_TimerHandle, FTimerDelegate::CreateLambda([&]
 			{
 				BasicAttackTrace();
@@ -83,7 +83,7 @@ void AOPMalphite::BasicAttack()
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPMalphite::ResetChampionMovement, 0.6f, false);
 	
 	SetbBasicAttack_False();
-	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPMalphite::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
+	GetWorldTimerManager().SetTimer(BasicAttack_Cooldown_TimerHandle, this, &AOPMalphite::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
 }
 
 void AOPMalphite::BasicAttackTrace()
@@ -92,7 +92,7 @@ void AOPMalphite::BasicAttackTrace()
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 	
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Radius,
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitEnemies, true);
 	
 	for (auto& HitActor : HitEnemies)
@@ -119,7 +119,7 @@ void AOPMalphite::BasicAttackTrace_W()
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), W_ClapPoint->GetComponentLocation(), W_ClapPoint->GetComponentLocation(), BasicAttack_Radius_W,
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), W_ClapPoint->GetComponentLocation(), W_ClapPoint->GetComponentLocation(), BasicAttack_Width_W,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 
 	for (auto& HitActor : HitResults)
@@ -162,7 +162,7 @@ void AOPMalphite::Q()
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPMalphite::ResetChampionMovement, 0.9f, false);
 	SetbQ_False();
-	GetWorldTimerManager().SetTimer(Q_CooldownTimerHandle, this, &AOPMalphite::SetbQ_True, GetQ_Cooldown(), false);
+	GetWorldTimerManager().SetTimer(Q_Cooldown_TimerHandle, this, &AOPMalphite::SetbQ_True, GetQ_Cooldown(), false);
 }
 
 void AOPMalphite::ApplySkill_1_Effect(AOPChampion* SourceChampion, AOPDiavolo* OtherChampion)
@@ -229,7 +229,7 @@ void AOPMalphite::W()
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPMalphite::ResetChampionMovement, 0.55f, false);
 
 	SetbW_False();
-	GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPMalphite::SetbW_True, W_Cooldown, false);
+	GetWorldTimerManager().SetTimer(W_Cooldown_TimerHandle, this, &AOPMalphite::SetbW_True, W_Cooldown, false);
 }
 
 
@@ -261,7 +261,7 @@ void AOPMalphite::E()
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPMalphite::ResetChampionMovement, 0.3f, false);
 
 	SetbE_False();
-	GetWorldTimerManager().SetTimer(E_CooldownTimerHandle, this, &AOPMalphite::SetbE_True, GetE_Cooldown(), false);
+	GetWorldTimerManager().SetTimer(E_Cooldown_TimerHandle, this, &AOPMalphite::SetbE_True, GetE_Cooldown(), false);
 }
 
 
@@ -332,7 +332,7 @@ void AOPMalphite::R()
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPMalphite::ResetChampionMovement, 0.3f, false);
 	
 	SetbR_False();
-	GetWorldTimerManager().SetTimer(R_CooldownTimerHandle, this, &AOPMalphite::SetbR_True, GetR_Cooldown(), false);
+	GetWorldTimerManager().SetTimer(R_Cooldown_TimerHandle, this, &AOPMalphite::SetbR_True, GetR_Cooldown(), false);
 }
 
 void AOPMalphite::R_Trace()

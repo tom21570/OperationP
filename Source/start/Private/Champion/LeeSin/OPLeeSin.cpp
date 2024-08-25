@@ -52,36 +52,36 @@ void AOPLeeSin::BasicAttack()
         BasicAttackTrace();
     }), 0.25f, false);
 
-    if (ChampionAnimInstance && BasicAttackAnimMontage)
+    if (ChampionAnimInstance && BasicAttack_AnimMontage)
     {
         switch (BasicAttackComboCount)
         {
         case 0:
-            ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-            ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
+            ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttack_AnimMontage);
             GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPLeeSin::BasicAttack_ResetComboCount, 5.f, false);
             BasicAttackComboCount++;
             break;
 
         case 1:
-            ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-            ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
+            ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttack_AnimMontage);
             GetWorldTimerManager().ClearTimer(BasicAttack_ComboCount_TimerHandle);
             GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPLeeSin::BasicAttack_ResetComboCount, 5.f, false);
             BasicAttackComboCount++;
             break;
 
         case 2:
-            ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-            ChampionAnimInstance->Montage_JumpToSection(FName("3"), BasicAttackAnimMontage);
+            ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("3"), BasicAttack_AnimMontage);
             GetWorldTimerManager().ClearTimer(BasicAttack_ComboCount_TimerHandle);
             GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPLeeSin::BasicAttack_ResetComboCount, 5.f, false);
             BasicAttackComboCount++;
             break;
 
         case 3:
-            ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-            ChampionAnimInstance->Montage_JumpToSection(FName("4"), BasicAttackAnimMontage);
+            ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
+            ChampionAnimInstance->Montage_JumpToSection(FName("4"), BasicAttack_AnimMontage);
             BasicAttackComboCount = 0;
             break;
 
@@ -91,7 +91,7 @@ void AOPLeeSin::BasicAttack()
     }
     
     SetbBasicAttack_False();
-    GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPLeeSin::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
+    GetWorldTimerManager().SetTimer(BasicAttack_Cooldown_TimerHandle, this, &AOPLeeSin::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
     StopChampionMovement();
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPLeeSin::ResetChampionMovement, 0.7f, false);
 }
@@ -102,7 +102,7 @@ bool AOPLeeSin::BasicAttackTrace()
     TArray<AActor*> ActorsToIgnore;
     ActorsToIgnore.Add(this);
 
-    UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * 200.f, 80.f,
+    UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
         UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 
     for (auto& HitActor : HitResults)
@@ -168,7 +168,7 @@ void AOPLeeSin::Q()
         ChampionAnimInstance->Montage_Play(GetQ_AnimMontage(), 1.0f);
         ChampionAnimInstance->Montage_JumpToSection(FName("SonicWave"), GetQ_AnimMontage());
         GetWorldTimerManager().SetTimer(Q_SonicWaveSpawn_TimerHandle, this, &AOPLeeSin::Q_SonicWave, 0.25f, false);
-        GetWorldTimerManager().SetTimer(Q_CooldownTimerHandle, this, &AOPLeeSin::SetbQ_True, GetQ_Cooldown(), false);
+        GetWorldTimerManager().SetTimer(Q_Cooldown_TimerHandle, this, &AOPLeeSin::SetbQ_True, GetQ_Cooldown(), false);
 
         StopChampionMovement();
         GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPLeeSin::ResetChampionMovement, 0.9f, false);
@@ -209,7 +209,7 @@ void AOPLeeSin::W()
     }), W_MaintainTime, false);
     
     SetbW_False();
-    GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPLeeSin::SetbW_True, GetW_Cooldown(), false);
+    GetWorldTimerManager().SetTimer(W_Cooldown_TimerHandle, this, &AOPLeeSin::SetbW_True, GetW_Cooldown(), false);
 }
 
 void AOPLeeSin::W_OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
@@ -260,7 +260,7 @@ void AOPLeeSin::E()
 
     
     SetbE_False();
-    GetWorldTimerManager().SetTimer(E_CooldownTimerHandle, this, &AOPLeeSin::SetbE_True, GetE_Cooldown(), false);
+    GetWorldTimerManager().SetTimer(E_Cooldown_TimerHandle, this, &AOPLeeSin::SetbE_True, GetE_Cooldown(), false);
 
     StopChampionMovement();
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPLeeSin::ResetChampionMovement, 0.9f, false);
@@ -362,7 +362,7 @@ void AOPLeeSin::R()
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPLeeSin::ResetChampionMovement, 0.8f, false);
 
     SetbR_False();
-    GetWorldTimerManager().SetTimer(R_CooldownTimerHandle, this, &AOPLeeSin::SetbR_True, GetR_Cooldown(), false);
+    GetWorldTimerManager().SetTimer(R_Cooldown_TimerHandle, this, &AOPLeeSin::SetbR_True, GetR_Cooldown(), false);
 }
 
 bool AOPLeeSin::R_Trace()

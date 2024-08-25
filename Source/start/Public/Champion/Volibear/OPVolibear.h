@@ -6,6 +6,8 @@
 #include "Champion/OPChampion.h"
 #include "OPVolibear.generated.h"
 
+class UNiagaraComponent;
+class UNiagaraSystem;
 /**
  * 
  */
@@ -74,7 +76,7 @@ private:
 	float BasicAttack_Range = 150.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float BasicAttack_Radius = 80.f;
+	float BasicAttack_Width = 80.f;
 
 	FTimerHandle BasicAttack_Cast_TimerHandle;
 	FTimerHandle BasicAttack_ComboCount_TimerHandle;
@@ -107,7 +109,7 @@ private:
 	float W_Range = 350.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float W_Radius = 30.f;
+	float W_Width = 30.f;
 
 	//볼리베어 w스킬 갈퀴 마커 메쉬 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))

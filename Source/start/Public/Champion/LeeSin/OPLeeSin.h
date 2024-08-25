@@ -64,6 +64,12 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float BasicAttack_Strength = 0.f;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+    float BasicAttack_Range = 200.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+    float BasicAttack_Width = 80.f;
+
     int32 BasicAttackComboCount = 0;
     FTimerHandle BasicAttack_ComboCount_TimerHandle;
     FTimerHandle BasicAttack_Trace_TimerHandle;

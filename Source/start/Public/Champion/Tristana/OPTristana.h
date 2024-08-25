@@ -6,6 +6,8 @@
 #include "Champion/OPChampion.h"
 #include "OPTristana.generated.h"
 
+class UNiagaraSystem;
+class UNiagaraComponent;
 class USphereComponent;
 class AOPTristanaCannonBall;
 class AOPTristanaBusterShot;

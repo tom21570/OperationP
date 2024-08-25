@@ -3,7 +3,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "NiagaraComponent.h"
 #include "OPChampion.generated.h"
 
 class AOPDiavolo;
@@ -101,12 +100,13 @@ protected:
     bool bTrueSightOn = false; // 리신 음파 (Q)에 피격되면 표식에 생겨서 true가 되는 boolean 값
     bool bStumbledByLeeSinE = false; // 리신 음파 (Q)에 피격되면 표식에 생겨서 true가 되는 boolean 값
     bool bFrenziedMaulOn = false; // 볼리베어 W 1타에 피격되어 표식이 생겨서 true가 되는 boolean 값
+    int32 StormMarkCount = 0;
 
     /*************************************************************************** Passive ***************************************************************************/
     
     bool bPassive = true;
 
-    FTimerHandle PassiveTimerHandle;
+    FTimerHandle Passive_Cooldown_TimerHandle;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Passive", meta = (AllowPrivateAccess = "true"))
     float Passive_Cooldown = 10.f;    
@@ -118,19 +118,19 @@ protected:
     
     bool bBasicAttack = true; // 평타를 사용할 수 있는가에 대한 불리언 값. 이 불리언 값이 true라면 좌클릭 시 평타가 나간다.
     
-    FTimerHandle BasicAttackCooltimeTimerHandle; // 평타 사용 후 쿨타임이 지나면 다음 평타를 사용할 수 있도록 bBasicAttack을 true로 바꿔줄 때 사용하는 타이머핸들
+    FTimerHandle BasicAttack_Cooldown_TimerHandle; // 평타 사용 후 쿨타임이 지나면 다음 평타를 사용할 수 있도록 bBasicAttack을 true로 바꿔줄 때 사용하는 타이머핸들
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack", meta = (AllowPrivateAccess = "true"))
-    float BasicAttackCooldown = 1.f; // 평타의 쿨다운
+    float BasicAttack_Cooldown = 1.f; // 평타의 쿨다운
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UAnimMontage> BasicAttackAnimMontage; // 평타 애니메이션
+    TObjectPtr<UAnimMontage> BasicAttack_AnimMontage; // 평타 애니메이션
     
     /****************************************************************************** Q ******************************************************************************/
     
     bool bQ = true;
     
-    FTimerHandle Q_CooldownTimerHandle;
+    FTimerHandle Q_Cooldown_TimerHandle;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q", meta = (AllowPrivateAccess = "true"))
     float Q_Cooldown = 10.f;
@@ -142,7 +142,7 @@ protected:
     
     bool bW = true;
 
-    FTimerHandle W_CooldownTimerHandle;
+    FTimerHandle W_Cooldown_TimerHandle;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W", meta = (AllowPrivateAccess = "true"))
     float W_Cooldown = 10.f;
@@ -154,7 +154,7 @@ protected:
     
     bool bE = true;
 
-    FTimerHandle E_CooldownTimerHandle;
+    FTimerHandle E_Cooldown_TimerHandle;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E", meta = (AllowPrivateAccess = "true"))
     float E_Cooldown = 10.f;
@@ -166,7 +166,7 @@ protected:
     
     bool bR = true;
 
-    FTimerHandle R_CooldownTimerHandle;
+    FTimerHandle R_Cooldown_TimerHandle;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R", meta = (AllowPrivateAccess = "true"))
     float R_Cooldown = 10.f;
@@ -203,19 +203,19 @@ public:
     FORCEINLINE UAnimMontage* GetDeadAnimMontage() const { return DeadAnimMontage; }
 
     FORCEINLINE bool GetbBasicAttack() const { return bBasicAttack; }
-    FORCEINLINE float GetBasicAttackCooltime() const { return BasicAttackCooldown; }
+    FORCEINLINE float GetBasicAttackCooltime() const { return BasicAttack_Cooldown; }
     FORCEINLINE void SetbBasicAttack(bool value) { bBasicAttack = value; }
     FORCEINLINE void SetbBasicAttack_True() { bBasicAttack = true; }
     FORCEINLINE void SetbBasicAttack_False() { bBasicAttack = false; }
-    FORCEINLINE FTimerHandle GetBasicAttackTimerHandle() const { return BasicAttackCooltimeTimerHandle; }
-    FORCEINLINE UAnimMontage* GetBasicAttackAnimMontage() const { return BasicAttackAnimMontage; }
+    FORCEINLINE FTimerHandle GetBasicAttackTimerHandle() const { return BasicAttack_Cooldown_TimerHandle; }
+    FORCEINLINE UAnimMontage* GetBasicAttackAnimMontage() const { return BasicAttack_AnimMontage; }
     
     FORCEINLINE bool GetbPassive() const { return bPassive; }
     FORCEINLINE float GetPassiveCooltime() const { return Passive_Cooldown; }
     FORCEINLINE void SetbPassive(bool value) { bPassive = value; }
     FORCEINLINE void SetbPassive_True() { bPassive = true; }
     FORCEINLINE void SetbPassive_False() { bPassive = false; }
-    FORCEINLINE FTimerHandle GetPassiveTimerHandle() const { return PassiveTimerHandle; }
+    FORCEINLINE FTimerHandle GetPassiveTimerHandle() const { return Passive_Cooldown_TimerHandle; }
     FORCEINLINE UAnimMontage* GetPassiveAnimMontage() const { return Passive_AnimMontage; }
 
     FORCEINLINE bool GetbQ() const { return bQ; }
@@ -223,7 +223,7 @@ public:
     FORCEINLINE void SetbQ(bool value) { bQ = value; }
     FORCEINLINE void SetbQ_True() { bQ = true; }
     FORCEINLINE void SetbQ_False() { bQ = false; }
-    FORCEINLINE FTimerHandle GetQ_TimerHandle() const { return Q_CooldownTimerHandle; }
+    FORCEINLINE FTimerHandle GetQ_TimerHandle() const { return Q_Cooldown_TimerHandle; }
     FORCEINLINE UAnimMontage* GetQ_AnimMontage() const { return Q_AnimMontage; }
 
     FORCEINLINE bool GetbW() const { return bW; }
@@ -231,7 +231,7 @@ public:
     FORCEINLINE void SetbW(bool value) { bW = value; }
     FORCEINLINE void SetbW_True() { bW = true; }
     FORCEINLINE void SetbW_False() { bW = false; }
-    FORCEINLINE FTimerHandle GetW_TimerHandle() const { return W_CooldownTimerHandle; }
+    FORCEINLINE FTimerHandle GetW_TimerHandle() const { return W_Cooldown_TimerHandle; }
     FORCEINLINE UAnimMontage* GetW_AnimMontage() const { return W_AnimMontage; }
 
     FORCEINLINE bool GetbE() const { return bE; }
@@ -239,7 +239,7 @@ public:
     FORCEINLINE void SetbE(bool value) { bE = value; }
     FORCEINLINE void SetbE_True() { bE = true; }
     FORCEINLINE void SetbE_False() { bE = false; }
-    FORCEINLINE FTimerHandle GetE_TimerHandle() const { return E_CooldownTimerHandle; }
+    FORCEINLINE FTimerHandle GetE_TimerHandle() const { return E_Cooldown_TimerHandle; }
     FORCEINLINE UAnimMontage* GetE_AnimMontage() const { return E_AnimMontage; }
 
     FORCEINLINE bool GetbR() const { return bR; }
@@ -247,7 +247,7 @@ public:
     FORCEINLINE void SetbR(bool value) { bR = value; }
     FORCEINLINE void SetbR_True() { bR = true; }
     FORCEINLINE void SetbR_False() { bR = false; }
-    FORCEINLINE FTimerHandle GetR_TimerHandle() const { return R_CooldownTimerHandle; }
+    FORCEINLINE FTimerHandle GetR_TimerHandle() const { return R_Cooldown_TimerHandle; }
     FORCEINLINE UAnimMontage* GetR_AnimMontage() const { return R_AnimMontage; }
 
     FORCEINLINE UOPAnimInstance* GetChampionAnimInstance() const { return ChampionAnimInstance; }
@@ -266,6 +266,10 @@ public:
     FORCEINLINE bool GetbFrenziedMaulOn() const { return bFrenziedMaulOn; }
     FORCEINLINE void SetbFrenziedMaulOn_True() { bFrenziedMaulOn = true; }
     FORCEINLINE void SetbFrenziedMaulOn_False() { bFrenziedMaulOn = false; }
+
+    FORCEINLINE int32 GetStormMarkCount() const { return StormMarkCount; }
+    FORCEINLINE void IncreaseStormMark() { StormMarkCount++; }
+    FORCEINLINE void ResetStormMark() { StormMarkCount = 0; }
 
     UFUNCTION(BlueprintCallable)
     USkeletalMeshComponent* GetChampionSkeletalMeshComponent() const { return GetMesh(); }

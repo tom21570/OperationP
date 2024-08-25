@@ -69,10 +69,10 @@ private:
 	float BasicAttack_Range = 450.f; // 평타 사거리
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
-	float BasicAttack_Radius = 80.f; // 평타 너비
+	float BasicAttack_Width = 80.f; // 평타 너비
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float BasicAttack_Impulse = 0.f; // 평타 충격량
+	float BasicAttack_Strength = 0.f; // 평타 충격량
 
 	FTimerHandle BasicAttack_Cast_TimerHandle; // 평타 시전을 위한 타이머
 
@@ -94,7 +94,7 @@ private:
 	float Q_Range = 450.f; // 평타 사거리
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
-	float Q_Radius = 80.f; // 평타 너비
+	float Q_Width = 80.f; // 평타 너비
 	
 	FTimerHandle Q_Cast_TimerHandle; // 강철폭풍 트레이스 시전시간을 위한 타이머
 	FTimerHandle Q_Stack_TimerHandle; // 강철폭풍 스택 유지를 위한 타이머

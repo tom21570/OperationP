@@ -2,16 +2,14 @@
 
 
 #include "Champion/Tristana/OPTristana.h"
-
+#include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Animation/OPAnimInstance.h"
-#include "Components/CapsuleComponent.h"
 #include "Diavolo/OPDiavolo.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
-#include "Kismet/KismetSystemLibrary.h"
 #include "Player/OPPlayerController.h"
 #include "Champion/Tristana/OPTristanaCannonBall.h"
 #include "Champion/Tristana/OPTristanaBusterShot.h"
@@ -19,7 +17,6 @@
 #include "Engine/World.h"
 #include "TimerManager.h"
 #include "Components/SphereComponent.h"
-#include "Engine/SkeletalMeshSocket.h"
 
 AOPTristana::AOPTristana()
 {
@@ -42,7 +39,7 @@ void AOPTristana::BeginPlay()
 {
 	Super::BeginPlay();
 
-	BasicAttack_DefaultAttackSpeed = BasicAttackCooldown;
+	BasicAttack_DefaultAttackSpeed = BasicAttack_Cooldown;
 
 	if (Q_NiagaraComponent)
 	{
@@ -82,16 +79,16 @@ void AOPTristana::BasicAttack()
 
 	GetWorldTimerManager().SetTimer(BasicAttack_CannonBallSpawn_TimerHandle, this, &AOPTristana::BasicAttack_CannonBall, 0.25f, false);
 
-	if (ChampionAnimInstance && BasicAttackAnimMontage)
+	if (ChampionAnimInstance && BasicAttack_AnimMontage)
 	{
-		ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.0f);
+		ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.0f);
 	}
 	
 	StopChampionMovement();
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.7f, false);
 
 	SetbBasicAttack_False();
-	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPTristana::SetbBasicAttack_True, BasicAttackCooldown, false);		
+	GetWorldTimerManager().SetTimer(BasicAttack_Cooldown_TimerHandle, this, &AOPTristana::SetbBasicAttack_True, BasicAttack_Cooldown, false);		
 }
 
 void AOPTristana::BasicAttack_CannonBall()
@@ -114,7 +111,7 @@ void AOPTristana::Q()  //ºü¸¥ ¹ß»ç (Rapid Fire) È¿°ú: ÀÏÁ¤ ½Ã°£ µ¿¾È Æ®¸®½ºÅ¸³ªÀ
 
 	bQ_IsActive = true;
 
-	BasicAttackCooldown *= Q_RapidFireValue;
+	BasicAttack_Cooldown *= Q_RapidFireValue;
 
 	if (Q_NiagaraComponent)
 	{
@@ -122,14 +119,14 @@ void AOPTristana::Q()  //ºü¸¥ ¹ß»ç (Rapid Fire) È¿°ú: ÀÏÁ¤ ½Ã°£ µ¿¾È Æ®¸®½ºÅ¸³ªÀ
 	}
 	GetWorldTimerManager().SetTimer(Q_TimerHandle, this, &AOPTristana::Q_EndRapidFire, Q_Duration, false);
 
-	GetWorldTimerManager().SetTimer(Q_CooldownTimerHandle, this, &AOPTristana::SetbQ_True, Q_Cooldown, false);
+	GetWorldTimerManager().SetTimer(Q_Cooldown_TimerHandle, this, &AOPTristana::SetbQ_True, Q_Cooldown, false);
 }
 
 void AOPTristana::Q_EndRapidFire()
 {
 	bQ_IsActive = false;
 
-	BasicAttackCooldown = BasicAttack_DefaultAttackSpeed;
+	BasicAttack_Cooldown = BasicAttack_DefaultAttackSpeed;
 
 	if (Q_NiagaraComponent)
 	{
@@ -164,13 +161,13 @@ void AOPTristana::W() //·ÎÄÏ Á¡ÇÁ (Rocket Jump) È¿°ú: Æ®¸®½ºÅ¸³ª°¡ ¸ñÇ¥ ÁöÁ¡À¸·Î
 		ChampionAnimInstance->Montage_Play(W_AnimMontage, 1.0f);
 	}
 	
-	GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPTristana::W_OnLanding, 1.0f, false, 1.0f);
+	GetWorldTimerManager().SetTimer(W_Cooldown_TimerHandle, this, &AOPTristana::W_OnLanding, 1.0f, false, 1.0f);
 	
 	StopChampionMovement();
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.7f, false);
     
     SetbW_False();
-    GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPTristana::SetbW_True, W_Cooldown, false);
+    GetWorldTimerManager().SetTimer(W_Cooldown_TimerHandle, this, &AOPTristana::SetbW_True, W_Cooldown, false);
 }
 
 void AOPTristana::W_OnLanding()
@@ -249,7 +246,7 @@ void AOPTristana::E() //Æø¹ß È­¾à(Explosive Charge) 		È¿°ú: ÆÐ½Ãºê·Î, Æ®¸®½ºÅ¸³ª
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.7f, false);
         
     SetbE_False();
-    GetWorldTimerManager().SetTimer(E_CooldownTimerHandle, this, &AOPTristana::SetbE_True, E_Cooldown, false);
+    GetWorldTimerManager().SetTimer(E_Cooldown_TimerHandle, this, &AOPTristana::SetbE_True, E_Cooldown, false);
 }
 
 void AOPTristana::E_UseExplosiveCharge(AOPDiavolo* Target)
@@ -288,7 +285,7 @@ void AOPTristana::R() //´ë±¸°æ ÅºÈ¯ (Buster Shot)È¿°ú: Æ®¸®½ºÅ¸³ª°¡ °­·ÂÇÑ ÅºÈ¯À
 	}), 0.3f, false);
 
 	SetbR_False();
-	GetWorldTimerManager().SetTimer(R_CooldownTimerHandle, this, &AOPTristana::SetbR_True, GetR_Cooldown(), false);
+	GetWorldTimerManager().SetTimer(R_Cooldown_TimerHandle, this, &AOPTristana::SetbR_True, GetR_Cooldown(), false);
 
 	if (ChampionAnimInstance && R_AnimMontage)
 	{
@@ -299,7 +296,7 @@ void AOPTristana::R() //´ë±¸°æ ÅºÈ¯ (Buster Shot)È¿°ú: Æ®¸®½ºÅ¸³ª°¡ °­·ÂÇÑ ÅºÈ¯À
     GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPTristana::ResetChampionMovement, 0.9f, false);
         
     SetbR_False();
-    GetWorldTimerManager().SetTimer(R_CooldownTimerHandle, this, &AOPTristana::SetbR_True, R_Cooldown, false);
+    GetWorldTimerManager().SetTimer(R_Cooldown_TimerHandle, this, &AOPTristana::SetbR_True, R_Cooldown, false);
 }
 
 void AOPTristana::R_BusterShot()

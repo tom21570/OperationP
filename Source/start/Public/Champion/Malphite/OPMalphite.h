@@ -75,10 +75,10 @@ private:
 	float BasicAttack_Range = 600.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
-	float BasicAttack_Radius = 600.f;
+	float BasicAttack_Width = 600.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
-	float BasicAttack_Radius_W = 600.f;
+	float BasicAttack_Width_W = 600.f;
 
 	FTimerHandle BasicAttack_Trace_TimerHandle;
 	

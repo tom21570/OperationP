@@ -51,7 +51,7 @@ void AOPYasuo::BasicAttack()
 
 	// 평타 쿨타임 설정
 	SetbBasicAttack_False();
-	GetWorldTimerManager().SetTimer(BasicAttackCooltimeTimerHandle, this, &AOPYasuo::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
+	GetWorldTimerManager().SetTimer(BasicAttack_Cooldown_TimerHandle, this, &AOPYasuo::SetbBasicAttack_True, GetBasicAttackCooltime(), false);
 
 	// 평타 시전시간 지나면 Trace하고 디아볼로가 Trace되면 피격 사운드 재생
 	GetWorldTimerManager().SetTimer(BasicAttack_Cast_TimerHandle, FTimerDelegate::CreateLambda([&]
@@ -66,38 +66,38 @@ void AOPYasuo::BasicAttack()
 	}), 0.25f, false);
 
 	if (!ChampionAnimInstance) return; // 애니메이션 인스턴스가 없을 시 return
-	if (!BasicAttackAnimMontage) return; // 평타 애니메이션 몽타주가 없을 시 return
+	if (!BasicAttack_AnimMontage) return; // 평타 애니메이션 몽타주가 없을 시 return
 
-	if (ChampionAnimInstance && BasicAttackAnimMontage)
+	if (ChampionAnimInstance && BasicAttack_AnimMontage)
 	{
 		switch (BasicAttackComboCount) // 4번의 연결된 평타동작
 		{
 		case 0:
-			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-			ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttackAnimMontage);
+			ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttack_AnimMontage);
 			GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPYasuo::ResetBasicAttackComboCount, 5.f, false);
 			BasicAttackComboCount++;
 			break;
 
 		case 1:
-			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-			ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttackAnimMontage);
+			ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttack_AnimMontage);
 			GetWorldTimerManager().ClearTimer(BasicAttack_ComboCount_TimerHandle);
 			GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPYasuo::ResetBasicAttackComboCount, 5.f, false);
 			BasicAttackComboCount++;
 			break;
 
 		case 2:
-			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-			ChampionAnimInstance->Montage_JumpToSection(FName("3"), BasicAttackAnimMontage);
+			ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("3"), BasicAttack_AnimMontage);
 			GetWorldTimerManager().ClearTimer(BasicAttack_ComboCount_TimerHandle);
 			GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPYasuo::ResetBasicAttackComboCount, 5.f, false);
 			BasicAttackComboCount++;
 			break;
 
 		case 3:
-			ChampionAnimInstance->Montage_Play(BasicAttackAnimMontage, 1.f);
-			ChampionAnimInstance->Montage_JumpToSection(FName("4"), BasicAttackAnimMontage);
+			ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
+			ChampionAnimInstance->Montage_JumpToSection(FName("4"), BasicAttack_AnimMontage);
 			BasicAttackComboCount = 0;
 			break;
 
@@ -114,7 +114,7 @@ bool AOPYasuo::BasicAttackTrace()
 	ActorsToIgnore.Add(this); // 트레이스하지 않을 액터에 야스오 본인을 포함
 
 	// 원 모양으로 어디부터 어디까지, 어떤 채널에서 트레이스할지 정하고 트레이스하는 함수
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Radius,
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 	
 	for (auto& HitActor : HitResults) // 트레이스된 여러 액터들에 적용하기 위한 반복문
@@ -123,7 +123,7 @@ bool AOPYasuo::BasicAttackTrace()
 		{
 			Diavolo->SetbIsDamagedTrue();
 			Diavolo->PlayDiavoloRandomDeadMontage();
-			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Impulse, true); // 디아볼로에 충격 가하기
+			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Strength, true); // 디아볼로에 충격 가하기
 			if (!Diavolo->GetbCanBeTestedMultipleTimes()) // 만약 bCanBeTestedMultipleTimes가 false라면 더이상 트레이스되지 않도록 디아볼로를 설정
 			{
 				Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
@@ -222,7 +222,7 @@ void AOPYasuo::Q()
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 0.7f, false);
 	
 	SetbQ_False();
-	GetWorldTimerManager().SetTimer(Q_CooldownTimerHandle, this, &AOPYasuo::SetbQ_True, GetQ_Cooldown(), false);
+	GetWorldTimerManager().SetTimer(Q_Cooldown_TimerHandle, this, &AOPYasuo::SetbQ_True, GetQ_Cooldown(), false);
 }
 
 void AOPYasuo::Q_PlayOrdinaryAnimMontage()
@@ -254,7 +254,7 @@ bool AOPYasuo::Q_Trace()
 	TArray<AActor*> ActorsToIgnore;
 	ActorsToIgnore.Add(this);
 
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * Q_Range, Q_Radius,
+	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * Q_Range, Q_Width,
 	UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 
 	for (auto& HitActor : HitResults)
@@ -320,7 +320,7 @@ void AOPYasuo::W()
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 0.4f, false);
 
 	SetbW_False();
-	GetWorldTimerManager().SetTimer(W_CooldownTimerHandle, this, &AOPYasuo::SetbW_True, GetW_Cooldown(), false);
+	GetWorldTimerManager().SetTimer(W_Cooldown_TimerHandle, this, &AOPYasuo::SetbW_True, GetW_Cooldown(), false);
 }
 
 void AOPYasuo::W_WindWall()
@@ -385,7 +385,7 @@ void AOPYasuo::E()
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 0.7f, false);
 	
 	SetbE_False();
-	GetWorldTimerManager().SetTimer(E_CooldownTimerHandle, this, &AOPYasuo::SetbE_True, E_Cooldown, false);
+	GetWorldTimerManager().SetTimer(E_Cooldown_TimerHandle, this, &AOPYasuo::SetbE_True, E_Cooldown, false);
 }
 
 void AOPYasuo::E_OnDrawingSword(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
@@ -453,5 +453,5 @@ void AOPYasuo::R()
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPYasuo::ResetChampionMovement, 1.35f, false);
 	
 	SetbR_False();
-	GetWorldTimerManager().SetTimer(R_CooldownTimerHandle, this, &AOPYasuo::SetbR_True, GetR_Cooldown(), false);
+	GetWorldTimerManager().SetTimer(R_Cooldown_TimerHandle, this, &AOPYasuo::SetbR_True, GetR_Cooldown(), false);
 }
