@@ -32,7 +32,17 @@ protected:
 public:
     void TurnCharacterToLocation(FVector TurnPoint);
     void TurnCharacterToCursor(FHitResult HitResult);
-
+    /********************************************************************** Gravity Field Value Setting**********************************************************************/
+       // Custom functions to set gravity direction and scale  
+       // Seqence  1.Set Direction 2. Set Scale 
+    void SetCustomGravityDirection(FVector NewGravityDirection);
+    void SetCustomGravityScale(float NewGravityScale);
+    // Overlap end event handler
+    UFUNCTION()
+    virtual void NotifyActorEndOverlap(AActor* OtherActor) override;
+    // Overlap 이벤트를 처리할 함수 선언(중력)
+    UFUNCTION()
+    virtual void OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor);
 protected:
     /********************************************************************** Player Controller **********************************************************************/
     
@@ -187,8 +197,12 @@ protected:
     FTimerHandle ResetMovementTimerHandle; // 챔피언의 움직임들을 디폴트 값으로 리셋시킬 시간을 조절하기 위한 타이머 핸들
 
     /****************************************************************************** ETC ******************************************************************************/
-    
+    UPROPERTY(EditAnywhere)
+    TSubclassOf<AActor> GravityFieldSphereClass;  // BP_GravityField_Sphere 클래스를 저장할 변수
 
+    // 현재 중력 필드를 저장할 변수
+    UPROPERTY()
+    AActor* CurrentGravityField;
 public:
     /************************************************************************ Getter / Setter ************************************************************************/
     
@@ -273,6 +287,8 @@ public:
 
     UFUNCTION(BlueprintCallable)
     USkeletalMeshComponent* GetChampionSkeletalMeshComponent() const { return GetMesh(); }
+
+
 
     void PlayDeadAnimMontage() const;
 };

@@ -88,6 +88,13 @@ AOPChampion::AOPChampion()
 		R_Action = RInput.Object;
 	}
 	
+	// BP_GravityField_Sphere 블루프린트 클래스를 로드
+	static ConstructorHelpers::FClassFinder<AActor> GravityFieldSphereBPClass(TEXT("/Game/Blueprint/GravityFields/BP_GravityField_Sphere"));
+	if (GravityFieldSphereBPClass.Class != nullptr)
+	{
+		GravityFieldSphereClass = GravityFieldSphereBPClass.Class;
+	}
+
 	ChampionAnimInstance = Cast<UOPAnimInstance>(GetMesh()->GetAnimInstance());
 }
 
@@ -106,8 +113,99 @@ void AOPChampion::BeginPlay()
 	ChampionAnimInstance = Cast<UOPAnimInstance>(GetMesh()->GetAnimInstance());
 
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+
+	// 델리게이트 바인딩
+	OnActorBeginOverlap.AddDynamic(this, &AOPChampion::OnOverlapBegin);
 }
 
+void AOPChampion::OnOverlapBegin(AActor* OverlappedActor, AActor* OtherActor)
+{
+	if (OtherActor && OtherActor != this)
+	{
+		// 블루프린트 클래스로 캐스팅을 시도합니다.
+		if (OtherActor->GetClass()->IsChildOf(GravityFieldSphereClass))
+		{
+			// 캐스팅이 성공한 경우, CurrentGravityField를 설정합니다.(현재 중력 필드)
+			CurrentGravityField = OtherActor;
+
+			//GetGravityDirection 함수를 호출합니다. 
+			UFunction* GravityDirectionFunction = OtherActor->FindFunction(TEXT("GetGravityDirection"));
+			if (GravityDirectionFunction)
+			{
+				struct FGravityDirectionParams
+				{
+					FVector GravityDirection;
+					AActor* TargetActor;
+				};
+
+				FGravityDirectionParams Params;
+				Params.TargetActor = this; // Self 참조 전달
+
+				OtherActor->ProcessEvent(GravityDirectionFunction, &Params);
+
+				FVector GravityDirection = Params.GravityDirection;
+				GravityDirection.Normalize(); // 벡터를 노멀라이즈하여 방향 벡터의 크기를 1로 설정
+				UE_LOG(LogTemp, Warning, TEXT("Gravity Direction: %s"), *GravityDirection.ToString());
+
+				// 캐릭터의 Character Movement Component에서 Set Gravity Direction 함수 호출
+				UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
+				if (CharacterMovementComponent)
+				{
+					UFunction* SetGravityDirectionFunction = CharacterMovementComponent->FindFunction(TEXT("SetGravityDirection"));
+					if (SetGravityDirectionFunction)
+					{
+						struct FSetGravityDirectionParams
+						{
+							FVector GravityDirection;
+						};
+
+						FSetGravityDirectionParams SetGravityParams;
+						SetGravityParams.GravityDirection = GravityDirection;
+
+						CharacterMovementComponent->ProcessEvent(SetGravityDirectionFunction, &SetGravityParams);
+
+					}
+				}
+			}
+		}
+	}
+}
+
+void AOPChampion::NotifyActorEndOverlap(AActor* OtherActor)
+{
+	// Check if OtherActor is valid and not this actor
+	if (OtherActor && OtherActor != this)
+	{
+
+		// 블루프린트 클래스로 캐스팅을 시도합니다.
+		if (OtherActor->GetClass()->IsChildOf(GravityFieldSphereClass))
+		{
+			//GetGravityDirection 함수를 호출합니다. 
+			UFunction* GravityDirectionFunction = OtherActor->FindFunction(TEXT("GetGravityDirection"));
+			if (GravityDirectionFunction)
+			{
+				// If the cast is successful, set CurrentGravityField to the cast object
+				CurrentGravityField = OtherActor;
+
+				// Get overlapping actors of class OtherActor
+				TArray<AActor*> OverlappingActors;
+				GetOverlappingActors(OverlappingActors, OtherActor->GetClass());
+
+				// Process OverlappingActors array as needed
+				if (OverlappingActors.Num() > 0)
+				{
+					// Example: Log the count of overlapping actors
+					UE_LOG(LogTemp, Warning, TEXT("Overlapping Gravity Fields Count: %d"), OverlappingActors.Num());
+				}
+			}
+			else
+			{
+				// If the cast fails, set CurrentGravityField to nullptr or handle as needed
+				CurrentGravityField = nullptr; // Or some other default value
+			}
+		}
+	}
+}
 void AOPChampion::PlayDeadAnimMontage() const
 {
 	ChampionAnimInstance->Montage_Play(DeadAnimMontage);
@@ -171,6 +269,26 @@ void AOPChampion::TurnCharacterToCursor(FHitResult HitResult)
 	TurnCharacterToLocation(HitResult.Location);
 }
 
+void AOPChampion::SetCustomGravityDirection(FVector NewGravityDirection)
+{
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->GravityScale = 0;  // Disable default gravity
+		GetCharacterMovement()->AddForce(NewGravityDirection * 980.f * GetCharacterMovement()->Mass); // Apply custom gravity
+	}
+}
+
+void AOPChampion::SetCustomGravityScale(float NewGravityScale)
+{
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->GravityScale = NewGravityScale;
+	}
+}
+
+
+
+
 
 void AOPChampion::Move(const FInputActionValue& InputActionValue)
 {
@@ -203,6 +321,8 @@ void AOPChampion::Look(const FInputActionValue& InputActionValue)
 void AOPChampion::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	
 }
 
 // Called to bind functionality to input
