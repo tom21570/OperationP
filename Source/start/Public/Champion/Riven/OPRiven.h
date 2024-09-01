@@ -30,13 +30,13 @@ protected:
 	/****************************************************************************** Q ******************************************************************************/
 
 	virtual void Q() override;
-	void Q_Trace();
-	void Q_Trace_Third();
+	void Q_Trace() const;
+	void Q_Trace_Third() const;
 	
 	/****************************************************************************** W ******************************************************************************/
 
 	virtual void W() override;
-	void W_Trace();
+	void W_Trace() const;
 	
 	/****************************************************************************** E ******************************************************************************/
 
@@ -124,7 +124,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> R_SwordMesh;
 	
-    FTimerHandle R_Cast_TimerHandle;
+    FTimerHandle R_Reinforce_TimerHandle;
+	FTimerHandle R_ReinforceEnd_TimerHandle;
+    FTimerHandle R_Slash_TimerHandle;
 
 	bool bR_IsActivated = false;
 	bool bR_CanSlash = false;

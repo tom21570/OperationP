@@ -32,9 +32,9 @@ protected:
 	/****************************************************************************** Q ******************************************************************************/
 
 	virtual void Q() override;
-	void Q_Trace_Catch();
-	void Q_TraceForSlamTarget();
-	void Q_Trace_Slam();
+	void Q_Trace_Catch_First();
+	void Q_Trace_Catch_Second();
+	void Q_Slam();
 	
 	/****************************************************************************** W ******************************************************************************/
 
@@ -44,11 +44,12 @@ protected:
 	/****************************************************************************** E ******************************************************************************/
 
 	virtual void E() override;
-	void E_Trace();
+	void E_OnLanding();
 	
 	/****************************************************************************** R ******************************************************************************/
 
 	virtual void R() override;
+	void R_Trace();
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"))
@@ -100,8 +101,11 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<USceneComponent> Q_GrabPoint_LeftHand;
 	
-    bool bQ_CanSlam = false;
-	bool bQ_IsStretching = false;
+    bool bQ_CaughtTarget_LeftHand = false;
+    bool bQ_CaughtTarget_RightHand = false;
+	bool bQ_IsStretching_LeftHand = false;
+	bool bQ_IsStretching_RightHand = false;
+	bool bQ_IsReadyToSlam = false;
 
 	int32 Q_TickVariable = 0.f;
 	FVector Q_FinalLocation;
@@ -109,8 +113,10 @@ private:
     TObjectPtr<AOPChampion> Q_CaughtTarget;
     TObjectPtr<AOPChampion> Q_SlamTarget;
 
-    FTimerHandle Q_StretchCast_TimerHandle;
-	FTimerHandle Q_StretchEnd_TimerHandle;
+    FTimerHandle Q_StretchCast_LeftHand_TimerHandle;
+    FTimerHandle Q_StretchCast_RightHand_TimerHandle;
+	FTimerHandle Q_StretchEnd_RightHand_TimerHandle;
+	FTimerHandle Q_StretchEnd_LeftHand_TimerHandle;
 	FTimerHandle Q_SlamCast_TimerHandle;
     
     /****************************************************************************** W ******************************************************************************/
@@ -134,6 +140,7 @@ private:
 	float E_Speed_Z = 0.f;
 
     bool bE_CanJump = false;
+	bool bE_IsInAir = false;
     
     /****************************************************************************** R ******************************************************************************/
 

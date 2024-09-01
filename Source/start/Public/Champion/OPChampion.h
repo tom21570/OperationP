@@ -3,12 +3,16 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interface/OPCombatInterface.h"
 #include "OPChampion.generated.h"
 
+class APatrolPath;
+class UBehaviorTree;
+class UAIPerceptionStimuliSourceComponent;
 class AOPDiavolo;
 
 UCLASS()
-class START_API AOPChampion : public ACharacter
+class START_API AOPChampion : public ACharacter, public IOPCombatInterface
 {
     GENERATED_BODY()
 
@@ -100,6 +104,8 @@ protected:
     bool bTrueSightOn = false; // 리신 음파 (Q)에 피격되면 표식에 생겨서 true가 되는 boolean 값
     bool bStumbledByLeeSinE = false; // 리신 음파 (Q)에 피격되면 표식에 생겨서 true가 되는 boolean 값
     bool bFrenziedMaulOn = false; // 볼리베어 W 1타에 피격되어 표식이 생겨서 true가 되는 boolean 값
+    
+    UPROPERTY(VisibleAnywhere)
     int32 StormMarkCount = 0;
 
     /*************************************************************************** Passive ***************************************************************************/
@@ -187,7 +193,16 @@ protected:
     FTimerHandle ResetMovementTimerHandle; // 챔피언의 움직임들을 디폴트 값으로 리셋시킬 시간을 조절하기 위한 타이머 핸들
 
     /****************************************************************************** ETC ******************************************************************************/
-    
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UBehaviorTree> Tree;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<APatrolPath> PatrolPath;
+
+    TObjectPtr<UAIPerceptionStimuliSourceComponent> StimulusSource;
+
+    void SetupStimulusSource();
 
 public:
     /************************************************************************ Getter / Setter ************************************************************************/
@@ -275,4 +290,10 @@ public:
     USkeletalMeshComponent* GetChampionSkeletalMeshComponent() const { return GetMesh(); }
 
     void PlayDeadAnimMontage() const;
+
+    FORCEINLINE TObjectPtr<UBehaviorTree> GetBehaviorTree() const { return Tree; }
+    FORCEINLINE TObjectPtr<APatrolPath> GetPatrolPath() const { return PatrolPath; }
+    // FORCEINLINE void BasicAttack_Public() { BasicAttack(); }
+
+    int MeleeAttack_AI_Implementation() override;
 };

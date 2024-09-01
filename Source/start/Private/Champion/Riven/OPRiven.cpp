@@ -2,7 +2,6 @@
 
 
 #include "Champion/Riven/OPRiven.h"
-
 #include "Animation/OPAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Diavolo/OPDiavolo.h"
@@ -17,7 +16,7 @@ AOPRiven::AOPRiven()
 
 	R_SwordMesh = CreateDefaultSubobject<UStaticMeshComponent>("Sword Mesh");
 	R_SwordMesh->SetupAttachment(GetMesh(), FName(TEXT("R Sword Socket")));
-	R_SwordMesh->SetVisibility(false);
+	R_SwordMesh->SetHiddenInGame(true);
 }
 
 void AOPRiven::BeginPlay()
@@ -53,13 +52,13 @@ void AOPRiven::BasicAttack()
 			switch (RandomValue)
 			{
 			case 0:
-				ChampionAnimInstance->Montage_JumpToSection("1R", BasicAttack_AnimMontage);
+				ChampionAnimInstance->Montage_JumpToSection("BasicAttack_1R", BasicAttack_AnimMontage);
 				break;
 			case 1:
-				ChampionAnimInstance->Montage_JumpToSection("2R", BasicAttack_AnimMontage);
+				ChampionAnimInstance->Montage_JumpToSection("BasicAttack_2R", BasicAttack_AnimMontage);
 				break;
 			case 2:
-				ChampionAnimInstance->Montage_JumpToSection("3", BasicAttack_AnimMontage);
+				ChampionAnimInstance->Montage_JumpToSection("BasicAttack_3", BasicAttack_AnimMontage);
 				break;
 			default:
 				break;
@@ -70,13 +69,13 @@ void AOPRiven::BasicAttack()
 			switch (RandomValue)
 			{
 			case 0:
-				ChampionAnimInstance->Montage_JumpToSection("1", BasicAttack_AnimMontage);
+				ChampionAnimInstance->Montage_JumpToSection("BasicAttack_1", BasicAttack_AnimMontage);
 				break;
 			case 1:
-				ChampionAnimInstance->Montage_JumpToSection("2", BasicAttack_AnimMontage);
+				ChampionAnimInstance->Montage_JumpToSection("BasicAttack_2", BasicAttack_AnimMontage);
 				break;
 			case 2:
-				ChampionAnimInstance->Montage_JumpToSection("3", BasicAttack_AnimMontage);
+				ChampionAnimInstance->Montage_JumpToSection("BasicAttack_3", BasicAttack_AnimMontage);
 				break;
 			default:
 				break;
@@ -129,19 +128,19 @@ void AOPRiven::Q()
 		switch (Q_Step)
 		{
 		case 1:
-			ChampionAnimInstance->Montage_JumpToSection(FName("1"), Q_AnimMontage);
+			ChampionAnimInstance->Montage_JumpToSection(FName("Q_1"), Q_AnimMontage);
 			LaunchCharacter(GetActorForwardVector() * Q_Speed_XY, true, true);
 			GetWorldTimerManager().SetTimer(Q_Trace_TimerHandle, this, &AOPRiven::Q_Trace, false, 1.f);
 			Q_Step++;
 			break;
 		case 2:
-			ChampionAnimInstance->Montage_JumpToSection(FName("1"), Q_AnimMontage);
+			ChampionAnimInstance->Montage_JumpToSection(FName("Q_2"), Q_AnimMontage);
 			LaunchCharacter(GetActorForwardVector() * Q_Speed_XY, true, true);
 			GetWorldTimerManager().SetTimer(Q_Trace_TimerHandle, this, &AOPRiven::Q_Trace, false, 1.f);
 			Q_Step++;
 			break;
 		case 3:
-			ChampionAnimInstance->Montage_JumpToSection(FName("1"), Q_AnimMontage);
+			ChampionAnimInstance->Montage_JumpToSection(FName("Q_3"), Q_AnimMontage);
 			LaunchCharacter(GetActorForwardVector() * Q_Speed_XY + GetActorUpVector() * Q_Speed_Z, true, true);
 			GetWorldTimerManager().SetTimer(Q_Trace_TimerHandle, this, &AOPRiven::Q_Trace_Third, false, 1.f);
 			Q_Step = 1;
@@ -154,26 +153,25 @@ void AOPRiven::Q()
 	}
 
 	StopChampionMovement();
-	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPRiven::ResetChampionMovement, 1.05f, false);
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPRiven::ResetChampionMovement, 0.4f, false);
 }
 
-void AOPRiven::Q_Trace()
+void AOPRiven::Q_Trace() const
 {
-	TArray<FHitResult> HitResults; // Hit의 결과를 저장할 배열
-	TArray<AActor*> ActorsToIgnore; // 트레이스하지 않을 액터들
+	TArray<FHitResult> HitResults;
+	TArray<AActor*> ActorsToIgnore;
 
-	// 원 모양으로 어디부터 어디까지, 어떤 채널에서 트레이스할지 정하고 트레이스하는 함수
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * Q_Range, Q_Width,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 	
-	for (auto& HitActor : HitResults) // 트레이스된 여러 액터들에 적용하기 위한 반복문
+	for (auto& HitActor : HitResults)
 	{
-		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor())) // 트레이스된 액터를 디아볼로로 캐스트
+		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
 		{
 			Diavolo->SetbIsDamagedTrue();
 			Diavolo->PlayDiavoloRandomDeadMontage();
-			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * Q_Strength, true); // 디아볼로에 충격 가하기
-			if (!Diavolo->GetbCanBeTestedMultipleTimes()) // 만약 bCanBeTestedMultipleTimes가 false라면 더이상 트레이스되지 않도록 디아볼로를 설정
+			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * Q_Strength, true);
+			if (!Diavolo->GetbCanBeTestedMultipleTimes())
 			{
 				Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 			}
@@ -181,23 +179,22 @@ void AOPRiven::Q_Trace()
 	}
 }
 
-void AOPRiven::Q_Trace_Third()
+void AOPRiven::Q_Trace_Third() const
 {
-	TArray<FHitResult> HitResults; // Hit의 결과를 저장할 배열
-	TArray<AActor*> ActorsToIgnore; // 트레이스하지 않을 액터들
+	TArray<FHitResult> HitResults;
+	TArray<AActor*> ActorsToIgnore;
 
-	// 원 모양으로 어디부터 어디까지, 어떤 채널에서 트레이스할지 정하고 트레이스하는 함수
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * Q_Range, Q_Width,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 	
-	for (auto& HitActor : HitResults) // 트레이스된 여러 액터들에 적용하기 위한 반복문
+	for (auto& HitActor : HitResults)
 	{
-		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor())) // 트레이스된 액터를 디아볼로로 캐스트
+		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
 		{
 			Diavolo->SetbIsDamagedTrue();
 			Diavolo->PlayDiavoloRandomDeadMontage();
 			Diavolo->GetCharacterMovement()->AddRadialImpulse(GetActorLocation(), Q_Width, Q_Strength, RIF_Linear, true);;
-			if (!Diavolo->GetbCanBeTestedMultipleTimes()) // 만약 bCanBeTestedMultipleTimes가 false라면 더이상 트레이스되지 않도록 디아볼로를 설정
+			if (!Diavolo->GetbCanBeTestedMultipleTimes())
 			{
 				Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 			}
@@ -219,28 +216,27 @@ void AOPRiven::W()
 	}
 
 	StopChampionMovement();
-	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPRiven::ResetChampionMovement, 1.05f, false);
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPRiven::ResetChampionMovement, 0.3f, false);
 	SetbW_False();
 	GetWorldTimerManager().SetTimer(W_Cooldown_TimerHandle, this, &AOPRiven::SetbW_True, W_Cooldown, false);
 }
 
-void AOPRiven::W_Trace()
+void AOPRiven::W_Trace() const
 {
-	TArray<FHitResult> HitResults; // Hit의 결과를 저장할 배열
-	TArray<AActor*> ActorsToIgnore; // 트레이스하지 않을 액터들
+	TArray<FHitResult> HitResults;
+	TArray<AActor*> ActorsToIgnore;
 
-	// 원 모양으로 어디부터 어디까지, 어떤 채널에서 트레이스할지 정하고 트레이스하는 함수
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation(), W_Width,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 	
-	for (auto& HitActor : HitResults) // 트레이스된 여러 액터들에 적용하기 위한 반복문
+	for (auto& HitActor : HitResults)
 	{
-		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor())) // 트레이스된 액터를 디아볼로로 캐스트
+		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
 		{
 			Diavolo->SetbIsDamagedTrue();
 			Diavolo->PlayDiavoloRandomDeadMontage();
 			Diavolo->GetCharacterMovement()->AddRadialImpulse(GetActorLocation(), W_Width, W_Strength, RIF_Linear, true);;
-			if (!Diavolo->GetbCanBeTestedMultipleTimes()) // 만약 bCanBeTestedMultipleTimes가 false라면 더이상 트레이스되지 않도록 디아볼로를 설정
+			if (!Diavolo->GetbCanBeTestedMultipleTimes())
 			{
 				Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
 			}
@@ -268,7 +264,7 @@ void AOPRiven::E()
 	}
 
 	StopChampionMovement();
-	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPRiven::ResetChampionMovement, 1.05f, false);
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPRiven::ResetChampionMovement, 0.1f, false);
 	SetbE_False();
 	GetWorldTimerManager().SetTimer(E_Cooldown_TimerHandle, this, &AOPRiven::SetbE_True, E_Cooldown, false);
 }
@@ -283,11 +279,19 @@ void AOPRiven::R()
 	{
 		bR_IsActivated = true;
 		bR_CanSlash = true;
-		R_SwordMesh->SetVisibility(true);
+		GetWorldTimerManager().SetTimer(R_Reinforce_TimerHandle, FTimerDelegate::CreateLambda([&]
+		{
+			R_SwordMesh->SetHiddenInGame(false);
+		}), 0.25f, false);
+		GetWorldTimerManager().SetTimer(R_ReinforceEnd_TimerHandle, FTimerDelegate::CreateLambda([&]
+		{
+			bR_IsActivated = false;
+			R_SwordMesh->SetHiddenInGame(true);
+		}), 15.5f, false);
 		if (ChampionAnimInstance && R_AnimMontage)
 		{
 			ChampionAnimInstance->Montage_Play(R_AnimMontage);
-			ChampionAnimInstance->Montage_JumpToSection("Reinforce", R_AnimMontage);
+			ChampionAnimInstance->Montage_JumpToSection("R_Reinforce", R_AnimMontage);
 		}
 	}
 
@@ -303,7 +307,7 @@ void AOPRiven::R()
 		if (ChampionAnimInstance && R_AnimMontage)
 		{
 			ChampionAnimInstance->Montage_Play(R_AnimMontage);
-			ChampionAnimInstance->Montage_JumpToSection("Slash", R_AnimMontage);
+			ChampionAnimInstance->Montage_JumpToSection("R_Slash", R_AnimMontage);
 		}
 
 		StopChampionMovement();
