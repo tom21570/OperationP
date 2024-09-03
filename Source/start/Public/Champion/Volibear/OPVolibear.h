@@ -6,6 +6,7 @@
 #include "Champion/OPChampion.h"
 #include "OPVolibear.generated.h"
 
+class UOPVolibearAnimInstance;
 class UNiagaraComponent;
 class UNiagaraSystem;
 /**
@@ -43,9 +44,6 @@ protected:
 	virtual void W() override;
 	void W_Trace();
 	bool W_TraceForMaul();
-	
-	void CreateMarkerOnTarget(AOPDiavolo* Target);
-	void RemoveMarkerOnTarget(AOPDiavolo* Target);
 
 	/***************************************************************************** E *****************************************************************************/
 	
@@ -57,11 +55,14 @@ protected:
 	virtual void R() override;
 	void R_OnLanding();
 
-	/****************************************************************** Hit 이벤트 발생 시 호출할 함수 ******************************************************************/
-	UFUNCTION()
-	void OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
 private:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mesh", meta = (AllowPrivateAccess = "true"));
+	TObjectPtr<USkeletalMeshComponent> ThousandPiercedBearMesh;
+
+	TObjectPtr<UOPVolibearAnimInstance> ThousandPiercedBearAnimInstance;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Dismemberment", meta = (AllowPrivateAccess = "true"))
+	float DismemberStrength = 0.f;
 	/************************************************************** 투사체 움직임 구현을 위한 무브먼트 컴포넌트 **************************************************************/
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"));
@@ -72,11 +73,14 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float BasicAttack_Strength = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	float BasicAttack_Range = 150.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	float BasicAttack_Width = 80.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	bool bBasicAttack_DrawDebugTrace = false;
 
 	FTimerHandle BasicAttack_Cast_TimerHandle;
 	FTimerHandle BasicAttack_ComboCount_TimerHandle;
@@ -105,15 +109,14 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float W_Strength = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	float W_Range = 350.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	float W_Width = 30.f;
 
-	//볼리베어 w스킬 갈퀴 마커 메쉬 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	UStaticMeshComponent* MarkerMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	bool bW_DrawDebugTrace = false;
 	
 	FTimerHandle W_Cast_TimerHandle;
 
@@ -128,8 +131,11 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float E_StrengthAngle = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	float E_Radius = 350.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	bool bE_DrawDebugTrace = false;
 
 	TObjectPtr<class AOPVolibearLightningbolt> E_LightningboltStorage;
 	
@@ -155,6 +161,51 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float R_Velocity_Z = 0.f; // ��ų 4 �ӵ�
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float R_LandingStrength = 0.f; // �ñر� ��ݷ�
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	float R_LandingRadius = 700.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float R_LandingStrengthAngle = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	float R_SizeIncreaseIndex = 1.35f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	float R_MaintainTime = 1.35f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	bool bR_DrawDebugTrace = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UParticleSystem> R_LightningEffect;
+
+	FVector R_OriginalSizeIndex;
+	bool bR_Stormbringer = false; // 궁으로 변신한 상태인지
+	bool bR_IsJumping = false;
+	
+	FVector R_FinalLocation;
+	FTimerHandle R_End_TimerHandle;
+
+	FTimerHandle SkeletonMontagePause_TimerHandle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Basic Attack", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> BasicAttack_AnimMontage_Stormbringer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> Q_AnimMontage_Stormbringer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> W_AnimMontage_Stormbringer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> E_AnimMontage_Stormbringer;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> R_AnimMontage_Stormbringer;
+
 	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	// FVector Ult_Velocity_Parabola = FVector::ZeroVector; // ��ų 4 �ӵ�
 	//
@@ -163,29 +214,7 @@ private:
 	//
 	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	// float Ult_Distance = 0.f; // ��ų 4 �Ÿ�
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float R_LandingStrength = 0.f; // �ñر� ��ݷ�
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float R_LandingRadius = 700.f;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float R_LandingStrengthAngle = 0.f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	float R_SizeIncreaseIndex = 1.35f;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | GameplayMethods", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UParticleSystem> R_LightningEffect;
-	
-	bool bR_Stormbringer = false; // 궁으로 변신한 상태인지
-
-	bool bR_IsJumping = false;
-	
-	FVector R_FinalLocation;
-	FTimerHandle R_End_TimerHandle;
-
 	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	// bool bUlt_ActAsProjectile = true;
 	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ultimate | Physical Tests", meta = (AllowPrivateAccess = "true"))

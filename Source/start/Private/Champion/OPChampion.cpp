@@ -10,13 +10,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Animation/OPAnimInstance.h"
-#include "Diavolo/OPDiavolo.h"
-#include "NiagaraFunctionLibrary.h"
 #include "GameFramework/DamageType.h"
 #include "Engine/EngineTypes.h"
 #include "Engine/World.h"
-#include "Perception/AIPerceptionStimuliSourceComponent.h"
-#include "Perception/AISense_Sight.h"
 
 // Sets default values
 AOPChampion::AOPChampion()
@@ -115,15 +111,6 @@ void AOPChampion::PlayDeadAnimMontage() const
 	ChampionAnimInstance->Montage_Play(DeadAnimMontage);
 }
 
-int AOPChampion::MeleeAttack_AI_Implementation()
-{
-	if (BasicAttack_AnimMontage)
-	{
-		PlayAnimMontage(BasicAttack_AnimMontage);
-	}
-	return 0;
-}
-
 void AOPChampion::ResetChampionMovement() const
 {
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
@@ -136,16 +123,6 @@ void AOPChampion::StopChampionMovement() const
 	GetCharacterMovement()->MaxWalkSpeed = 0.f;
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->JumpZVelocity = 0.f;
-}
-
-void AOPChampion::SetupStimulusSource()
-{
-	StimulusSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>("Stimulus");
-	if (StimulusSource)
-	{
-		StimulusSource->RegisterForSense(TSubclassOf<UAISense_Sight>());
-		StimulusSource->RegisterWithPerceptionSystem();
-	}
 }
 
 void AOPChampion::Passive()
@@ -178,7 +155,7 @@ void AOPChampion::R()
 	UE_LOG(LogTemp, Warning, TEXT("R"));
 }
 
-void AOPChampion::TurnCharacterToLocation(FVector TurnPoint)
+void AOPChampion::TurnCharacterToLocation(const FVector& TurnPoint)
 {
 	FVector CursorLocation{TurnPoint.X, TurnPoint.Y, this->GetActorLocation().Z};
 	FVector StartPoint{this->GetActorLocation()};
@@ -187,7 +164,7 @@ void AOPChampion::TurnCharacterToLocation(FVector TurnPoint)
 	this->SetActorRotation(Rotation);
 }
 
-void AOPChampion::TurnCharacterToCursor(FHitResult HitResult)
+void AOPChampion::TurnCharacterToCursor(const FHitResult& HitResult)
 {
 	TurnCharacterToLocation(HitResult.Location);
 }

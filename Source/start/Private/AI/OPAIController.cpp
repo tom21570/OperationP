@@ -2,6 +2,8 @@
 
 
 #include "AI/OPAIController.h"
+
+#include "AI/OPAIEnemy.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Champion/OPChampion.h"
@@ -16,9 +18,9 @@ AOPAIController::AOPAIController(FObjectInitializer const& ObjectInitializer)
 void AOPAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-	if (AOPChampion* const Champion = Cast<AOPChampion>(InPawn))
+	if (const AOPAIEnemy* const AIEnemy = Cast<AOPAIEnemy>(InPawn))
 	{
-		if (UBehaviorTree* const Tree = Champion->GetBehaviorTree())
+		if (UBehaviorTree* const Tree = AIEnemy->GetBehaviorTree())
 		{
 			UBlackboardComponent* BlackboardComponent;
 			UseBlackboard(Tree->BlackboardAsset, BlackboardComponent);
@@ -26,6 +28,15 @@ void AOPAIController::OnPossess(APawn* InPawn)
 			RunBehaviorTree(Tree);
 		}
 	}
+}
+
+void AOPAIController::OnUnPossess()
+{
+	Super::OnUnPossess();
+
+	SightConfig = nullptr;
+	Blackboard = nullptr;
+	
 }
 
 void AOPAIController::SetupPerceptionSystem()
@@ -45,15 +56,15 @@ void AOPAIController::SetupPerceptionSystem()
 		SightConfig->DetectionByAffiliation.bDetectNeutrals = true;
 
 		GetPerceptionComponent()->SetDominantSense(*SightConfig->GetSenseImplementation());
-		GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &AOPAIController::OnTargetDetected);
+		// GetPerceptionComponent()->OnTargetPerceptionUpdated.AddDynamic(this, &AOPAIController::OnTargetDetected);
 		GetPerceptionComponent()->ConfigureSense((*SightConfig));
 	}
 }
 
-void AOPAIController::OnTargetDetected(AActor* Actor, FAIStimulus const Stimulus)
-{
-	if (auto* const OPCharacter = Cast<AOPChampion>(Actor))
-	{
-		GetBlackboardComponent()->SetValueAsBool("CanSeePlayer", Stimulus.WasSuccessfullySensed());
-	}
-}
+// void AOPAIController::OnTargetDetected(AActor* Actor, FAIStimulus const Stimulus)
+// {
+// 	if (auto* const OPCharacter = Cast<AOPChampion>(Actor))
+// 	{
+// 		GetBlackboardComponent()->SetValueAsBool("CanSeePlayer", Stimulus.WasSuccessfullySensed());
+// 	}
+// }

@@ -17,14 +17,14 @@ UOPBTTask_FindPlayerLocation::UOPBTTask_FindPlayerLocation(FObjectInitializer co
 
 EBTNodeResult::Type UOPBTTask_FindPlayerLocation::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	if (auto* const Player  = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
+	if (const auto* const Player  = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0))
 	{
 		auto const PlayerLocation = Player->GetActorLocation();
 		if (SearchRandom)
 		{
 			FNavLocation Location;
 
-			if (auto* const NavSys = UNavigationSystemV1::GetCurrent(GetWorld()))
+			if (const auto* const NavSys = UNavigationSystemV1::GetCurrent(GetWorld()))
 			{
 				if (NavSys->GetRandomPointInNavigableRadius(PlayerLocation, SearchRadius, Location))
 				{

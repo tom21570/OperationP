@@ -4,6 +4,7 @@
 #include "AI/OPBTService_IsPlayerInMeleeRange.h"
 
 #include "AI/OPAIController.h"
+#include "AI/OPAIEnemy.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Champion/OPChampion.h"
 #include "Kismet/GameplayStatics.h"
@@ -19,7 +20,7 @@ void UOPBTService_IsPlayerInMeleeRange::OnBecomeRelevant(UBehaviorTreeComponent&
 	Super::OnBecomeRelevant(OwnerComp, NodeMemory);
 
 	auto const* const Controller = Cast<AOPAIController>(OwnerComp.GetAIOwner());
-	auto const* const AIEnemy = Cast<AOPChampion>(Controller->GetPawn());
+	auto const* const AIEnemy = Cast<AOPAIEnemy>(Controller->GetPawn());
 
 	auto const* const Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 

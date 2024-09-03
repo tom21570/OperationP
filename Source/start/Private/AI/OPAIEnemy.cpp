@@ -2,33 +2,73 @@
 
 
 #include "AI/OPAIEnemy.h"
-#include "AIController.h"
-#include "AITypes.h"
-#include "Kismet/GameplayStatics.h"
-#include "Navigation/PathFollowingComponent.h"
+#include "Animation/OPAnimInstance.h"
+#include "Perception/AIPerceptionStimuliSourceComponent.h"
+#include "Perception/AISense_Sight.h"
+#include "Projectile/OPSkeletonKnightSpear.h"
 
 AOPAIEnemy::AOPAIEnemy()
 {
-	AIController = Cast<AAIController>(GetController());
+	SpearSpawnPoint = CreateDefaultSubobject<USceneComponent>("SpearSpawnPoint");
+	SpearSpawnPoint->SetupAttachment(GetRootComponent());
 }
 
 void AOPAIEnemy::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	AOPChampion* Champion = Cast<AOPChampion>(UGameplayStatics::GetPlayerCharacter(GetWorld(), 0));
-	FAIMoveRequest MoveRequest;
-	MoveRequest.SetGoalActor(Champion);
-	MoveRequest.SetAcceptanceRadius(10000.f);
-	
-	FNavPathSharedPtr NavPath;
-	if (AIController)
-	{
-		AIController->MoveTo(MoveRequest, &NavPath);
-	}
 }
 
 void AOPAIEnemy::Tick(float DeltaSeconds)
 {
+    
+}
 
+void AOPAIEnemy::BasicAttack()
+{
+	Super::BasicAttack();
+
+	if (!bBasicAttack) return;
+
+	GetWorldTimerManager().SetTimer(SpearThrow_TimerHandle, this, &AOPAIEnemy::ThrowSpear, 0.8f, false);
+	
+	if (ChampionAnimInstance && BasicAttack_AnimMontage)
+	{
+		ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage);
+	}
+
+	StopChampionMovement();
+	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPAIEnemy::ResetChampionMovement, 1.9f, false);
+	SetbBasicAttack_False();
+	GetWorldTimerManager().SetTimer(BasicAttack_Cooldown_TimerHandle, this, &AOPAIEnemy::SetbBasicAttack_True, 1.9f, false);
+}
+
+// void AOPAIEnemy::SetupStimulusSource()
+// {
+// 	StimulusSource = CreateDefaultSubobject<UAIPerceptionStimuliSourceComponent>("Stimulus");
+// 	if (StimulusSource)
+// 	{
+// 		StimulusSource->RegisterForSense(TSubclassOf<UAISense_Sight>());
+// 		StimulusSource->RegisterWithPerceptionSystem();
+// 	}
+// }
+
+void AOPAIEnemy::ThrowSpear()
+{
+	if (SpearClass == nullptr) return;
+	SpearStorage = GetWorld()->SpawnActor<AOPSkeletonKnightSpear>(SpearClass, SpearSpawnPoint->GetComponentLocation(), SpearSpawnPoint->GetComponentRotation());
+	SpearStorage->SetOwner(this);
+}
+
+int AOPAIEnemy::MeleeAttack_AI_Implementation()
+{
+	if (BasicAttack_AnimMontage)
+	{
+		PlayAnimMontage(BasicAttack_AnimMontage);
+	}
+	return 0;
+}
+
+void AOPAIEnemy::BasicAttack_Public()
+{
+	BasicAttack();
 }

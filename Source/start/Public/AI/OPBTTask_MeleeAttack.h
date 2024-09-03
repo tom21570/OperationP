@@ -6,7 +6,7 @@
 #include "BehaviorTree/Tasks/BTTask_BlackboardBase.h"
 #include "OPBTTask_MeleeAttack.generated.h"
 
-class AOPChampion;
+class AOPAIEnemy;
 /**
  * 
  */
@@ -20,5 +20,5 @@ public:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 private:
-	bool MontageHasFinished(AOPChampion* const Enemy);
+	bool MontageHasFinished(AOPAIEnemy* const Enemy);
 };

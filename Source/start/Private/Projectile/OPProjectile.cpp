@@ -28,8 +28,8 @@ void AOPProjectile::BeginPlay()
 void AOPProjectile::OnDamageCollisionBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Overlapped"));
-	GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Black, FString(TEXT("Overlapped")));
+	// UE_LOG(LogTemp, Warning, TEXT("Overlapped"));
+	// GEngine->AddOnScreenDebugMessage(1, 2.f, FColor::Black, FString(TEXT("Overlapped")));
 }
 
 // Called every frame

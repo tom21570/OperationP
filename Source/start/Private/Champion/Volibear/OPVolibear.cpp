@@ -3,8 +3,9 @@
 
 #include "Champion/Volibear/OPVolibear.h"
 #include "NiagaraComponent.h"
-#include "NiagaraFunctionLibrary.h"
+#include "AI/OPAIEnemy.h"
 #include "Animation/OPAnimInstance.h"
+#include "Champion/Volibear/OPVolibearAnimInstance.h"
 #include "Champion/Volibear/OPVolibearLightningbolt.h"
 #include "Components/CapsuleComponent.h"
 #include "Diavolo/OPDiavolo.h"
@@ -19,12 +20,21 @@ AOPVolibear::AOPVolibear()
 
 	E_LightningShield_NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>(TEXT("E_LightningShield_NiagaraComponent"));
 	E_LightningShield_NiagaraComponent->SetupAttachment(GetRootComponent());
+
+	ThousandPiercedBearMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("ThousandPiercedBearMesh"));
+	ThousandPiercedBearMesh->SetupAttachment(GetMesh());
+	
+	ThousandPiercedBearAnimInstance = Cast<UOPVolibearAnimInstance>(ThousandPiercedBearMesh->GetAnimInstance());
 }
 
 void AOPVolibear::BeginPlay()
 {
 	Super::BeginPlay();
 	E_LightningShield_NiagaraComponent->SetVisibility(false);
+	R_OriginalSizeIndex = GetCapsuleComponent()->GetComponentScale();
+	ThousandPiercedBearMesh->SetHiddenInGame(true);
+
+	ThousandPiercedBearAnimInstance = Cast<UOPVolibearAnimInstance>(ThousandPiercedBearMesh->GetAnimInstance());
 }
 
 void AOPVolibear::Tick(float DeltaSeconds)
@@ -60,57 +70,116 @@ void AOPVolibear::BasicAttack()
 	if (!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);
 
-	if (ChampionAnimInstance && BasicAttack_AnimMontage)
+	if (bR_Stormbringer)
 	{
-		if (bQ_ThunderingSmash)
+		if (ThousandPiercedBearAnimInstance && BasicAttack_AnimMontage_Stormbringer)
 		{
-			GetWorldTimerManager().SetTimer(BasicAttack_Cast_TimerHandle, FTimerDelegate::CreateLambda([&]
+			if (bQ_ThunderingSmash)
 			{
-				BasicAttack_Trace_Q();
-			}), 0.5f, false);
+				GetWorldTimerManager().SetTimer(BasicAttack_Cast_TimerHandle, FTimerDelegate::CreateLambda([&]
+				{
+					BasicAttack_Trace_Q();
+				}), 0.5f, false);
 
-			bQ_ThunderingSmash = false;
-			WalkSpeed = DefaultWalkSpeed;
-			GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-			
-			ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
-			ChampionAnimInstance->Montage_JumpToSection("Thundering Smash", BasicAttack_AnimMontage);
-			StopChampionMovement();
-			GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 2.5f, false);
-		}
-
-		else
-		{
-			GetWorldTimerManager().SetTimer(BasicAttack_Cast_TimerHandle, FTimerDelegate::CreateLambda([&]
-			{
-				BasicAttack_Trace();
-			}), 0.25f, false);
-			
-			switch (BasicAttack_ComboCount)
-			{
-			case 0:
-				ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
-				ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttack_AnimMontage);
-				GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPVolibear::BasicAttack_ResetComboCount, 5.f, false);
-				BasicAttack_ComboCount++;
-				break;
-
-			case 1:
-				ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
-				ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttack_AnimMontage);
-				GetWorldTimerManager().ClearTimer(BasicAttack_ComboCount_TimerHandle);
-				GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPVolibear::BasicAttack_ResetComboCount, 5.f, false);
-				BasicAttack_ComboCount = 0;
-				break;
+				bQ_ThunderingSmash = false;
+				WalkSpeed = DefaultWalkSpeed;
+				GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
 				
-			default:
-				;
+				ThousandPiercedBearAnimInstance->Montage_Play(BasicAttack_AnimMontage_Stormbringer, 1.f);
+				ThousandPiercedBearAnimInstance->Montage_JumpToSection("Thundering Smash", BasicAttack_AnimMontage_Stormbringer);
+				StopChampionMovement();
+				GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 2.5f, false);
 			}
 
-			StopChampionMovement();
-			GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 1.05f, false);
+			else
+			{
+				GetWorldTimerManager().SetTimer(BasicAttack_Cast_TimerHandle, FTimerDelegate::CreateLambda([&]
+				{
+					BasicAttack_Trace();
+				}), 0.25f, false);
+				
+				switch (BasicAttack_ComboCount)
+				{
+				case 0:
+					ThousandPiercedBearAnimInstance->Montage_Play(BasicAttack_AnimMontage_Stormbringer, 1.f);
+					ThousandPiercedBearAnimInstance->Montage_JumpToSection(FName("1"), BasicAttack_AnimMontage_Stormbringer);
+					GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPVolibear::BasicAttack_ResetComboCount, 5.f, false);
+					BasicAttack_ComboCount++;
+					break;
+
+				case 1:
+					ThousandPiercedBearAnimInstance->Montage_Play(BasicAttack_AnimMontage_Stormbringer, 1.f);
+					ThousandPiercedBearAnimInstance->Montage_JumpToSection(FName("2"), BasicAttack_AnimMontage_Stormbringer);
+					GetWorldTimerManager().ClearTimer(BasicAttack_ComboCount_TimerHandle);
+					GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPVolibear::BasicAttack_ResetComboCount, 5.f, false);
+					BasicAttack_ComboCount = 0;
+					break;
+					
+				default:
+					;
+				}
+
+				StopChampionMovement();
+				GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 1.05f, false);
+			}
 		}
 	}
+	
+	else
+	{
+		if (ChampionAnimInstance && BasicAttack_AnimMontage)
+		{
+			if (bQ_ThunderingSmash)
+			{
+				GetWorldTimerManager().SetTimer(BasicAttack_Cast_TimerHandle, FTimerDelegate::CreateLambda([&]
+				{
+					BasicAttack_Trace_Q();
+				}), 0.5f, false);
+
+				bQ_ThunderingSmash = false;
+				WalkSpeed = DefaultWalkSpeed;
+				GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+				
+				ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
+				ChampionAnimInstance->Montage_JumpToSection("Thundering Smash", BasicAttack_AnimMontage);
+				StopChampionMovement();
+				GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 2.5f, false);
+			}
+
+			else
+			{
+				GetWorldTimerManager().SetTimer(BasicAttack_Cast_TimerHandle, FTimerDelegate::CreateLambda([&]
+				{
+					BasicAttack_Trace();
+				}), 0.25f, false);
+				
+				switch (BasicAttack_ComboCount)
+				{
+				case 0:
+					ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
+					ChampionAnimInstance->Montage_JumpToSection(FName("1"), BasicAttack_AnimMontage);
+					GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPVolibear::BasicAttack_ResetComboCount, 5.f, false);
+					BasicAttack_ComboCount++;
+					break;
+
+				case 1:
+					ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage, 1.f);
+					ChampionAnimInstance->Montage_JumpToSection(FName("2"), BasicAttack_AnimMontage);
+					GetWorldTimerManager().ClearTimer(BasicAttack_ComboCount_TimerHandle);
+					GetWorldTimerManager().SetTimer(BasicAttack_ComboCount_TimerHandle, this, &AOPVolibear::BasicAttack_ResetComboCount, 5.f, false);
+					BasicAttack_ComboCount = 0;
+					break;
+					
+				default:
+					;
+				}
+
+				StopChampionMovement();
+				GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPVolibear::ResetChampionMovement, 1.05f, false);
+			}
+		}
+	}
+
 	
 	SetbBasicAttack_False();
 	GetWorldTimerManager().SetTimer(BasicAttack_Cooldown_TimerHandle, this, &AOPVolibear::SetbBasicAttack_True, BasicAttack_Cooldown, false);
@@ -118,49 +187,101 @@ void AOPVolibear::BasicAttack()
 
 void AOPVolibear::BasicAttack_Trace()
 {
-	FHitResult HitResult;
+	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
 
-	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResult, true);
-
-	if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitResult.GetActor()))
+	if (bBasicAttack_DrawDebugTrace)
 	{
-		Diavolo->SetbIsDamagedTrue();
-		Diavolo->PlayDiavoloRandomDeadMontage();
-		Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Strength, true);
-		if (!Diavolo->GetbCanBeTestedMultipleTimes())
+		UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+	}
+	else
+	{
+		UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+	}
+	
+
+	for (auto& HitActor : HitResults)
+	{
+		if (AOPAIEnemy* AIEnemy = Cast<AOPAIEnemy>(HitActor.GetActor()))
 		{
-			Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+			AIEnemy->GetMesh()->BreakConstraint(GetActorForwardVector() * DismemberStrength, AIEnemy->GetActorLocation(), "spine_01");
+			AIEnemy->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Strength, true);
+			AIEnemy->PlayDeadAnimMontage();
+			AIEnemy->DetachFromControllerPendingDestroy();
 		}
 	}
+	
+	// FHitResult HitResult;
+	// TArray<AActor*> ActorsToIgnore;
+	// ActorsToIgnore.Add(this);
+	//
+	// UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
+	// 	UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResult, true);
+	//
+	// if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitResult.GetActor()))
+	// {
+	// 	Diavolo->GetMesh()->BreakConstraint(GetActorForwardVector() * BasicAttack_Strength, Diavolo->GetActorLocation(), "Neck");
+	// 	Diavolo->SetbIsDamagedTrue();
+	// 	Diavolo->PlayDiavoloRandomDeadMontage();
+	// 	Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Strength, true);
+	// 	if (!Diavolo->GetbCanBeTestedMultipleTimes())
+	// 	{
+	// 		Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	// 	}
+	// }
 }
 
 void AOPVolibear::BasicAttack_Trace_Q()
 {
-	FHitResult HitResult;
+	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
 
-	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResult, true);
-
-	if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitResult.GetActor()))
+	if (bBasicAttack_DrawDebugTrace)
 	{
-		// Diavolo->GetChampionAnimInstance()->SetbIsInAir_True();
-		// Diavolo->GetChampionAnimInstance()->SetbIsInAir_False();
-		// Diavolo->SetbIsDamagedTrue();
-		// Diavolo->PlayDiavoloRandomDeadMontage();
-		Diavolo->GetCharacterMovement()->AddImpulse(GetActorUpVector() * Q_Strength_Z + GetActorForwardVector() * Q_Strength_XY, true);
-		if (!Diavolo->GetbCanBeTestedMultipleTimes())
+		UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+	}
+	else
+	{
+		UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+	}
+
+	for (auto& HitActor : HitResults)
+	{
+		if (AOPAIEnemy* AIEnemy = Cast<AOPAIEnemy>(HitActor.GetActor()))
 		{
-			Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+			AIEnemy->GetMesh()->BreakConstraint(GetActorForwardVector() * DismemberStrength, AIEnemy->GetActorLocation(), "spine_01");
+			AIEnemy->GetCharacterMovement()->AddImpulse(GetActorUpVector() * Q_Strength_Z + GetActorForwardVector() * Q_Strength_XY, true);
+			AIEnemy->PlayDeadAnimMontage();
+			AIEnemy->DetachFromControllerPendingDestroy();
 		}
 	}
+	
+	// FHitResult HitResult;
+	// TArray<AActor*> ActorsToIgnore;
+	// ActorsToIgnore.Add(this);
+	//
+	// UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
+	// 	UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResult, true);
+	//
+	// if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitResult.GetActor()))
+	// {
+	// 	// Diavolo->GetThousandPiercedBearAnimInstance()->SetbIsInAir_True();
+	// 	// Diavolo->GetThousandPiercedBearAnimInstance()->SetbIsInAir_False();
+	// 	// Diavolo->SetbIsDamagedTrue();
+	// 	// Diavolo->PlayDiavoloRandomDeadMontage();
+	// 	Diavolo->GetCharacterMovement()->AddImpulse(GetActorUpVector() * Q_Strength_Z + GetActorForwardVector() * Q_Strength_XY, true);
+	// 	if (!Diavolo->GetbCanBeTestedMultipleTimes())
+	// 	{
+	// 		Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	// 	}
+	// }
 }
 
-void AOPVolibear::Q() //번개 강타 Q 볼리베어가 적을 향해 이동할 때 이동 속도가 증가하며 처음으로 기본 공격하는 대상을 기절시키고 피해를 입힙니다.
+void AOPVolibear::Q()
 {
 	Super::Q(); 
 
@@ -182,7 +303,7 @@ void AOPVolibear::Q() //번개 강타 Q 볼리베어가 적을 향해 이동할 
 	GetWorldTimerManager().SetTimer(W_Cooldown_TimerHandle, this, &AOPVolibear::SetbQ_True, Q_Cooldown, false);
 }
 
-void AOPVolibear::W() //광란의 상처 W 볼리베어가 적에게 피해를 입혀 적중 시 효과를 적용하고 표식을 남깁니다.표식을 남긴 대상에게 다시 이 스킬을 사용하면 추가 피해를 입히고 체력을 회복합니다.
+void AOPVolibear::W()
 {
 	Super::W();
 
@@ -193,17 +314,34 @@ void AOPVolibear::W() //광란의 상처 W 볼리베어가 적에게 피해를 �
 	if (!MouseCursorHit.bBlockingHit) return;
 	TurnCharacterToCursor(MouseCursorHit);
 
-	ChampionAnimInstance->Montage_Play(W_AnimMontage, 1.f);
-	
-	if (W_TraceForMaul())
+	if (bR_Stormbringer)
 	{
-		ChampionAnimInstance->Montage_JumpToSection(FName("Reinforced"), W_AnimMontage);
-	}
-	else
-	{
-		ChampionAnimInstance->Montage_JumpToSection(FName("Default"), W_AnimMontage);
+		ThousandPiercedBearAnimInstance->Montage_Play(W_AnimMontage_Stormbringer, 1.f);
+		
+		if (W_TraceForMaul())
+		{
+			ThousandPiercedBearAnimInstance->Montage_JumpToSection(FName("Reinforced"), W_AnimMontage_Stormbringer);
+		}
+		else
+		{
+			ThousandPiercedBearAnimInstance->Montage_JumpToSection(FName("Default"), W_AnimMontage_Stormbringer);
+		}
 	}
 
+	else
+	{
+		ChampionAnimInstance->Montage_Play(W_AnimMontage, 1.f);
+		
+		if (W_TraceForMaul())
+		{
+			ChampionAnimInstance->Montage_JumpToSection(FName("Reinforced"), W_AnimMontage);
+		}
+		else
+		{
+			ChampionAnimInstance->Montage_JumpToSection(FName("Default"), W_AnimMontage);
+		}
+	}
+	
 	GetWorldTimerManager().SetTimer(W_Cast_TimerHandle, FTimerDelegate::CreateLambda([&]
 	{
 		W_Trace();
@@ -220,7 +358,6 @@ bool AOPVolibear::W_TraceForMaul()
 {
 	FHitResult HitResult;
 	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
 
 	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * W_Range, W_Width,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResult, true);
@@ -237,36 +374,61 @@ bool AOPVolibear::W_TraceForMaul()
 
 void AOPVolibear::W_Trace()
 {
-	FHitResult HitResult;
+	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
 
-	UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * W_Range, W_Width,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResult, true);
-
-	if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitResult.GetActor()))
+	if (bW_DrawDebugTrace)
 	{
-		if (!Diavolo->GetbFrenziedMaulOn())
-		{
-			Diavolo->SetbFrenziedMaulOn_True();
-		}
+		UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
+			UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+	}
+	else
+	{
+		UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
+			UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+	}
 
-		else if (Diavolo->GetbFrenziedMaulOn())
+	for (auto& HitActor : HitResults)
+	{
+		if (AOPAIEnemy* AIEnemy = Cast<AOPAIEnemy>(HitActor.GetActor()))
 		{
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), W_BloodNiagara, Diavolo->GetActorLocation());
-		}
-		
-		Diavolo->SetbIsDamagedTrue();
-		Diavolo->PlayDiavoloRandomDeadMontage();
-		Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * W_Strength, true);
-		if (!Diavolo->GetbCanBeTestedMultipleTimes())
-		{
-			Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+			AIEnemy->GetMesh()->BreakConstraint(GetActorForwardVector() * DismemberStrength, AIEnemy->GetActorLocation(), "spine_01");
+			AIEnemy->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * W_Strength, true);
+			AIEnemy->PlayDeadAnimMontage();
+			AIEnemy->DetachFromControllerPendingDestroy();
 		}
 	}
+	
+	// FHitResult HitResult;
+	// TArray<AActor*> ActorsToIgnore;
+	// ActorsToIgnore.Add(this);
+	//
+	// UKismetSystemLibrary::SphereTraceSingle(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * W_Range, W_Width,
+	// 	UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResult, true);
+	//
+	// if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitResult.GetActor()))
+	// {
+	// 	if (!Diavolo->GetbFrenziedMaulOn())
+	// 	{
+	// 		Diavolo->SetbFrenziedMaulOn_True();
+	// 	}
+	//
+	// 	else if (Diavolo->GetbFrenziedMaulOn())
+	// 	{
+	// 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), W_BloodNiagara, Diavolo->GetActorLocation());
+	// 	}
+	// 	
+	// 	Diavolo->SetbIsDamagedTrue();
+	// 	Diavolo->PlayDiavoloRandomDeadMontage();
+	// 	Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * W_Strength, true);
+	// 	if (!Diavolo->GetbCanBeTestedMultipleTimes())
+	// 	{
+	// 		Diavolo->GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Ignore);
+	// 	}
+	// }
 }
 
-void AOPVolibear::E() //천공 분열E 볼리베어가 지정한 위치에 번개를 소환해 적에게 피해를 입히고 둔화시킵니다.볼리베어가 폭발 반경 안에 있으면 보호막을 얻습니다.
+void AOPVolibear::E()
 {
 	Super::E();
 
@@ -285,9 +447,20 @@ void AOPVolibear::E() //천공 분열E 볼리베어가 지정한 위치에 번�
 		E_Lightningbolt();
 	}), 2.f, false);
 
-	if (ChampionAnimInstance && R_AnimMontage)
+	if (bR_Stormbringer)
 	{
-		ChampionAnimInstance->Montage_Play(E_AnimMontage, 1.f);
+		if (ThousandPiercedBearAnimInstance && E_AnimMontage_Stormbringer)
+		{
+			ThousandPiercedBearAnimInstance->Montage_Play(E_AnimMontage_Stormbringer, 1.f);
+		}
+	}
+
+	else
+	{
+		if (ChampionAnimInstance && E_AnimMontage)
+		{
+			ChampionAnimInstance->Montage_Play(E_AnimMontage, 1.f);
+		}
 	}
 	
 	StopChampionMovement();
@@ -297,13 +470,13 @@ void AOPVolibear::E() //천공 분열E 볼리베어가 지정한 위치에 번�
 	GetWorldTimerManager().SetTimer(E_Cooldown_TimerHandle, this, &AOPVolibear::SetbE_True, E_Cooldown, false);
 }
 
-void AOPVolibear::E_Lightningbolt() //
+void AOPVolibear::E_Lightningbolt()
 {
 	if (E_LightningboltClass)
 	{
-		E_Lightningbolt_Trace();
 		E_LightningboltStorage = GetWorld()->SpawnActor<AOPVolibearLightningbolt>(E_LightningboltClass, E_FinalLocation, GetActorRotation());
 		E_LightningboltStorage->SetOwner(this);
+		E_Lightningbolt_Trace();
 	}
 }
 
@@ -311,33 +484,50 @@ void AOPVolibear::E_Lightningbolt_Trace()
 {
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
-	
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), E_FinalLocation, E_FinalLocation, E_Radius,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, false);
+
+	if (bE_DrawDebugTrace)
+	{
+		UKismetSystemLibrary::SphereTraceMulti(GetWorld(), E_FinalLocation, E_FinalLocation, E_Radius,
+			UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, false);
+	}
+	else
+	{
+		UKismetSystemLibrary::SphereTraceMulti(GetWorld(), E_FinalLocation, E_FinalLocation, E_Radius,
+			UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, false);
+	}
 	
 	for (auto& HitActor : HitResults)
 	{
-		if (AOPDiavolo* HitDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+		if (AOPAIEnemy* AIEnemy = Cast<AOPAIEnemy>(HitActor.GetActor()))
 		{
-			if (HitDiavolo)
-			{
-				FRotator ExplosionRotation = (HitDiavolo->GetActorLocation() - E_FinalLocation).Rotation();
-				FRotator FinalRotation = FRotator(E_StrengthAngle, ExplosionRotation.Yaw, ExplosionRotation.Roll);
-				HitDiavolo->GetCharacterMovement()->AddImpulse(FinalRotation.Vector() * E_Strength, true);
-				HitDiavolo->SetbIsDamagedTrue();
-				HitDiavolo->PlayDiavoloRandomDeadMontage();
-			}
+			FRotator ExplosionRotation = (AIEnemy->GetActorLocation() - E_FinalLocation).Rotation();
+			FRotator FinalRotation = FRotator(E_StrengthAngle, ExplosionRotation.Yaw, ExplosionRotation.Roll);
+			AIEnemy->GetCharacterMovement()->AddImpulse(FinalRotation.Vector() * E_Strength, true);
+			AIEnemy->GetMesh()->BreakConstraint(GetActorForwardVector() * DismemberStrength, AIEnemy->GetActorLocation(), "spine_01");
+			AIEnemy->PlayDeadAnimMontage();
+			AIEnemy->DetachFromControllerPendingDestroy();
 		}
-
+		
 		if (AOPVolibear* HitVolibear = Cast<AOPVolibear>(HitActor.GetActor()))
 		{
 			HitVolibear->E_LightningShield_NiagaraComponent->SetVisibility(true);
 			UE_LOG(LogTemp, Warning, TEXT("Hello"));
 		}
+		// if (AOPDiavolo* HitDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+		// {
+		// 	if (HitDiavolo)
+		// 	{
+		// 		FRotator ExplosionRotation = (HitDiavolo->GetActorLocation() - E_FinalLocation).Rotation();
+		// 		FRotator FinalRotation = FRotator(E_StrengthAngle, ExplosionRotation.Yaw, ExplosionRotation.Roll);
+		// 		HitDiavolo->GetCharacterMovement()->AddImpulse(FinalRotation.Vector() * E_Strength, true);
+		// 		HitDiavolo->SetbIsDamagedTrue();
+		// 		HitDiavolo->PlayDiavoloRandomDeadMontage();
+		// 	}
+		// }
 	}
 }
 
-void AOPVolibear::R() //폭풍을 부르는 자 R 볼리베어가 지정한 위치로 도약하여 아래에 있는 적을 둔화시키고 피해를 입히며 추가 체력을 얻습니다.볼리베어가 착지한 곳 근처에 있는 포탑은 일시적으로 비활성화됩니다.
+void AOPVolibear::R()
 {
 	Super::R();
 
@@ -351,24 +541,29 @@ void AOPVolibear::R() //폭풍을 부르는 자 R 볼리베어가 지정한 위�
 
 	R_FinalLocation = MouseCursorHit.Location;
 	FVector UltVector = R_FinalLocation - GetActorLocation();
-	
 	FVector UltVector_XY = UltVector.GetSafeNormal();
 	UltVector_XY.Z = 0.f;
 
 	LaunchCharacter(UltVector_XY * R_Velocity_XY + GetActorUpVector() * R_Velocity_Z, true, true); // 속도
 
 	bR_IsJumping = true;
-
-	GetMesh()->SetWorldScale3D(FVector(R_SizeIncreaseIndex, R_SizeIncreaseIndex, R_SizeIncreaseIndex));
+	bR_Stormbringer = true;
 
 	if (ChampionAnimInstance && R_AnimMontage)
 	{
 		ChampionAnimInstance->Montage_Play(R_AnimMontage, 1.f);
 	}
+	if (ThousandPiercedBearAnimInstance && R_AnimMontage_Stormbringer)
+	{
+		ThousandPiercedBearAnimInstance->Montage_Play(R_AnimMontage_Stormbringer, 1.f);
+	}
 
 	GetWorldTimerManager().SetTimer(R_End_TimerHandle, FTimerDelegate::CreateLambda([&]
 	{
-		GetMesh()->SetWorldScale3D(FVector(1.f, 1.f, 1.f));
+		bR_Stormbringer = false;
+		GetCapsuleComponent()->SetWorldScale3D(R_OriginalSizeIndex);
+		ThousandPiercedBearMesh->SetHiddenInGame(true);
+		GetMesh()->SetHiddenInGame(false);
 	}), 12.f, false);
 
 	StopChampionMovement();
@@ -413,51 +608,59 @@ void AOPVolibear::R() //폭풍을 부르는 자 R 볼리베어가 지정한 위�
 
 void AOPVolibear::R_OnLanding()
 {
+	GetMesh()->SetHiddenInGame(true);
+	ThousandPiercedBearMesh->SetHiddenInGame(false);
+	GetCapsuleComponent()->SetWorldScale3D(R_OriginalSizeIndex * R_SizeIncreaseIndex);
+
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
-	ActorsToIgnore.Add(this);
 	
-	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation(), R_LandingRadius,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+	if (bR_DrawDebugTrace)
+	{
+		UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation(), R_LandingRadius,
+			UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+	}
+	else
+	{
+		UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation(), R_LandingRadius,
+			UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+	}
 	
 	for (auto& HitActor : HitResults)
 	{
-		if (AOPDiavolo* HitDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+		if (AOPAIEnemy* AIEnemy = Cast<AOPAIEnemy>(HitActor.GetActor()))
 		{
-			if (HitDiavolo)
+			if (AIEnemy)
 			{
-				FRotator ExplosionRotation = (HitDiavolo->GetActorLocation() - GetActorLocation()).Rotation();
+				FRotator ExplosionRotation = (AIEnemy->GetActorLocation() - GetActorLocation()).Rotation();
 				FRotator FinalRotation = FRotator(R_LandingStrengthAngle, ExplosionRotation.Yaw, ExplosionRotation.Roll);
-				HitDiavolo->GetCharacterMovement()->AddImpulse(FinalRotation.Vector() * R_LandingStrength, true);
-				HitDiavolo->SetbIsDamagedTrue();
-				HitDiavolo->PlayDiavoloRandomDeadMontage();
+				AIEnemy->GetCharacterMovement()->AddImpulse(FinalRotation.Vector() * R_LandingStrength, true);
+				AIEnemy->GetMesh()->BreakConstraint(GetActorForwardVector() * DismemberStrength, AIEnemy->GetActorLocation(), "spine_01");
+				AIEnemy->PlayDeadAnimMontage();
+				AIEnemy->DetachFromControllerPendingDestroy();
 			}
 		}
 	}
-}
-
-void AOPVolibear::OnProjectileHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp,
-                                  FVector NormalImpulse, const FHitResult& Hit)
-{
-}
-
-void AOPVolibear::CreateMarkerOnTarget(AOPDiavolo* Target)
-{
-	if (MarkerMesh && Target)
-	{
-		Target->SetbFrenziedMaulOn_True();
-		MarkerMesh->AttachToComponent(Target->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-		MarkerMesh->SetRelativeLocation(FVector(0, 0, 100));
-		MarkerMesh->SetVisibility(true);
-	}
-}
-
-void AOPVolibear::RemoveMarkerOnTarget(AOPDiavolo* Target)
-{
-	if (MarkerMesh && Target)
-	{
-		Target->SetbFrenziedMaulOn_False();
-		MarkerMesh->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
-		MarkerMesh->SetVisibility(false);
-	}
+	
+	// TArray<FHitResult> HitResults;
+	// TArray<AActor*> ActorsToIgnore;
+	// ActorsToIgnore.Add(this);
+	//
+	// UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation(), R_LandingRadius,
+	// 	UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+	//
+	// for (auto& HitActor : HitResults)
+	// {
+	// 	if (AOPDiavolo* HitDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
+	// 	{
+	// 		if (HitDiavolo)
+	// 		{
+	// 			FRotator ExplosionRotation = (HitDiavolo->GetActorLocation() - GetActorLocation()).Rotation();
+	// 			FRotator FinalRotation = FRotator(R_LandingStrengthAngle, ExplosionRotation.Yaw, ExplosionRotation.Roll);
+	// 			HitDiavolo->GetCharacterMovement()->AddImpulse(FinalRotation.Vector() * R_LandingStrength, true);
+	// 			HitDiavolo->SetbIsDamagedTrue();
+	// 			HitDiavolo->PlayDiavoloRandomDeadMontage();
+	// 		}
+	// 	}
+	// }
 }

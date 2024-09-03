@@ -21,12 +21,13 @@ public:
 
 protected:
 	virtual void OnPossess(APawn* InPawn) override;
+	virtual void OnUnPossess() override;
 
 private:
 	TObjectPtr<UAISenseConfig_Sight> SightConfig;
 
 	void SetupPerceptionSystem();
 
-	UFUNCTION()
-	void OnTargetDetected(AActor* Actor, FAIStimulus const Stimulus);
+	// UFUNCTION()
+	// void OnTargetDetected(AActor* Actor, FAIStimulus const Stimulus);
 };

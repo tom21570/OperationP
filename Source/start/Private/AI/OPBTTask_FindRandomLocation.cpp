@@ -17,11 +17,11 @@ EBTNodeResult::Type UOPBTTask_FindRandomLocation::ExecuteTask(UBehaviorTreeCompo
 {
 	if (AOPAIController* const Controller = Cast<AOPAIController>(OwnerComp.GetAIOwner()))
 	{
-		if (auto* const AIEnemy = Controller->GetPawn())
+		if (const auto* const AIEnemy = Controller->GetPawn())
 		{
-			FVector Origin = AIEnemy->GetActorLocation();
+			const FVector Origin = AIEnemy->GetActorLocation();
 
-			if (auto* const NavSys = UNavigationSystemV1::GetCurrent(GetWorld()))
+			if (const auto* const NavSys = UNavigationSystemV1::GetCurrent(GetWorld()))
 			{
 				FNavLocation Location;
 				if (NavSys->GetRandomPointInNavigableRadius(Origin, SearchRadius, Location))

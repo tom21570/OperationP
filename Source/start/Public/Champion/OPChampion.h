@@ -3,7 +3,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
-#include "Interface/OPCombatInterface.h"
 #include "OPChampion.generated.h"
 
 class APatrolPath;
@@ -12,7 +11,7 @@ class UAIPerceptionStimuliSourceComponent;
 class AOPDiavolo;
 
 UCLASS()
-class START_API AOPChampion : public ACharacter, public IOPCombatInterface
+class START_API AOPChampion : public ACharacter
 {
     GENERATED_BODY()
 
@@ -34,8 +33,8 @@ protected:
     virtual void R();
 
 public:
-    void TurnCharacterToLocation(FVector TurnPoint);
-    void TurnCharacterToCursor(FHitResult HitResult);
+    void TurnCharacterToLocation(const FVector& TurnPoint);
+    void TurnCharacterToCursor(const FHitResult& HitResult);
 
 protected:
     /********************************************************************** Player Controller **********************************************************************/
@@ -194,15 +193,6 @@ protected:
 
     /****************************************************************************** ETC ******************************************************************************/
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UBehaviorTree> Tree;
-
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<APatrolPath> PatrolPath;
-
-    TObjectPtr<UAIPerceptionStimuliSourceComponent> StimulusSource;
-
-    void SetupStimulusSource();
 
 public:
     /************************************************************************ Getter / Setter ************************************************************************/
@@ -290,10 +280,4 @@ public:
     USkeletalMeshComponent* GetChampionSkeletalMeshComponent() const { return GetMesh(); }
 
     void PlayDeadAnimMontage() const;
-
-    FORCEINLINE TObjectPtr<UBehaviorTree> GetBehaviorTree() const { return Tree; }
-    FORCEINLINE TObjectPtr<APatrolPath> GetPatrolPath() const { return PatrolPath; }
-    // FORCEINLINE void BasicAttack_Public() { BasicAttack(); }
-
-    int MeleeAttack_AI_Implementation() override;
 };

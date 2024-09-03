@@ -4,6 +4,7 @@
 #include "AI/OPBTService_ChangeSpeed.h"
 
 #include "AIController.h"
+#include "AI/OPAIEnemy.h"
 #include "Champion/OPChampion.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
@@ -17,9 +18,9 @@ void UOPBTService_ChangeSpeed::OnBecomeRelevant(UBehaviorTreeComponent& OwnerCom
 {
 	Super::OnBecomeRelevant(OwnerComp, NodeMemory);
 
-	if (auto* const Controller = OwnerComp.GetAIOwner())
+	if (const auto* const Controller = OwnerComp.GetAIOwner())
 	{
-		if (auto* const AIEnemy = Cast<AOPChampion>(Controller->GetPawn()))
+		if (const auto* const AIEnemy = Cast<AOPAIEnemy>(Controller->GetPawn()))
 		{
 			AIEnemy->GetCharacterMovement()->MaxWalkSpeed = Speed;
 		}
