@@ -6,6 +6,7 @@
 #include "Champion/OPChampion.h"
 #include "OPRiven.generated.h"
 
+class UNiagaraSystem;
 /**
  * 
  */
@@ -87,7 +88,13 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Q_Width = 100.f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> Q_NiagaraSystem_Slash;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> Q_NiagaraSystem_Hit;
+	
     int32 Q_Step = 1;
 
     FTimerHandle Q_Trace_TimerHandle;

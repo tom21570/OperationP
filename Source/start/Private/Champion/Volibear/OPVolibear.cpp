@@ -47,7 +47,8 @@ void AOPVolibear::Tick(float DeltaSeconds)
 		{
 			R_OnLanding();
 			UE_LOG(LogTemp, Warning, TEXT("Falling End"));
-			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), R_LightningEffect, GetActorLocation());
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), R_LightningEffect, GetActorLocation(),
+				FRotator::ZeroRotator, FVector(R_SizeIncreaseIndex, R_SizeIncreaseIndex, R_SizeIncreaseIndex));
 			bR_IsJumping = false;
 		}
 	}
@@ -189,7 +190,7 @@ void AOPVolibear::BasicAttack_Trace()
 {
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
-
+	
 	if (bBasicAttack_DrawDebugTrace)
 	{
 		UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
@@ -201,15 +202,14 @@ void AOPVolibear::BasicAttack_Trace()
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 	}
 	
-
 	for (auto& HitActor : HitResults)
 	{
 		if (AOPAIEnemy* AIEnemy = Cast<AOPAIEnemy>(HitActor.GetActor()))
 		{
-			AIEnemy->GetMesh()->BreakConstraint(GetActorForwardVector() * DismemberStrength, AIEnemy->GetActorLocation(), "spine_01");
 			AIEnemy->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * BasicAttack_Strength, true);
+			AIEnemy->GetMesh()->BreakConstraint(GetActorForwardVector() * DismemberStrength, AIEnemy->GetActorLocation(), "spine_01");
 			AIEnemy->PlayDeadAnimMontage();
-			AIEnemy->DetachFromControllerPendingDestroy();
+			AIEnemy->SetDamagedByChampion(true);
 		}
 	}
 	
@@ -253,10 +253,10 @@ void AOPVolibear::BasicAttack_Trace_Q()
 	{
 		if (AOPAIEnemy* AIEnemy = Cast<AOPAIEnemy>(HitActor.GetActor()))
 		{
-			AIEnemy->GetMesh()->BreakConstraint(GetActorForwardVector() * DismemberStrength, AIEnemy->GetActorLocation(), "spine_01");
 			AIEnemy->GetCharacterMovement()->AddImpulse(GetActorUpVector() * Q_Strength_Z + GetActorForwardVector() * Q_Strength_XY, true);
+			AIEnemy->GetMesh()->BreakConstraint(GetActorForwardVector() * DismemberStrength, AIEnemy->GetActorLocation(), "spine_01");
 			AIEnemy->PlayDeadAnimMontage();
-			AIEnemy->DetachFromControllerPendingDestroy();
+			AIEnemy->SetDamagedByChampion(true);
 		}
 	}
 	
@@ -392,10 +392,10 @@ void AOPVolibear::W_Trace()
 	{
 		if (AOPAIEnemy* AIEnemy = Cast<AOPAIEnemy>(HitActor.GetActor()))
 		{
-			AIEnemy->GetMesh()->BreakConstraint(GetActorForwardVector() * DismemberStrength, AIEnemy->GetActorLocation(), "spine_01");
 			AIEnemy->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * W_Strength, true);
+			AIEnemy->GetMesh()->BreakConstraint(GetActorForwardVector() * DismemberStrength, AIEnemy->GetActorLocation(), "spine_01");
 			AIEnemy->PlayDeadAnimMontage();
-			AIEnemy->DetachFromControllerPendingDestroy();
+			AIEnemy->SetDamagedByChampion(true);
 		}
 	}
 	
@@ -505,13 +505,12 @@ void AOPVolibear::E_Lightningbolt_Trace()
 			AIEnemy->GetCharacterMovement()->AddImpulse(FinalRotation.Vector() * E_Strength, true);
 			AIEnemy->GetMesh()->BreakConstraint(GetActorForwardVector() * DismemberStrength, AIEnemy->GetActorLocation(), "spine_01");
 			AIEnemy->PlayDeadAnimMontage();
-			AIEnemy->DetachFromControllerPendingDestroy();
+			AIEnemy->SetDamagedByChampion(true);
 		}
 		
 		if (AOPVolibear* HitVolibear = Cast<AOPVolibear>(HitActor.GetActor()))
 		{
 			HitVolibear->E_LightningShield_NiagaraComponent->SetVisibility(true);
-			UE_LOG(LogTemp, Warning, TEXT("Hello"));
 		}
 		// if (AOPDiavolo* HitDiavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
 		// {
@@ -637,7 +636,7 @@ void AOPVolibear::R_OnLanding()
 				AIEnemy->GetCharacterMovement()->AddImpulse(FinalRotation.Vector() * R_LandingStrength, true);
 				AIEnemy->GetMesh()->BreakConstraint(GetActorForwardVector() * DismemberStrength, AIEnemy->GetActorLocation(), "spine_01");
 				AIEnemy->PlayDeadAnimMontage();
-				AIEnemy->DetachFromControllerPendingDestroy();
+				AIEnemy->SetDamagedByChampion(true);
 			}
 		}
 	}

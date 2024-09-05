@@ -7,6 +7,8 @@
 #include "Kismet/KismetSystemLibrary.h"
 #include "OPTaric.generated.h"
 
+class UBoxComponent;
+class UOPTaricShield;
 class UNiagaraSystem;
 using namespace EDrawDebugTrace;
 
@@ -43,6 +45,9 @@ protected:
 	/****************************************************************************** W ******************************************************************************/
 
 	virtual void W() override;
+	UFUNCTION()
+	void OnFragileCollisionBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
 	/****************************************************************************** E ******************************************************************************/
 
@@ -91,6 +96,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Mathods", meta = (AllowPrivateAccess = "true"))
 	float Q_Radius = 0.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> Q_NiagaraSystem;
+
     int32 Q_Stack = 0;
     
     /****************************************************************************** W ******************************************************************************/
@@ -105,10 +113,22 @@ private:
     float W_ReflectAngle = 0.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
-    TObjectPtr<UNiagaraSystem> W_ShieldNiagara;
+    TObjectPtr<UNiagaraSystem> W_Shield_NiagaraSystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AActor> W_ShieldMesh;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "W | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<AOPChampion> W_TargetAlly;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UOPTaricShield> W_Shield_GeometryCollection;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UBoxComponent> FragilePoint;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W |Physical Tests", meta = (AllowPrivateAccess = "true"))
+	TArray<float> CustomDamageThreshold;
 
     FTimerHandle W_Maintain_TimerHandle;
 	bool bW_IsTethered = false;
@@ -130,6 +150,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	bool bE_DrawDebugTrace = false;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> E_NiagaraSystem;
     
     /****************************************************************************** R ******************************************************************************/
 
@@ -145,6 +168,25 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	bool bR_DrawDebugTrace = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AActor> R_BallClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> R_Burst_NiagaraSystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> R_Casting_NiagaraSystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> R_Shield_NiagaraSystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UMaterial> R_Taric_Material;
+
+	TObjectPtr<UGeometryCollectionComponent> GC;
+
     FTimerHandle R_Trace_TimerHandle_Taric;
     FTimerHandle R_Trace_TimerHandle_Ally;
+
+	FTimerHandle R_NiagaraBall_Spawn_TimerHandle;
 };

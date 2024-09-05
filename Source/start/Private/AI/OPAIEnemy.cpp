@@ -3,6 +3,8 @@
 
 #include "AI/OPAIEnemy.h"
 #include "Animation/OPAnimInstance.h"
+#include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "Kismet/GameplayStatics.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
 #include "Perception/AISense_Sight.h"
 #include "Projectile/OPSkeletonKnightSpear.h"
@@ -16,11 +18,27 @@ AOPAIEnemy::AOPAIEnemy()
 void AOPAIEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0.f);
 }
 
 void AOPAIEnemy::Tick(float DeltaSeconds)
 {
-    
+	if (!DamagedByChampion)
+	{
+		ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0.f);
+	    DistanceToPlayer = FVector::Dist(GetActorLocation(), Player->GetActorLocation());
+
+		if (DistanceToPlayer >= AttackableDistance)
+		{
+			UAIBlueprintHelperLibrary::SimpleMoveToLocation(GetController(), Player->GetActorLocation());
+		}
+		else if (DistanceToPlayer < AttackableDistance)
+		{
+			TurnCharacterToLocation(Player->GetActorLocation());
+			BasicAttack();
+		}
+	}
 }
 
 void AOPAIEnemy::BasicAttack()
@@ -71,4 +89,12 @@ int AOPAIEnemy::MeleeAttack_AI_Implementation()
 void AOPAIEnemy::BasicAttack_Public()
 {
 	BasicAttack();
+}
+
+void AOPAIEnemy::Die()
+{
+	// GetWorldTimerManager().SetTimer(Death_TimerHandle, FTimerDelegate::CreateLambda([&]
+	// {
+	// 	GetController()->UnPossess()
+	// }), 0.2f, false);
 }

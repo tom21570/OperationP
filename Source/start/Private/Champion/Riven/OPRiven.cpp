@@ -2,6 +2,8 @@
 
 
 #include "Champion/Riven/OPRiven.h"
+
+#include "NiagaraFunctionLibrary.h"
 #include "Animation/OPAnimInstance.h"
 #include "Components/CapsuleComponent.h"
 #include "Diavolo/OPDiavolo.h"
@@ -130,19 +132,19 @@ void AOPRiven::Q()
 		case 1:
 			ChampionAnimInstance->Montage_JumpToSection(FName("Q_1"), Q_AnimMontage);
 			LaunchCharacter(GetActorForwardVector() * Q_Speed_XY, true, true);
-			GetWorldTimerManager().SetTimer(Q_Trace_TimerHandle, this, &AOPRiven::Q_Trace, false, 1.f);
+			GetWorldTimerManager().SetTimer(Q_Trace_TimerHandle, this, &AOPRiven::Q_Trace, 0.25f, false);
 			Q_Step++;
 			break;
 		case 2:
 			ChampionAnimInstance->Montage_JumpToSection(FName("Q_2"), Q_AnimMontage);
 			LaunchCharacter(GetActorForwardVector() * Q_Speed_XY, true, true);
-			GetWorldTimerManager().SetTimer(Q_Trace_TimerHandle, this, &AOPRiven::Q_Trace, false, 1.f);
+			GetWorldTimerManager().SetTimer(Q_Trace_TimerHandle, this, &AOPRiven::Q_Trace, 0.25f, false);
 			Q_Step++;
 			break;
 		case 3:
 			ChampionAnimInstance->Montage_JumpToSection(FName("Q_3"), Q_AnimMontage);
 			LaunchCharacter(GetActorForwardVector() * Q_Speed_XY + GetActorUpVector() * Q_Speed_Z, true, true);
-			GetWorldTimerManager().SetTimer(Q_Trace_TimerHandle, this, &AOPRiven::Q_Trace_Third, false, 1.f);
+			GetWorldTimerManager().SetTimer(Q_Trace_TimerHandle, this, &AOPRiven::Q_Trace_Third, 0.4f, false);
 			Q_Step = 1;
 			SetbQ_False();
 			GetWorldTimerManager().SetTimer(Q_Cooldown_TimerHandle, this, &AOPRiven::SetbQ_True, Q_Cooldown, false);
@@ -162,12 +164,19 @@ void AOPRiven::Q_Trace() const
 	TArray<AActor*> ActorsToIgnore;
 
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * Q_Range, Q_Width,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+
+	FRotator RivenRotator = GetActorRotation();
+	RivenRotator.Yaw = 40.f;
+	// RivenRotator.Pitch = 50.f;
+	// RivenRotator.Roll = 90.f;
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Q_NiagaraSystem_Slash, GetActorLocation(), RivenRotator);
 	
 	for (auto& HitActor : HitResults)
 	{
 		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
 		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Q_NiagaraSystem_Hit, Diavolo->GetActorLocation());
 			Diavolo->SetbIsDamagedTrue();
 			Diavolo->PlayDiavoloRandomDeadMontage();
 			Diavolo->GetCharacterMovement()->AddImpulse(GetActorForwardVector() * Q_Strength, true);
@@ -186,6 +195,12 @@ void AOPRiven::Q_Trace_Third() const
 
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * Q_Range, Q_Width,
 		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+
+	FRotator RivenRotator = GetActorRotation();
+	// RivenRotator.Yaw = 40.f;
+	RivenRotator.Pitch = 50.f;
+	RivenRotator.Roll = 90.f;
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Q_NiagaraSystem_Slash, GetActorLocation(), RivenRotator);
 	
 	for (auto& HitActor : HitResults)
 	{

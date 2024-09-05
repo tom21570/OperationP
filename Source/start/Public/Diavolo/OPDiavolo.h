@@ -62,8 +62,11 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LeeSin", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Diavolo_DamagedByLeeSinDragonsRage_AnimMontage;
 
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LeeSin", meta = (AllowPrivateAccess = "true"))
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Volibear", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Diavolo_DamagedByVolibear_Q_AnimMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Taric", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UAnimMontage> Diavolo_DamagedByTaric_E_AnimMontage;
 
 public:
     FORCEINLINE bool GetbCanBeTestedMultipleTimes() const { return bCanBeTestedMultipleTimes; }
@@ -80,6 +83,7 @@ public:
     TObjectPtr<UAnimMontage> GetDiavolo_DamagedByLeeSinSkill_3_AnimMontage() { return Diavolo_DamagedByLeeSinSkill_3_AnimMontage; }
     TObjectPtr<UAnimMontage> GetDiavolo_DamagedByLeeSinDragonsRage_AnimMontage() { return Diavolo_DamagedByLeeSinDragonsRage_AnimMontage; }
     TObjectPtr<UAnimMontage> GetDiavolo_DamagedByVolibear_Q_AnimMontage() { return Diavolo_DamagedByVolibear_Q_AnimMontage; }
+    TObjectPtr<UAnimMontage> GetDiavolo_DamagedByTaric_E_AnimMontage() { return Diavolo_DamagedByTaric_E_AnimMontage; }
 
     FORCEINLINE UStaticMeshComponent* GetMarkerMesh() const { return MarkerMesh; }
 };

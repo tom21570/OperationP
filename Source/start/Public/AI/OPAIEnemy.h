@@ -49,13 +49,21 @@ private:
 
 	FTimerHandle SpearThrow_TimerHandle;
 
+	float DistanceToPlayer;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	float AttackableDistance = 1000.f;
+
+	float DamagedByChampion = false;
+
 public:
 	FORCEINLINE TObjectPtr<UBehaviorTree> GetBehaviorTree() const { return Tree; }
+	FORCEINLINE void SetDamagedByChampion(bool Value) { DamagedByChampion = Value; }
 	// FORCEINLINE TObjectPtr<APatrolPath> GetPatrolPath() const { return PatrolPath; }
-	FORCEINLINE void DeleteTree() { Tree = nullptr; }
 	// FORCEINLINE void BasicAttack_Public() { BasicAttack(); }
 
 	int MeleeAttack_AI_Implementation() override;
 
 	void BasicAttack_Public();
+	FTimerHandle Death_TimerHandle;
+	void Die();
 };
