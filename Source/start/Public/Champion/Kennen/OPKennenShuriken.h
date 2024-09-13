@@ -14,6 +14,8 @@ enum class EShurikenType : uint8
 	Shuriken_W				UMETA(DisplayName = "Shuriken W")
 };
 
+class UNiagaraSystem;
+
 /**
  * 
  */
@@ -33,6 +35,12 @@ protected:
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Shuriken Type", meta = (AllowPrivateAccess = "true"))
 	EShurikenType ShurikenType;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Niagara", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> Q_NiagaraSystem_Hit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Niagara", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> W_NiagaraSystem_Hit;
 
 public:
 	FORCEINLINE EShurikenType GetShurikenType() const { return ShurikenType; }

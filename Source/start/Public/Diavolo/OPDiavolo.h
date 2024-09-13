@@ -68,6 +68,18 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Taric", meta = (AllowPrivateAccess = "true"))
     TObjectPtr<UAnimMontage> Diavolo_DamagedByTaric_E_AnimMontage;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Kennen", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<UAnimMontage> Diavolo_DamagedByKennen_AnimMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Kennen", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<USceneComponent> Kennen_Passive_SpawnPoint_1;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Kennen", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<USceneComponent> Kennen_Passive_SpawnPoint_2;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Kennen", meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<USceneComponent> Kennen_Passive_SpawnPoint_3;
+
 public:
     FORCEINLINE bool GetbCanBeTestedMultipleTimes() const { return bCanBeTestedMultipleTimes; }
 
@@ -84,6 +96,9 @@ public:
     TObjectPtr<UAnimMontage> GetDiavolo_DamagedByLeeSinDragonsRage_AnimMontage() { return Diavolo_DamagedByLeeSinDragonsRage_AnimMontage; }
     TObjectPtr<UAnimMontage> GetDiavolo_DamagedByVolibear_Q_AnimMontage() { return Diavolo_DamagedByVolibear_Q_AnimMontage; }
     TObjectPtr<UAnimMontage> GetDiavolo_DamagedByTaric_E_AnimMontage() { return Diavolo_DamagedByTaric_E_AnimMontage; }
+    TObjectPtr<UAnimMontage> GetDiavolo_DamagedByKennen_AnimMontage() { return Diavolo_DamagedByKennen_AnimMontage; }
 
     FORCEINLINE UStaticMeshComponent* GetMarkerMesh() const { return MarkerMesh; }
+
+    void SpawnKennenPassive();
 };

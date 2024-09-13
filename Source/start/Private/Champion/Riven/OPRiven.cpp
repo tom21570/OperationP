@@ -3,8 +3,10 @@
 
 #include "Champion/Riven/OPRiven.h"
 
+#include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Animation/OPAnimInstance.h"
+#include "Champion/Riven/OPRivenSlash.h"
 #include "Components/CapsuleComponent.h"
 #include "Diavolo/OPDiavolo.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -16,19 +18,50 @@ AOPRiven::AOPRiven()
 {
 	ProjectileMovementComponent = CreateDefaultSubobject<UProjectileMovementComponent>("Projectile Movement Component");
 
+	E_ShieldMesh = CreateDefaultSubobject<UStaticMeshComponent>("E_ShieldMesh");
+	E_ShieldMesh->SetupAttachment(GetRootComponent());
+	
+	E_NiagaraComponent = CreateDefaultSubobject<UNiagaraComponent>("E Niagara Component");
+	E_NiagaraComponent->SetupAttachment(E_ShieldMesh);
+
 	R_SwordMesh = CreateDefaultSubobject<UStaticMeshComponent>("Sword Mesh");
 	R_SwordMesh->SetupAttachment(GetMesh(), FName(TEXT("R Sword Socket")));
 	R_SwordMesh->SetHiddenInGame(true);
+
+	R_SlashSpawnPoints.Add(CreateDefaultSubobject<USceneComponent>("Spawn Point 1"));
+	R_SlashSpawnPoints.Add(CreateDefaultSubobject<USceneComponent>("Spawn Point 2"));
+	R_SlashSpawnPoints.Add(CreateDefaultSubobject<USceneComponent>("Spawn Point 3"));
+	
+	for (auto& Point : R_SlashSpawnPoints)
+	{
+		Point->SetupAttachment(GetRootComponent());
+	}
 }
 
 void AOPRiven::BeginPlay()
 {
 	Super::BeginPlay();
+
+	E_ShieldMesh->SetHiddenInGame(true);
+	E_ShieldMesh->SetCollisionObjectType(ECC_WorldStatic);
+	E_ShieldMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	E_ShieldMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+
+	E_NiagaraComponent->SetHiddenInGame(true);
 }
 
 void AOPRiven::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+
+	if (bQ_IsInAir)
+	{
+		if (!GetCharacterMovement()->IsFalling())
+		{
+			Q_OnLanding();
+			bQ_IsInAir = false;
+		}
+	}
 }
 
 void AOPRiven::BasicAttack()
@@ -143,7 +176,8 @@ void AOPRiven::Q()
 			break;
 		case 3:
 			ChampionAnimInstance->Montage_JumpToSection(FName("Q_3"), Q_AnimMontage);
-			LaunchCharacter(GetActorForwardVector() * Q_Speed_XY + GetActorUpVector() * Q_Speed_Z, true, true);
+			bQ_IsInAir = true;
+			LaunchCharacter(GetActorForwardVector() * Q_Speed_XY_ThirdShot + GetActorUpVector() * Q_Speed_Z, true, true);
 			GetWorldTimerManager().SetTimer(Q_Trace_TimerHandle, this, &AOPRiven::Q_Trace_Third, 0.4f, false);
 			Q_Step = 1;
 			SetbQ_False();
@@ -164,13 +198,17 @@ void AOPRiven::Q_Trace() const
 	TArray<AActor*> ActorsToIgnore;
 
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * Q_Range, Q_Width,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 
 	FRotator RivenRotator = GetActorRotation();
 	RivenRotator.Yaw = 40.f;
 	// RivenRotator.Pitch = 50.f;
 	// RivenRotator.Roll = 90.f;
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Q_NiagaraSystem_Slash, GetActorLocation(), RivenRotator);
+
+	if (Q_NiagaraSystem_Slash)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Q_NiagaraSystem_Slash, GetActorLocation(), RivenRotator);
+	}
 	
 	for (auto& HitActor : HitResults)
 	{
@@ -200,12 +238,16 @@ void AOPRiven::Q_Trace_Third() const
 	// RivenRotator.Yaw = 40.f;
 	RivenRotator.Pitch = 50.f;
 	RivenRotator.Roll = 90.f;
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Q_NiagaraSystem_Slash, GetActorLocation(), RivenRotator);
+	if (Q_NiagaraSystem_Slash)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Q_NiagaraSystem_Slash, GetActorLocation(), RivenRotator);
+	}
 	
 	for (auto& HitActor : HitResults)
 	{
 		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(HitActor.GetActor()))
 		{
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Q_NiagaraSystem_Hit, Diavolo->GetActorLocation());
 			Diavolo->SetbIsDamagedTrue();
 			Diavolo->PlayDiavoloRandomDeadMontage();
 			Diavolo->GetCharacterMovement()->AddRadialImpulse(GetActorLocation(), Q_Width, Q_Strength, RIF_Linear, true);;
@@ -217,13 +259,23 @@ void AOPRiven::Q_Trace_Third() const
 	}
 }
 
+void AOPRiven::Q_OnLanding()
+{
+	if (Q_NiagaraSystem_OnLanding)
+	{
+		FVector SpawnLocation = GetActorLocation();
+		SpawnLocation.Z -= 90.f;
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Q_NiagaraSystem_OnLanding, SpawnLocation);
+	}
+}
+
 void AOPRiven::W()
 {
 	Super::W();
 
 	if (!bW) return;
-	
-	W_Trace();
+
+	GetWorldTimerManager().SetTimer(W_Cast_TimerHandle, this, &AOPRiven::W_Trace, 0.25f, false);
 	
 	if (ChampionAnimInstance && W_AnimMontage)
 	{
@@ -257,6 +309,13 @@ void AOPRiven::W_Trace() const
 			}
 		}
 	}
+
+	if (W_NiagaraSystem)
+	{
+		FVector SpawnLocation = GetActorLocation();
+		SpawnLocation.Z -= 90.f;
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), W_NiagaraSystem, SpawnLocation);
+	}
 }
 
 void AOPRiven::E()
@@ -273,6 +332,22 @@ void AOPRiven::E()
 
 	LaunchCharacter(GetActorForwardVector() * E_Speed, true, true);
 
+	E_NiagaraComponent->SetHiddenInGame(false);
+	E_ShieldMesh->SetHiddenInGame(false);
+	E_ShieldMesh->SetCollisionObjectType(ECC_WorldDynamic);
+	E_ShieldMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	E_ShieldMesh->SetCollisionResponseToAllChannels(ECR_Overlap);
+	E_ShieldMesh->OnComponentBeginOverlap.AddDynamic(this, &AOPRiven::E_Reflect);
+	GetWorldTimerManager().SetTimer(E_ShieldMaintain_TimerHandle, FTimerDelegate::CreateLambda([&]
+	{
+		E_NiagaraComponent->SetHiddenInGame(true);
+		E_ShieldMesh->SetHiddenInGame(true);
+		E_ShieldMesh->SetCollisionObjectType(ECC_WorldDynamic);
+		E_ShieldMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		E_ShieldMesh->SetCollisionResponseToAllChannels(ECR_Ignore);
+		E_ShieldMesh->OnComponentBeginOverlap.RemoveDynamic(this, &AOPRiven::E_Reflect);
+	}), E_MaintainTime, false);
+
 	if (ChampionAnimInstance && E_AnimMontage)
 	{
 		ChampionAnimInstance->Montage_Play(E_AnimMontage);
@@ -282,6 +357,29 @@ void AOPRiven::E()
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPRiven::ResetChampionMovement, 0.1f, false);
 	SetbE_False();
 	GetWorldTimerManager().SetTimer(E_Cooldown_TimerHandle, this, &AOPRiven::SetbE_True, E_Cooldown, false);
+}
+
+void AOPRiven::E_Reflect(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor && OtherActor != this)
+	{
+		GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Red, "Pverla[[ed");
+		AOPProjectile* OtherProjectile = Cast<AOPProjectile>(OtherActor);
+		if (OtherProjectile)
+		{
+			FRotator ImpactRotation = (OtherProjectile->GetActorLocation() - E_ShieldMesh->GetComponentLocation()).GetSafeNormal().Rotation();
+			FRotator FinalRotation = FRotator(E_ReflectAngle, ImpactRotation.Yaw, ImpactRotation.Roll);
+			FVector ImpactDirection = FinalRotation.Vector();
+            
+			UProjectileMovementComponent* ProjectileMovement = OtherProjectile->FindComponentByClass<UProjectileMovementComponent>();
+			if (ProjectileMovement)
+			{
+				ProjectileMovement->Velocity = ImpactDirection * W_Strength; // 투사체의 속도를 충격 방향으로 설정
+			}
+		}
+		//DestroyProjectile();
+	}
 }
 
 void AOPRiven::R()
@@ -308,6 +406,8 @@ void AOPRiven::R()
 			ChampionAnimInstance->Montage_Play(R_AnimMontage);
 			ChampionAnimInstance->Montage_JumpToSection("R_Reinforce", R_AnimMontage);
 		}
+		StopChampionMovement();
+		GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPRiven::ResetChampionMovement, 0.35f, false);
 	}
 
 	else if (bR_CanSlash)
@@ -319,6 +419,8 @@ void AOPRiven::R()
 		if (!MouseCursorHit.bBlockingHit) return;
 		TurnCharacterToCursor(MouseCursorHit);
 
+		GetWorldTimerManager().SetTimer(R_Slash_TimerHandle, this, &AOPRiven::R_Slash, 0.25f, false);
+
 		if (ChampionAnimInstance && R_AnimMontage)
 		{
 			ChampionAnimInstance->Montage_Play(R_AnimMontage);
@@ -329,5 +431,22 @@ void AOPRiven::R()
 		GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPRiven::ResetChampionMovement, 1.05f, false);
 		SetbR_False();
 		GetWorldTimerManager().SetTimer(R_Cooldown_TimerHandle, this, &AOPRiven::SetbR_True, R_Cooldown, false);
+	}
+}
+
+void AOPRiven::R_Slash()
+{
+	if (R_SlashClass == nullptr) return;
+	for (int32 i = 0; i < 3; i++)
+	{
+		R_SlashStorages.Add(GetWorld()->SpawnActor<AOPRivenSlash>(R_SlashClass, R_SlashSpawnPoints[i]->GetComponentLocation(), R_SlashSpawnPoints[i]->GetComponentRotation()));
+		R_SlashStorages[i]->SetOwner(this);
+	}
+
+	FRotator RivenRotator = GetActorRotation();
+	RivenRotator.Yaw = 40.f;
+	if (Q_NiagaraSystem_Slash)
+	{
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Q_NiagaraSystem_Slash, GetActorLocation(), RivenRotator);
 	}
 }

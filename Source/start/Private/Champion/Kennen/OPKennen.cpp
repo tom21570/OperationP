@@ -45,7 +45,7 @@ void AOPKennen::Passive_StormMarkOthers(AOPChampion* Enemy)
 void AOPKennen::Passive_StunOthers(AOPChampion* Enemy)
 {
 	Enemy->ResetStormMark();
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Passive_Stun_NiagaraSystem, Enemy->GetActorLocation());
+	// UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Passive_Stun_NiagaraSystem, Enemy->GetActorLocation());
 }
 
 void AOPKennen::BasicAttack()
@@ -66,9 +66,9 @@ void AOPKennen::BasicAttack()
 		{
 			W_ReinforcedAttack_Stack = 0;;
 			KennenShurikenStorage = GetWorld()->SpawnActor<AOPKennenShuriken>(KennenShuriken_W_Class,
-				ShurikenSpawnPoint->GetComponentLocation(), GetActorRotation());
+			ShurikenSpawnPoint->GetComponentLocation(), GetActorRotation());
 			KennenShurikenStorage->SetOwner(this);
-			KennenShurikenStorage->SetShurikenType(EShurikenType::Shuriken_BasicAttack);
+			KennenShurikenStorage->SetShurikenType(EShurikenType::Shuriken_W);
 		}), 0.4f, false);
 	}
 	else
@@ -79,7 +79,7 @@ void AOPKennen::BasicAttack()
 			KennenShurikenStorage = GetWorld()->SpawnActor<AOPKennenShuriken>(KennenShuriken_BasicAttack_Class,
 				ShurikenSpawnPoint->GetComponentLocation(), GetActorRotation());
 			KennenShurikenStorage->SetOwner(this);
-			KennenShurikenStorage->SetShurikenType(EShurikenType::Shuriken_W);
+			KennenShurikenStorage->SetShurikenType(EShurikenType::Shuriken_BasicAttack);
 		}), 0.4f, false);
 	}
 	
@@ -170,8 +170,8 @@ void AOPKennen::W()
 
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPKennen::ResetChampionMovement, 1.05f, false);
-	bBasicAttack = false;
-	GetWorldTimerManager().SetTimer(BasicAttack_Cooldown_TimerHandle, this, &AOPKennen::SetbBasicAttack_True, BasicAttack_Cooldown, false);
+	bW = false;
+	GetWorldTimerManager().SetTimer(W_Cooldown_TimerHandle, this, &AOPKennen::SetbW_True, W_Cooldown, false);
 }
 
 void AOPKennen::W_Trace()
@@ -189,13 +189,8 @@ void AOPKennen::W_Trace()
 		{
 			if (HitDiavolo->GetStormMarkCount() > 0)
 			{
-				HitDiavolo->PlayDiavoloRandomDeadMontage();
-				Passive_StormMarkOthers(HitDiavolo);
-				if (HitDiavolo->GetStormMarkCount() == 3)
-				{
-					HitDiavolo->ResetStormMark();
-					Passive_StunOthers(HitDiavolo);
-				}
+				HitDiavolo->GetChampionAnimInstance()->Montage_Play(HitDiavolo->GetDiavolo_DamagedByKennen_AnimMontage());
+				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), W_NiagaraSystem, HitDiavolo->GetActorLocation());
 			}
 		}
 	}
@@ -240,7 +235,7 @@ void AOPKennen::E_OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherAc
 		if (AOPDiavolo* Diavolo = Cast<AOPDiavolo>(OtherActor))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Overlapped Kennen E"));
-			Diavolo->PlayDiavoloRandomDeadMontage();
+			Diavolo->GetChampionAnimInstance()->Montage_Play(Diavolo->GetDiavolo_DamagedByKennen_AnimMontage());
 			Passive_StormMarkOthers(Diavolo);
 			if (Diavolo->GetStormMarkCount() == 3)
 			{
@@ -297,9 +292,9 @@ void AOPKennen::R_Trace()
 			{
 				Passive_StunOthers(HitDiavolo);
 			}
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), R_Hit_NiagaraSystem, HitDiavolo->GetActorLocation() + FVector(0.f, 0.f, 150.f), FRotator::ZeroRotator, FVector(1), true);
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), R_Hit_NiagaraSystem, HitDiavolo->GetActorLocation(), FRotator::ZeroRotator, FVector(1), true);
 			HitDiavolo->SetbIsDamagedTrue();
-			HitDiavolo->PlayDiavoloRandomDeadMontage();
+			HitDiavolo->GetChampionAnimInstance()->Montage_Play(HitDiavolo->GetDiavolo_DamagedByKennen_AnimMontage());
 		}
 	}
 }

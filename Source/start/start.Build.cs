@@ -8,7 +8,8 @@ public class start : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Niagara", "AIModule", "GameplayTasks", "NavigationSystem", "GeometryCache", "GeometryCollectionEngine" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "Niagara", "AIModule", 
+			"GameplayTasks", "NavigationSystem", "GeometryCache", "GeometryCollectionEngine", "ProceduralMeshComponent", "ProceduralMeshComponentEditor" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "GeometryCache" });
 

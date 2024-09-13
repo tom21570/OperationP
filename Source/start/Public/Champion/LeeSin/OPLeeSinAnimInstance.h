@@ -15,7 +15,7 @@ class START_API UOPLeeSinAnimInstance : public UOPAnimInstance
 	GENERATED_BODY()
 
 protected:
-	virtual void UpdateAnimationProperties(float DeltaTime);
+	virtual void UpdateAnimationProperties(float DeltaTime) override;
 
 	virtual void NativeInitializeAnimation() override;
 

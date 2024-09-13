@@ -6,6 +6,8 @@
 #include "Champion/OPChampion.h"
 #include "OPRiven.generated.h"
 
+class UNiagaraComponent;
+class AOPRivenSlash;
 class UNiagaraSystem;
 /**
  * 
@@ -33,6 +35,7 @@ protected:
 	virtual void Q() override;
 	void Q_Trace() const;
 	void Q_Trace_Third() const;
+	void Q_OnLanding();
 	
 	/****************************************************************************** W ******************************************************************************/
 
@@ -42,10 +45,15 @@ protected:
 	/****************************************************************************** E ******************************************************************************/
 
 	virtual void E() override;
+
+	UFUNCTION()
+	void E_Reflect(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+	int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
 	/****************************************************************************** R ******************************************************************************/
 	
 	virtual void R() override;
+	void R_Slash();
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"))
@@ -82,6 +90,9 @@ private:
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float Q_Speed_Z = 0.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float Q_Speed_XY_ThirdShot = 0.f;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Q_Range = 250.f;
@@ -94,14 +105,18 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UNiagaraSystem> Q_NiagaraSystem_Hit;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> Q_NiagaraSystem_OnLanding;
 	
     int32 Q_Step = 1;
+	bool bQ_IsInAir = false;
 
     FTimerHandle Q_Trace_TimerHandle;
     FTimerHandle Q_StackMaintain_TimerHandle;
     
     /****************************************************************************** W ******************************************************************************/
-
+	
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
     float W_Strength = 0.f;
 
@@ -110,17 +125,31 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float W_Width = 150.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> W_NiagaraSystem;
+
+	FTimerHandle W_Cast_TimerHandle;
     
     /****************************************************************************** E ******************************************************************************/
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
-    float E_Strength = 0.f;
+    float E_ReflectStrength = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float E_Speed = 0.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float E_MaintainTime = 0.f;
+	
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
-    UStaticMeshComponent* E_ShieldMesh;
+    TObjectPtr<UStaticMeshComponent> E_ShieldMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraComponent> E_NiagaraComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	float E_ReflectAngle = 0.f;
 
     FTimerHandle E_ShieldMaintain_TimerHandle;
 
@@ -128,8 +157,15 @@ private:
     
     /****************************************************************************** R ******************************************************************************/
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> R_SwordMesh;
+
+	TArray<AOPRivenSlash*> R_SlashStorages;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AOPRivenSlash> R_SlashClass;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TArray<USceneComponent*> R_SlashSpawnPoints;
 	
     FTimerHandle R_Reinforce_TimerHandle;
 	FTimerHandle R_ReinforceEnd_TimerHandle;

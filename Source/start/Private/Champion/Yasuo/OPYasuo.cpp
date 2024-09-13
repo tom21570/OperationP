@@ -25,6 +25,9 @@ AOPYasuo::AOPYasuo()
 void AOPYasuo::BeginPlay()
 {
 	Super::BeginPlay();
+
+	ChampionAnimInstance->Montage_Play(W_AnimMontage, 1.0f);
+	W_WindWall();
 }
 
 void AOPYasuo::Passive()
@@ -327,13 +330,17 @@ void AOPYasuo::W_WindWall()
 {
 	if (W_WindWallClass == nullptr) return;
 
-	FVector SpawnLocation = GetActorLocation() + GetActorForwardVector() * 100.f; // 캐릭터보다 살짝 앞에 스폰
+	if (ChampionAnimInstance && W_AnimMontage)
+	{
+		ChampionAnimInstance->Montage_Play(W_AnimMontage, 1.0f);
+	}
+
+	FVector SpawnLocation = Q_WhirlWindSpawnPoint->GetComponentLocation();
 	FRotator SpawnRotation = GetActorRotation();
 	
 	if (W_WindWallStorage = GetWorld()->SpawnActor<AOPYasuoWindWall>(W_WindWallClass, SpawnLocation, SpawnRotation))
 	{
 		W_WindWallStorage->SetOwner(this);
-		FVector LaunchDirection = GetActorForwardVector();
 	}
 }
 
