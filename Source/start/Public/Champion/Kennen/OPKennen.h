@@ -111,7 +111,13 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UNiagaraSystem> W_NiagaraSystem;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> W_NiagaraSystem_Hit;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	FVector W_NiagaraSystem_Size = FVector(0, 0, 0);
+	
 	int32 W_ReinforcedAttack_Stack = 0;
 	FTimerHandle W_Cast_TimerHandle;
     

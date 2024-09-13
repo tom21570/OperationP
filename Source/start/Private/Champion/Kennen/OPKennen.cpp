@@ -44,7 +44,7 @@ void AOPKennen::Passive_StormMarkOthers(AOPChampion* Enemy)
 
 void AOPKennen::Passive_StunOthers(AOPChampion* Enemy)
 {
-	Enemy->ResetStormMark();
+	// Enemy->ResetStormMark();
 	// UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Passive_Stun_NiagaraSystem, Enemy->GetActorLocation());
 }
 
@@ -189,9 +189,18 @@ void AOPKennen::W_Trace()
 		{
 			if (HitDiavolo->GetStormMarkCount() > 0)
 			{
+				float Distance = FVector::Distance(GetActorLocation(), HitDiavolo->GetActorLocation());
+				W_NiagaraSystem_Size.X = Distance / 350.f;
 				HitDiavolo->GetChampionAnimInstance()->Montage_Play(HitDiavolo->GetDiavolo_DamagedByKennen_AnimMontage());
-				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), W_NiagaraSystem, HitDiavolo->GetActorLocation());
+				
+				UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), W_NiagaraSystem_Hit, HitDiavolo->GetActorLocation());
+				if (W_NiagaraSystem)
+				{
+					const FRotator NiagaraRotation = (HitDiavolo->GetActorLocation() - GetActorLocation()).GetSafeNormal().Rotation();
+					UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), W_NiagaraSystem, GetActorLocation(), NiagaraRotation, W_NiagaraSystem_Size);
+				}
 			}
+
 		}
 	}
 }
