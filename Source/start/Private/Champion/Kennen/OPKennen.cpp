@@ -2,7 +2,6 @@
 
 
 #include "Champion/Kennen/OPKennen.h"
-#include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Animation/OPAnimInstance.h"
 #include "Champion/Kennen/OPKennenShuriken.h"
@@ -86,8 +85,7 @@ void AOPKennen::BasicAttack()
 	if (ChampionAnimInstance && BasicAttack_AnimMontage)
 	{
 		ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage);
-		int32 RandomValue = FMath::RandRange(0, 2);
-		switch (RandomValue)
+		switch (FMath::RandRange(0, 2))
 		{
 		case 0:
 			ChampionAnimInstance->Montage_JumpToSection("1", BasicAttack_AnimMontage);
@@ -132,17 +130,19 @@ void AOPKennen::Q()
 	if (ChampionAnimInstance && BasicAttack_AnimMontage)
 	{
 		ChampionAnimInstance->Montage_Play(BasicAttack_AnimMontage);
-		int32 RandomValue = FMath::RandRange(0, 2);
-		switch (RandomValue)
+		switch (FMath::RandRange(0, 2))
 		{
 		case 0:
 			ChampionAnimInstance->Montage_JumpToSection("1", BasicAttack_AnimMontage);
+			GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Red, "1");
 			break;
 		case 1:
 			ChampionAnimInstance->Montage_JumpToSection("2", BasicAttack_AnimMontage);
+			GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Red, "2");
 			break;
 		case 2:
 			ChampionAnimInstance->Montage_JumpToSection("3", BasicAttack_AnimMontage);
+			GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Red, "3");
 			break;
 		default:
 			break;

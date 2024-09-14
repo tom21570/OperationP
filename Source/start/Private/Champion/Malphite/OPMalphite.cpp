@@ -93,7 +93,7 @@ void AOPMalphite::BasicAttackTrace()
 	ActorsToIgnore.Add(this);
 	
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation() + GetActorForwardVector() * BasicAttack_Range, BasicAttack_Width,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitEnemies, true);
+		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::ForDuration, HitEnemies, true);
 	
 	for (auto& HitActor : HitEnemies)
 	{

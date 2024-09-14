@@ -7,10 +7,6 @@
 #include "Champion/Kennen/OPKennen.h"
 #include "Diavolo/OPDiavolo.h"
 
-AOPKennenShuriken::AOPKennenShuriken()
-{
-}
-
 void AOPKennenShuriken::BeginPlay()
 {
 	Super::BeginPlay();

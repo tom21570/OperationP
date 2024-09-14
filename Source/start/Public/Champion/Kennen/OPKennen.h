@@ -46,7 +46,8 @@ protected:
 
 	virtual void E() override;
 	UFUNCTION()
-	void E_OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+	void E_OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
 	/****************************************************************************** R ******************************************************************************/
 
@@ -169,6 +170,6 @@ private:
     FTimerHandle R_TraceStop_TimerHandle;
 
 public:
-	void Passive_StormMarkOthers(AOPChampion* Enemy);
-	void Passive_StunOthers(AOPChampion* Enemy);
+	static void Passive_StormMarkOthers(AOPChampion* Enemy);
+	static void Passive_StunOthers(AOPChampion* Enemy);
 };

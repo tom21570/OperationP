@@ -25,7 +25,6 @@ class START_API AOPKennenShuriken : public AOPProjectile
 	GENERATED_BODY()
 
 public:
-	AOPKennenShuriken();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 
