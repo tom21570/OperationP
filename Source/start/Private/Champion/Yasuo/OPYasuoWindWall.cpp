@@ -2,17 +2,21 @@
 
 
 #include "Champion/Yasuo/OPYasuoWindWall.h"
-#include "Champion/OPChampion.h"
-#include "Components/CapsuleComponent.h"
-#include "Diavolo/OPDiavolo.h"
 #include "Projectile/OPProjectile.h"
-#include "NiagaraFunctionLibrary.h"
-#include "NiagaraComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "Components/CapsuleComponent.h"
-#include "Kismet/GameplayStatics.h"
+#include "ProceduralMeshComponent.h"
+#include "KismetProceduralMeshLibrary.h"
 
+AOPYasuoWindWall::AOPYasuoWindWall()
+{
+	ProceduralMesh = CreateDefaultSubobject<UProceduralMeshComponent>("Procedural Mesh");
+	ProceduralMesh->SetupAttachment(GetRootComponent());
+	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
+	Mesh->SetupAttachment(ProceduralMesh);
+	
+	// UKismetProceduralMeshLibrary::CopyProceduralMeshFromStaticMeshComponent(Mesh, 0, ProceduralMesh, true);
+}
 
 // Called when the game starts or when spawned
 void AOPYasuoWindWall::BeginPlay()
@@ -20,53 +24,19 @@ void AOPYasuoWindWall::BeginPlay()
 	Super::BeginPlay();
 
 	OPProjectileMovementComponent->Velocity = InitialSpeed * GetActorForwardVector();
-	GetWorldTimerManager().SetTimer(DestroyTimer, this, &AOPYasuoWindWall::DestroyProjectile, 4.f, false);
+	// GetWorldTimerManager().SetTimer(DestroyTimer, this, &AOPYasuoWindWall::DestroyProjectile, 4.f, false);
 	GetWorldTimerManager().SetTimer(SpeedChangeTimer, this, &AOPYasuoWindWall::ChangeSpeed, 0.25f, false);
-	
-	// if (OPProjectileMovementComponent)
-	// {
-	// 	StartLocation = GetActorLocation();
-	//
-	// 	// Spawn Niagara effect
-	// 	if (ProjectileEffect)
-	// 	{
-	// 		ProjectileNiagaraComponent = UNiagaraFunctionLibrary::SpawnSystemAttached(
-	// 			ProjectileEffect,
-	// 			RootComponent,
-	// 			NAME_None,
-	// 			FVector::ZeroVector,
-	// 			FRotator::ZeroRotator,
-	// 			EAttachLocation::KeepRelativeOffset,
-	// 			true
-	// 		);
-	// 	}
-	// }
 }
+
 
 // Called every frame
 void AOPYasuoWindWall::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-	/* Tick은 메모리를 많이 잡아먹어서, 아래 부분은 BeginPlay에서 Timer로 해주시는게 좋습니다! */
-	
-	// float DistanceTravelled = FVector::Dist(StartLocation, GetActorLocation());
-	// if (DistanceTravelled >= DistanceToStop)
-	// {
-	// 	StopProjectile();
-	// }
 }
 
 void AOPYasuoWindWall::StopProjectile()
 {
-	// OPProjectileMovementComponent->StopMovementImmediately();
-	// Detach the Niagara component to stop it from updating its position
-	// if (ProjectileNiagaraComponent)
-	// {
-	// 	ProjectileNiagaraComponent->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-	// }
-	//
-	// GetWorldTimerManager().SetTimer(DestroyTimerHandle, this, &AOPYasuoWindWall::DestroyProjectile, StopDuration, false);
 }
 
 void AOPYasuoWindWall::DestroyProjectile()
@@ -89,35 +59,27 @@ void AOPYasuoWindWall::OnDamageCollisionBeginOverlap(UPrimitiveComponent* Overla
 		if (OtherProjectile)
 		{
 			FVector ImpactDirection = (OtherProjectile->GetActorLocation() - SweepResult.ImpactPoint).GetSafeNormal();
-			ImpactDirection.Z += 1.0f; // 충격 방향에 상향 성분 추가
+			ImpactDirection.Z += 1.0f;
 			ImpactDirection = ImpactDirection.GetSafeNormal();
 
 
 			UProjectileMovementComponent* ProjectileMovement = OtherProjectile->FindComponentByClass<UProjectileMovementComponent>();
 			if (ProjectileMovement)
 			{
-				ProjectileMovement->Velocity = ImpactDirection * WindWallForce; // 투사체의 속도를 충격 방향으로 설정
+				ProjectileMovement->Velocity = ImpactDirection * WindWallForce;
 			}
 		}
-		//DestroyProjectile();
 	}
 }
 
-void AOPYasuoWindWall::InitProjectile(FVector Direction, float Speed)
+void AOPYasuoWindWall::SliceMesh(const FVector& SliceLocation)
 {
-	Direction.Z = 0;
+	// GEngine->AddOnScreenDebugMessage(1, 1.f, FColor::Red, "Slice");
+	// UProceduralMeshComponent* OtherMesh;
 	
-	// 초기 속도가 올바르게 설정되었는지 확인
-	// if (OPProjectileMovementComponent)
-	// {
-	//
-	// 	OPProjectileMovementComponent->InitialSpeed = Speed;
-	// 	OPProjectileMovementComponent->MaxSpeed = Speed;
-	// 	OPProjectileMovementComponent->Velocity = Direction * Speed;
-	//
-	// }
-	//
-	//
-	// // 캐릭터보다 살짝 앞에서 발사체가 스폰되도록 설정
-	// SetActorLocation(GetActorLocation() + Direction * 100.f);
+	// UKismetProceduralMeshLibrary::SliceProceduralMesh(ProceduralMesh, SliceLocation,
+	// 	GetActorUpVector() * 1000000.f, true, OtherMesh, EProcMeshSliceCapOption::CreateNewSectionForCap, Mesh->GetMaterial(0));
+
+	ProceduralMesh->SetSimulatePhysics(true);
+	ProceduralMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }

@@ -2,5 +2,7 @@
 
 #pragma once
 
+#define ECC_Combat ECC_GameTraceChannel1
+
 #include "CoreMinimal.h"
 

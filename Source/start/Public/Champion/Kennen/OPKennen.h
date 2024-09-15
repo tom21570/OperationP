@@ -6,10 +6,12 @@
 #include "Champion/OPChampion.h"
 #include "OPKennen.generated.h"
 
+class USphereComponent;
 class UProjectileMovementComponent;
 class UNiagaraSystem;
 class UNiagaraComponent;
 class AOPKennenShuriken;
+
 /**
  * 
  */
@@ -39,11 +41,13 @@ protected:
 
 	virtual void W() override;
 	void W_Trace();
-	void W_TraceForStormMark();
 	
 	/****************************************************************************** E ******************************************************************************/
 
 	virtual void E() override;
+	UFUNCTION()
+	void E_OnOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp,
+		int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	
 	/****************************************************************************** R ******************************************************************************/
 
@@ -108,8 +112,15 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UNiagaraSystem> W_NiagaraSystem;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> W_NiagaraSystem_Hit;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "W | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	FVector W_NiagaraSystem_Size = FVector(0, 0, 0);
+	
 	int32 W_ReinforcedAttack_Stack = 0;
+	FTimerHandle W_Cast_TimerHandle;
     
     /****************************************************************************** E ******************************************************************************/
 
@@ -122,8 +133,17 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float E_Radius = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UNiagaraComponent> E_NiagaraComponent;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	float E_MaintainTime = 2.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	float E_WalkSpeed = 500.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UParticleSystemComponent> E_ParticleSystemComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<USphereComponent> E_Collision;
 
     FTimerHandle E_Maintain_TimerHandle;
 
@@ -140,10 +160,16 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float R_Radius = 550.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> R_NiagaraSystem;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UNiagaraSystem> R_Hit_NiagaraSystem;
+
     FTimerHandle R_TraceLoop_TimerHandle;
     FTimerHandle R_TraceStop_TimerHandle;
 
 public:
-	void Passive_StormMarkOthers(AOPChampion* Enemy);
-	void Passive_StunOthers(AOPChampion* Enemy);
+	static void Passive_StormMarkOthers(AOPChampion* Enemy);
+	static void Passive_StunOthers(AOPChampion* Enemy);
 };

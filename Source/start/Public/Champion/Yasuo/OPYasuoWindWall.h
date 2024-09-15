@@ -8,11 +8,17 @@
 
 class UNiagaraSystem;
 class UNiagaraComponent;
+class UProceduralMeshComponent;
 
 UCLASS()
 class START_API AOPYasuoWindWall : public AOPProjectile
 {
 	GENERATED_BODY()
+	
+public:
+	AOPYasuoWindWall();
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 	// Called when the game starts or when spawned
@@ -36,14 +42,13 @@ protected:
 
 	virtual void OnDamageCollisionBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 
-public:
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	void InitProjectile(FVector Direction, float Speed);
-
 private:
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slicing", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> Mesh;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Slicing", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UProceduralMeshComponent> ProceduralMesh;
+	
 	FTimerHandle DestroyTimer;
 	FTimerHandle SpeedChangeTimer;
 	
@@ -62,4 +67,10 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement", meta = (AllowPrivateAccess = "true"))
 	float WindWallForce = 0.f;
+
+public:
+	TObjectPtr<UProceduralMeshComponent> GetProceduralMeshComponent() const { return ProceduralMesh; }
+
+	UFUNCTION()
+	void SliceMesh(const FVector& SliceLocation);
 };

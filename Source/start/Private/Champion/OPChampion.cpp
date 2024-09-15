@@ -10,11 +10,9 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "Animation/OPAnimInstance.h"
-#include "Diavolo/OPDiavolo.h"
-#include "NiagaraFunctionLibrary.h"
-#include "GameFramework/DamageType.h" //damage
-#include "Engine/EngineTypes.h" //damage
-#include "Engine/World.h" //damage
+#include "GameFramework/DamageType.h"
+#include "Engine/EngineTypes.h"
+#include "Engine/World.h"
 
 // Sets default values
 AOPChampion::AOPChampion()
@@ -255,7 +253,7 @@ void AOPChampion::R()
 	UE_LOG(LogTemp, Warning, TEXT("R"));
 }
 
-void AOPChampion::TurnCharacterToLocation(FVector TurnPoint)
+void AOPChampion::TurnCharacterToLocation(const FVector& TurnPoint)
 {
 	FVector CursorLocation{TurnPoint.X, TurnPoint.Y, this->GetActorLocation().Z};
 	FVector StartPoint{this->GetActorLocation()};
@@ -264,7 +262,7 @@ void AOPChampion::TurnCharacterToLocation(FVector TurnPoint)
 	this->SetActorRotation(Rotation);
 }
 
-void AOPChampion::TurnCharacterToCursor(FHitResult HitResult)
+void AOPChampion::TurnCharacterToCursor(const FHitResult& HitResult)
 {
 	TurnCharacterToLocation(HitResult.Location);
 }

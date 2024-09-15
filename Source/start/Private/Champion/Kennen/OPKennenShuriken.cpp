@@ -2,13 +2,10 @@
 
 
 #include "Champion/Kennen/OPKennenShuriken.h"
-
+#include "NiagaraFunctionLibrary.h"
+#include "Animation/OPAnimInstance.h"
 #include "Champion/Kennen/OPKennen.h"
 #include "Diavolo/OPDiavolo.h"
-
-AOPKennenShuriken::AOPKennenShuriken()
-{
-}
 
 void AOPKennenShuriken::BeginPlay()
 {
@@ -41,13 +38,17 @@ void AOPKennenShuriken::OnDamageCollisionBeginOverlap(UPrimitiveComponent* Overl
 				
 			case EShurikenType::Shuriken_Q:
 				Kennen->Passive_StormMarkOthers(OverlappedDiavolo);
+				if (Q_NiagaraSystem_Hit)
+				{
+					UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Q_NiagaraSystem_Hit, OverlappedDiavolo->GetActorLocation());
+				}
 				if (OverlappedDiavolo->GetStormMarkCount() == 3)
 				{
 					OverlappedDiavolo->ResetStormMark();
 					Kennen->Passive_StunOthers(OverlappedDiavolo);
 				}
 				
-				OverlappedDiavolo->PlayDiavoloRandomDamagedMontage();
+				OverlappedDiavolo->GetChampionAnimInstance()->Montage_Play(OverlappedDiavolo->GetDiavolo_DamagedByKennen_AnimMontage());
 				break;
 				
 			case EShurikenType::Shuriken_W:
@@ -57,7 +58,11 @@ void AOPKennenShuriken::OnDamageCollisionBeginOverlap(UPrimitiveComponent* Overl
 					OverlappedDiavolo->ResetStormMark();
 					Kennen->Passive_StunOthers(OverlappedDiavolo);
 				}
-				OverlappedDiavolo->PlayDiavoloRandomDamagedMontage();
+				if (W_NiagaraSystem_Hit)
+				{
+					UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), W_NiagaraSystem_Hit, OverlappedDiavolo->GetActorLocation());
+				}
+				OverlappedDiavolo->GetChampionAnimInstance()->Montage_Play(OverlappedDiavolo->GetDiavolo_DamagedByKennen_AnimMontage());
 				break;
 			}
 
