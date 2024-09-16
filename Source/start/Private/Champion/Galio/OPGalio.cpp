@@ -482,7 +482,7 @@ void AOPGalio::E_Trace() const
 
 	UKismetSystemLibrary::CapsuleTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation(), E_Radius, 3000.f,
 		UEngineTypes::ConvertToTraceType(ECC_Combat), false,
-		ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+		ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 
 	for (auto& HitActor : HitResults)
 	{
