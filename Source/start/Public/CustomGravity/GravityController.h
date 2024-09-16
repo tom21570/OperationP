@@ -4,19 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
-#include "OPPlayerController.generated.h"
+#include "GravityController.generated.h"
 
 /**
- * 
+ * A Player Controller class which adds input-handling functionality for
+ * CharacterMovementController's custom gravity mechanics.
  */
 UCLASS()
-class START_API AOPPlayerController : public APlayerController
+class AGravityController : public APlayerController
 {
 	GENERATED_BODY()
 
 public:
-	AOPPlayerController();
-	
 	virtual void UpdateRotation(float DeltaTime) override;
 
 	// Converts a rotation from world space to gravity relative space.

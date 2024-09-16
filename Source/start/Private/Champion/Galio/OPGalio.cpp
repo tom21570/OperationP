@@ -50,37 +50,6 @@ void AOPGalio::Tick(float DeltaSeconds)
 		}
 	}
 
-	// Current Gravity Field가 유효한지 확인
-	if (CurrentGravityField && IsValid(CurrentGravityField))
-	{
-		// 중력 방향 계산: 캐릭터와 중력 필드의 위치 차이를 기반으로 계산
-		FVector GravityDirection = CurrentGravityField->GetActorLocation() - GetActorLocation();
-		GravityDirection.Normalize(); // 방향 벡터를 정규화
-
-		// 캐릭터의 Character Movement Component에서 Set Gravity Direction 함수 호출
-		UCharacterMovementComponent* CharacterMovementComponent = GetCharacterMovement();
-		if (CharacterMovementComponent)
-		{
-			UFunction* SetGravityDirectionFunction = CharacterMovementComponent->FindFunction(TEXT("SetGravityDirection"));
-			if (SetGravityDirectionFunction)
-			{
-				struct FSetGravityDirectionParams
-				{
-					FVector GravityDirection;
-				};
-
-				FSetGravityDirectionParams SetGravityParams;
-				SetGravityParams.GravityDirection = GravityDirection;
-
-				// 중력 방향을 캐릭터에 적용
-				CharacterMovementComponent->ProcessEvent(SetGravityDirectionFunction, &SetGravityParams);
-			}
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("CurrentGravityField is not set or invalid."));
-	}
 }
 
 

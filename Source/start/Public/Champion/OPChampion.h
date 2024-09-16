@@ -36,6 +36,7 @@ public:
     void TurnCharacterToLocation(const FVector& TurnPoint);
     void TurnCharacterToCursor(const FHitResult& HitResult);
 
+
 protected:
     /********************************************************************** Player Controller **********************************************************************/
     
@@ -278,6 +279,8 @@ public:
 
     UFUNCTION(BlueprintCallable)
     USkeletalMeshComponent* GetChampionSkeletalMeshComponent() const { return GetMesh(); }
+
+    
 
     void PlayDeadAnimMontage() const;
 };

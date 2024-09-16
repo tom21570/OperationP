@@ -1,16 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "Player/OPPlayerController.h"
+#include "CustomGravity/GravityController.h"
 #include "GameFramework/Character.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-AOPPlayerController::AOPPlayerController()
-{
-	bShowMouseCursor = true;
-}
-
-void AOPPlayerController::UpdateRotation(float DeltaTime)
+void AGravityController::UpdateRotation(float DeltaTime)
 {
 	FVector GravityDirection = FVector::DownVector;
 	if (ACharacter* PlayerCharacter = Cast<ACharacter>(GetPawn()))
@@ -62,7 +57,7 @@ void AOPPlayerController::UpdateRotation(float DeltaTime)
 	}
 }
 
-FRotator AOPPlayerController::GetGravityRelativeRotation(FRotator Rotation, FVector GravityDirection)
+FRotator AGravityController::GetGravityRelativeRotation(FRotator Rotation, FVector GravityDirection)
 {
 	if (!GravityDirection.Equals(FVector::DownVector))
 	{
@@ -73,7 +68,7 @@ FRotator AOPPlayerController::GetGravityRelativeRotation(FRotator Rotation, FVec
 	return Rotation;
 }
 
-FRotator AOPPlayerController::GetGravityWorldRotation(FRotator Rotation, FVector GravityDirection)
+FRotator AGravityController::GetGravityWorldRotation(FRotator Rotation, FVector GravityDirection)
 {
 	if (!GravityDirection.Equals(FVector::DownVector))
 	{

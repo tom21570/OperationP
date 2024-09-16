@@ -19,7 +19,7 @@ void ANonPlayableCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	// 2�� �������� ThrowProjectile �Լ��� ȣ���ϵ��� Ÿ�̸� ����
-	GetWorldTimerManager().SetTimer(TimerHandle, this, &ANonPlayableCharacter::ThrowProjectile, 2.0f, true);
+	GetWorldTimerManager().SetTimer(TimerHandle, this, &ANonPlayableCharacter::ThrowProjectile, SpawnTime, true);
 }
 
 // Called every frame
@@ -40,7 +40,10 @@ void ANonPlayableCharacter::ThrowProjectile()
 {
 	if (ProjectileClass)
 	{
-		FVector Location = GetActorLocation() + GetActorForwardVector() * 100.0f;
+		FVector Location = GetActorLocation() + GetActorForwardVector() * SpawnFowardDistance; 
+		// (Z축) 높이 조정
+		Location.Z += SpawnAdditionalHeight;  // (Z축) 높이 추가
+		
 		FRotator Rotation = GetActorRotation();
 
 		GetWorld()->SpawnActor<AOPProjectile>(ProjectileClass, Location, Rotation);
