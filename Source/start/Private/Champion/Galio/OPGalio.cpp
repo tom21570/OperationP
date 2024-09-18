@@ -49,7 +49,10 @@ void AOPGalio::Tick(float DeltaSeconds)
 			R_OnLanding();
 		}
 	}
+
 }
+
+
 
 void AOPGalio::BasicAttack()
 {

@@ -34,4 +34,14 @@ private:
 
 	FTimerHandle TimerHandle;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	float SpawnTime = 2.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	float SpawnFowardDistance = 100.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Projectile")
+	float SpawnAdditionalHeight = 0.0f;
+
+
 };
