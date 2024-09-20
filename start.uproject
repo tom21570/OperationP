@@ -35,6 +35,10 @@
 		{
 			"Name": "Composure",
 			"Enabled": true
+		},
+		{
+			"Name": "ChaosVehiclesPlugin",
+			"Enabled": true
 		}
 	]
 }

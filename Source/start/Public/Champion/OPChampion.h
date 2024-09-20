@@ -34,6 +34,7 @@ protected:
 
 public:
     void TurnCharacterToLocation(const FVector& TurnPoint);
+    void TurnCharacterToLocation_3D(const FVector& TurnPoint);
     void TurnCharacterToCursor(const FHitResult& HitResult);
 
 
