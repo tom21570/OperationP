@@ -22,4 +22,8 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float Q_TornadoStrength = 0.f;
 	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Q | Physical Tests", meta = (AllowPrivateAccess = "true"))
+    float Q_TornadoMaintainTime = 5.f;
+	
+	FTimerHandle Q_TornadoTimerHandle;	
 };

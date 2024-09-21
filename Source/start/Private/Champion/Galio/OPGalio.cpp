@@ -517,8 +517,8 @@ void AOPGalio::R()
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 	if (!MouseCursorHit.bBlockingHit) return;
-	//TurnCharacterToCursor(MouseCursorHit);
-	TurnCharacterToLocation_3D(MouseCursorHit.Location);
+	TurnCharacterToCursor(MouseCursorHit);
+	// TurnCharacterToLocation_3D(MouseCursorHit.Location);
 
 	R_FinalLocation = MouseCursorHit.Location;
 

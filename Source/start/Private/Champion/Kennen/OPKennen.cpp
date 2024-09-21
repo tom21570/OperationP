@@ -4,13 +4,16 @@
 #include "Champion/Kennen/OPKennen.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Animation/OPAnimInstance.h"
+#include "Champion/Kennen/OPKennenAIVehicle.h"
 #include "Champion/Kennen/OPKennenShuriken.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/SphereComponent.h"
 #include "Diavolo/OPDiavolo.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Player/OPPlayerController.h"
+#include "start/start.h"
 
 AOPKennen::AOPKennen()
 {
@@ -290,7 +293,7 @@ void AOPKennen::R_Trace()
 	ActorsToIgnore.Add(this);
 	
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation(), R_Radius,
-		UEngineTypes::ConvertToTraceType(ECC_Visibility), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+		UEngineTypes::ConvertToTraceType(ECC_Combat), false, ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 	
 	for (auto& HitActor : HitResults)
 	{
@@ -304,6 +307,17 @@ void AOPKennen::R_Trace()
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), R_Hit_NiagaraSystem, HitDiavolo->GetActorLocation(), FRotator::ZeroRotator, FVector(1), true);
 			HitDiavolo->SetbIsDamagedTrue();
 			HitDiavolo->GetChampionAnimInstance()->Montage_Play(HitDiavolo->GetDiavolo_DamagedByKennen_AnimMontage());
+		}
+
+		if (AOPKennenAIVehicle* ChargingVehicle = Cast<AOPKennenAIVehicle>(HitActor.GetActor()))
+		{
+			UGameplayStatics::ApplyDamage(ChargingVehicle, R_Volt, OPPlayerController, this, nullptr);
+			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), R_Hit_NiagaraSystem, ChargingVehicle->GetActorLocation(), FRotator::ZeroRotator, FVector(1), true);
+
+			if (ChargingVehicle->GetCurrentVolt() >= ChargingVehicle->GetNecessaryVolt())
+			{
+				ChargingVehicle->ChargeFinished();
+			}
 		}
 	}
 }

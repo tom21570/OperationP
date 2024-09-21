@@ -12,7 +12,8 @@
 				"Engine",
 				"AnimGraph",
 				"AIModule",
-				"GeometryCollectionEngine"
+				"GeometryCollectionEngine",
+				"ChaosVehicles"
 			]
 		}
 	],

@@ -12,6 +12,11 @@ class AOPDiavolo;
 void AOPGalioTornado::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	GetWorldTimerManager().SetTimer(Q_TornadoTimerHandle, FTimerDelegate::CreateLambda([&]
+    {
+    	Destroy();
+    }), Q_TornadoMaintainTime, false);
 }
 
 void AOPGalioTornado::Tick(float DeltaSeconds)
@@ -24,7 +29,7 @@ void AOPGalioTornado::Tick(float DeltaSeconds)
 
 	UKismetSystemLibrary::CapsuleTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation(), 3000.f, 10000.f,
 		UEngineTypes::ConvertToTraceType(ECC_Combat), false,
-		ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
+		ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
 
 	for (auto& HitActor : HitResults)
 	{
