@@ -52,8 +52,6 @@ void AOPGalio::Tick(float DeltaSeconds)
 
 }
 
-
-
 void AOPGalio::BasicAttack()
 {
 	Super::BasicAttack();
@@ -521,6 +519,7 @@ void AOPGalio::R()
 	// TurnCharacterToLocation_3D(MouseCursorHit.Location);
 
 	R_FinalLocation = MouseCursorHit.Location;
+	// R_FinishedLand = false;
 
 	GetWorldTimerManager().SetTimer(R_Departure_TimerHandle, FTimerDelegate::CreateLambda([&]
 	{
@@ -574,6 +573,7 @@ void AOPGalio::R()
 void AOPGalio::R_OnLanding()
 {
 	bR_IsInAir = false;
+	R_FinishedLand = true;
 	GetCharacterMovement()->GravityScale = 1.f;
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;

@@ -187,6 +187,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
 	FVector R_NiagaraSystem_Land_Size = FVector(1.f, 1.f, 1.f);
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "R | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
+	bool R_FinishedLand = false;
+
 	FVector R_FinalLocation;
 	bool bR_IsInAir = false;
 	FTimerHandle R_Departure_TimerHandle;
