@@ -13,6 +13,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "Player/OPPlayerController.h"
+#include "Misc/OutputDeviceNull.h"
 #include "start/start.h"
 
 AOPGalio::AOPGalio()
@@ -29,6 +30,7 @@ AOPGalio::AOPGalio()
 void AOPGalio::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 void AOPGalio::Tick(float DeltaSeconds)
@@ -49,9 +51,7 @@ void AOPGalio::Tick(float DeltaSeconds)
 			R_OnLanding();
 		}
 	}
-
 }
-
 
 
 void AOPGalio::BasicAttack()
@@ -517,55 +517,129 @@ void AOPGalio::R()
 
 	OPPlayerController->GetHitResultUnderCursor(ECC_Visibility, false, MouseCursorHit);
 	if (!MouseCursorHit.bBlockingHit) return;
-	TurnCharacterToCursor(MouseCursorHit);
 
+	// 캐릭터가 마우스 커서 방향으로 회전하도록 처리
+	TurnCharacterToLocation_3D(MouseCursorHit.Location);
 	R_FinalLocation = MouseCursorHit.Location;
 
-	GetWorldTimerManager().SetTimer(R_Departure_TimerHandle, FTimerDelegate::CreateLambda([&]
+	// Current Gravity Field가 설정되었는지 확인
+	if (CurrentGravityField)
 	{
-		bR_IsInAir = true;
-		LaunchCharacter(R_Speed_Z_Departure * GetActorUpVector(), true, true);
-		if (R_NiagaraSystem_Departure)
+		// Check if the OtherActor is of the class BP_GravityField (a purely Blueprint class)
+		UClass* GravityFieldActor = Cast<UClass>(StaticLoadObject(UClass::StaticClass(), nullptr, TEXT("/Game/Blueprint/CustomGravityBP/CustomGravity1/BP_GravityField.BP_GravityField_C")));
+		if (CurrentGravityField->IsA(GravityFieldActor))
 		{
-			FVector NiagaraSpawnLocation = GetActorLocation();
-			NiagaraSpawnLocation.Z -= 2400.f;
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), R_NiagaraSystem_Departure, NiagaraSpawnLocation);
-		}
-	}), 1.f, false);
+			// BP_GravityField에서 중력 방향과 중력 스케일 값을 Reflection 시스템으로 가져옴
+			FVector GravityDirection = FVector::UpVector;
+			float GScale = 1.0f;
 
-	GetWorldTimerManager().SetTimer(R_SpawnNiagara_InAir_TimerHandle, FTimerDelegate::CreateLambda([&]
+			// GetGravityDirection 함수 호출을 위한 준비
+			FName FunctionName("GetGravityDirection");
+
+			// 함수가 존재하는지 확인
+			UFunction* GravityDirectionFunction = CurrentGravityField->FindFunction(FunctionName);
+
+			if (GravityDirectionFunction)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("RRRRRR GravityDirectionFunction"));
+				// 함수 호출을 위한 구조체 선언
+				struct FGravityDirectionParams
+				{
+					FVector ReturnValue;
+				};
+
+				FGravityDirectionParams GravityDirectionParams;
+
+				// GetGravityDirection 함수 호출
+				CurrentGravityField->ProcessEvent(GravityDirectionFunction, &GravityDirectionParams);
+
+				// 이미 선언된 GravityDirection 변수에 값을 할당
+				GravityDirection = GravityDirectionParams.ReturnValue;
+			}
+
+			FProperty* GScaleProperty = CurrentGravityField->GetClass()->FindPropertyByName(FName("GScale"));
+			UE_LOG(LogTemp, Warning, TEXT("RRRRRR GScaleProperty : %s"), GScaleProperty);
+
+			if (GravityDirectionFunction && GScaleProperty)
+			{
+				GScale = *GScaleProperty->ContainerPtrToValuePtr<float>(CurrentGravityField);
+				UE_LOG(LogTemp, Warning, TEXT("RRRRRR GScale : %s"), GScale);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("RRRRRR Could not find GravityDirection or GScale properties in the Gravity Field actor."));
+			}
+
+			// 캐릭터를 공중으로 뛰어오르게 처리
+			GetWorldTimerManager().SetTimer(R_Departure_TimerHandle, FTimerDelegate::CreateLambda([&]
+				{
+					bR_IsInAir = true;
+					LaunchCharacter(R_Speed_Z_Departure *GetActorUpVector(), true, true); // 중력 방향 반영
+
+					if (R_NiagaraSystem_Departure)
+					{
+						FVector NiagaraSpawnLocation = GetActorLocation();
+						NiagaraSpawnLocation.Z -= 2400.f;
+						UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), R_NiagaraSystem_Departure, NiagaraSpawnLocation);
+					}
+				}), 1.f, false);
+
+			// 공중에서의 이펙트 처리
+			GetWorldTimerManager().SetTimer(R_SpawnNiagara_InAir_TimerHandle, FTimerDelegate::CreateLambda([&]
+				{
+					if (R_NiagaraSystem_InAir)
+					{
+						UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), R_NiagaraSystem_InAir, GetActorLocation());
+						GetCharacterMovement()->StopMovementImmediately();
+					}
+				}), 1.5f, false);
+
+			// 착지 처리
+			GetWorldTimerManager().SetTimer(R_StartLanding_TimerHandle, FTimerDelegate::CreateLambda([&]
+				{
+					// 착지할 위치(R_FinalLocation)와 현재 위치 간의 방향 벡터 계산
+					FVector LandingDirection = (R_FinalLocation - GetActorLocation()).GetSafeNormal();
+
+					// 착지 시 중력 방향 및 스케일을 고려한 힘 적용
+					GetCharacterMovement()->AddForce(-R_Speed_Z_Landing * GravityDirection);
+					//LaunchCharacter(-R_Speed_Z_Landing * GetActorUpVector() *GravityDirection + R_Speed_XY_Landing, true, true);
+
+					LaunchCharacter((-R_Speed_Z_Landing * GetActorUpVector()), true, true);
+					// 착지 시 이펙트 처리
+					if (R_NiagaraSystem_SonicBoom)
+					{
+						FRotator NiagaraSpawnRotation = GetActorRotation();
+						NiagaraSpawnRotation.Pitch = 60.f;
+						UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), R_NiagaraSystem_SonicBoom,
+							GetActorLocation() + GetActorForwardVector() * 2000.f, NiagaraSpawnRotation);
+
+						// 캐릭터의 중력 스케일을 GScale로 설정
+						GetCharacterMovement()->GravityScale = 1.f;
+					}
+				}), 1.9f, false);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Cast to BP_GravityField failed."));
+		}
+	}
+	else
 	{
-		if (R_NiagaraSystem_InAir)
-		{
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), R_NiagaraSystem_InAir, GetActorLocation());
-			GetCharacterMovement()->StopMovementImmediately();
-		}
-	}), 1.5f, false);
+		UE_LOG(LogTemp, Warning, TEXT("Current Gravity Field is not set."));
+	}
 
-	GetWorldTimerManager().SetTimer(R_StartLanding_TimerHandle, FTimerDelegate::CreateLambda([&]
-	{
-		GetCharacterMovement()->AddForce(-R_Speed_Z_Landing * GetActorUpVector());
-		LaunchCharacter(-R_Speed_Z_Landing * GetActorUpVector() + R_Speed_XY_Landing * GetActorForwardVector(), true, true);
-
-		if (R_NiagaraSystem_SonicBoom)
-		{
-			FRotator NiagaraSpawnRotation = GetActorRotation();
-			NiagaraSpawnRotation.Pitch = 60.f;
-			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), R_NiagaraSystem_SonicBoom,
-				GetActorLocation() + GetActorForwardVector() * 2000.f, NiagaraSpawnRotation);
-			GetCharacterMovement()->GravityScale = R_Gravity;
-		}
-	}), 1.9f, false);
-
+	// 애니메이션 실행
 	if (ChampionAnimInstance && R_AnimMontage)
 	{
 		ChampionAnimInstance->Montage_Play(R_AnimMontage);
 		ChampionAnimInstance->Montage_JumpToSection("Start", R_AnimMontage);
 	}
 
+	// 캐릭터의 움직임을 멈추고, 다시 시작할 타이머 설정
 	StopChampionMovement();
 	GetWorldTimerManager().SetTimer(ResetMovementTimerHandle, this, &AOPGalio::ResetChampionMovement, 3.5f, false);
 
+	// 스킬 쿨다운 타이머 설정
 	SetbR_False();
 	GetWorldTimerManager().SetTimer(R_Cooldown_TimerHandle, this, &AOPGalio::SetbR_True, R_Cooldown, false);
 }
@@ -573,13 +647,13 @@ void AOPGalio::R()
 void AOPGalio::R_OnLanding()
 {
 	bR_IsInAir = false;
-	GetCharacterMovement()->GravityScale = 1.f;
+	//GetCharacterMovement()->GravityScale = 1.f;
 	TArray<FHitResult> HitResults;
 	TArray<AActor*> ActorsToIgnore;
 
 	UKismetSystemLibrary::SphereTraceMulti(GetWorld(), GetActorLocation(), GetActorLocation(), R_Radius,
 		UEngineTypes::ConvertToTraceType(ECC_Combat), false,
-		ActorsToIgnore, EDrawDebugTrace::None, HitResults, true);
+		ActorsToIgnore, EDrawDebugTrace::ForDuration, HitResults, true);
 
 	for (auto& HitActor : HitResults)
 	{

@@ -165,6 +165,15 @@ void AOPChampion::TurnCharacterToLocation(const FVector& TurnPoint)
 	this->SetActorRotation(Rotation);
 }
 
+void AOPChampion::TurnCharacterToLocation_3D(const FVector& TurnPoint)
+{
+	FVector CursorLocation{ TurnPoint.X, TurnPoint.Y, TurnPoint.Z };
+	FVector StartPoint{ this->GetActorLocation() };
+
+	FRotator Rotation = FVector(CursorLocation - StartPoint).Rotation();
+	this->SetActorRotation(Rotation);
+}
+
 void AOPChampion::TurnCharacterToCursor(const FHitResult& HitResult)
 {
 	TurnCharacterToLocation(HitResult.Location);

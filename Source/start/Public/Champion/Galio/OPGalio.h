@@ -23,6 +23,11 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 
+	/********************************** Gravity ***************************************************/
+	// Current Gravity Field를 선언, AActor로 선언
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Gravity")
+	AActor* CurrentGravityField;
+
 protected:
 	/*************************************************************************** Passive ***************************************************************************/
 
@@ -136,13 +141,13 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Gameplay Methods", meta = (AllowPrivateAccess = "true"))
     float E_Radius = 2000.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float E_Angle = 0.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float E_Speed = 153800.f;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "R | Physical Tests", meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "E | Physical Tests", meta = (AllowPrivateAccess = "true"))
 	float E_Speed_Backward = 15380.f;
 
 	FTimerHandle E_DashStart_TimerHandle;
