@@ -195,10 +195,6 @@ void AOPTaric::Q()
 	GetWorldTimerManager().SetTimer(Q_Cooldown_TimerHandle, this, &AOPTaric::SetbQ_True, Q_Cooldown, false);
 }
 
-void AOPTaric::Q_Trace()
-{
-}
-
 void AOPTaric::W()
 {
 	Super::W();
