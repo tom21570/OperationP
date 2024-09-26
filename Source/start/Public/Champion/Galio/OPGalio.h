@@ -7,6 +7,8 @@
 #include "Components/TimelineComponent.h"
 #include "OPGalio.generated.h"
 
+class UFieldSystemComponent;
+class AFieldSystemActor;
 class UNiagaraComponent;
 class UNiagaraSystem;
 class AOPGalioWindblast;
@@ -58,6 +60,9 @@ protected:
 
 	virtual void R() override;
 	void R_OnLanding();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void CreateField();
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile Movement component", meta = (AllowPrivateAccess = "true"))

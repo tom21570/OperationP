@@ -8,6 +8,8 @@
 #include "Champion/Galio/OPGalioWindblast.h"
 #include "Components/CapsuleComponent.h"
 #include "Diavolo/OPDiavolo.h"
+#include "Field/FieldSystemActor.h"
+#include "Field/FieldSystemComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -609,4 +611,6 @@ void AOPGalio::R_OnLanding()
 			UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), R_NiagaraSystem_Land, NiagaraSpawnLocation);
 		}
 	}), 0.05f, false);
+
+	CreateField();
 }
