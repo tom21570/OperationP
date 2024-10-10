@@ -179,8 +179,6 @@ void AOPChampion::TurnCharacterToCursor(const FHitResult& HitResult)
 	TurnCharacterToLocation(HitResult.Location);
 }
 
-
-
 void AOPChampion::Move(const FInputActionValue& InputActionValue)
 {
 	const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
@@ -214,8 +212,6 @@ void AOPChampion::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-
-
 
 // Called to bind functionality to input
 void AOPChampion::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
