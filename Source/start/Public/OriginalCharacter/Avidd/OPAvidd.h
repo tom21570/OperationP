@@ -7,6 +7,17 @@
 #include "OPAvidd.generated.h"
 
 class AOPPykeHarpoon;
+
+UENUM(BlueprintType, Blueprintable)
+enum class EAviddType : uint8
+{
+	EAT_Pyke UMETA(DisplayName = "Pyke"),
+	EAT_Nasus UMETA(DisplayName = "Nasus"),
+	EAT_Amumu UMETA(DisplayName = "Amumu"),
+
+	EAT_None UMETA(DisplayName = "None"),
+};
+
 /**
  * 
  */
@@ -22,12 +33,19 @@ public:
 
 protected:
 	virtual void Skill() override;
+	void Pyke_ThrowHarpoon();
 	void Pyke_Q();
+	void Nasus_Q();
+	void Amumu_W();
 
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Head", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> HeadMeshComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Avidd Type", meta = (AllowPrivateAccess = "true"))
+	EAviddType AviddType = EAviddType::EAT_None;
+
+	// Pyke
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pyke", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> PykeHarpoonMeshComponent;
 
@@ -38,8 +56,21 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pyke", meta = (AllowPrivateAccess = "true"))
 	TSubclassOf<AOPPykeHarpoon> PykeHarpoonClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Pyke", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> Pyke_Q_AnimMontage;
+
 	FRotator PykeHarpoonSpawnRotation = FRotator::ZeroRotator;
 
 	FTimerHandle PykeHarpoonThrowTimer;
 	FTimerHandle PykeHarpoonVisibleTimer;
+	
+	//Nasus
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Nasus", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UStaticMeshComponent> NasusWeaponComponent;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Nasus", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> Nasus_Q_AnimMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Amumu", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UAnimMontage> Amumu_W_AnimMontage;
 };

@@ -37,10 +37,7 @@ protected:
 	TObjectPtr<class UInputMappingContext> OCMappingContext;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UInputAction> OCSkillAction;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Skill, meta = (AllowPrivateAccess = "true"))
-	TObjectPtr<UAnimMontage> Skill_AnimMontage;
+	TObjectPtr<UInputAction> OCSkillAction;	
 
 	virtual void Skill();
 
