@@ -2,11 +2,8 @@
 
 
 #include "AI/OPAIController.h"
-
-#include "AI/OPAIEnemy.h"
 #include "BehaviorTree/BehaviorTree.h"
-#include "BehaviorTree/BlackboardComponent.h"
-#include "Champion/OPChampion.h"
+#include "OriginalCharacter/Avidd/OPAvidd.h"
 #include "Perception/AIPerceptionComponent.h"
 #include "Perception/AISenseConfig_Sight.h"
 
@@ -18,9 +15,9 @@ AOPAIController::AOPAIController(FObjectInitializer const& ObjectInitializer)
 void AOPAIController::OnPossess(APawn* InPawn)
 {
 	Super::OnPossess(InPawn);
-	if (const AOPAIEnemy* const AIEnemy = Cast<AOPAIEnemy>(InPawn))
+	if (const AOPAvidd* const AIAvidd = Cast<AOPAvidd>(InPawn))
 	{
-		if (UBehaviorTree* const Tree = AIEnemy->GetBehaviorTree())
+		if (UBehaviorTree* const Tree = AIAvidd->GetBehaviorTree())
 		{
 			UBlackboardComponent* BlackboardComponent;
 			UseBlackboard(Tree->BlackboardAsset, BlackboardComponent);
@@ -36,7 +33,6 @@ void AOPAIController::OnUnPossess()
 
 	SightConfig = nullptr;
 	Blackboard = nullptr;
-	
 }
 
 void AOPAIController::SetupPerceptionSystem()

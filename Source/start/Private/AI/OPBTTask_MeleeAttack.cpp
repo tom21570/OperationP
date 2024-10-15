@@ -9,6 +9,7 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Champion/OPChampion.h"
 #include "Kismet/GameplayStatics.h"
+#include "OriginalCharacter/Avidd/OPAvidd.h"
 
 UOPBTTask_MeleeAttack::UOPBTTask_MeleeAttack()
 {
@@ -26,19 +27,18 @@ EBTNodeResult::Type UOPBTTask_MeleeAttack::ExecuteTask(UBehaviorTreeComponent& O
 
 	auto const* const Controller = OwnerComp.GetAIOwner();
 	const auto* const Player  = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
-	auto* const AIEnemy = Cast<AOPAIEnemy>(Controller->GetPawn());
+	auto* const Avidd = Cast<AOPAvidd>(Controller->GetPawn());
 
-	if (MontageHasFinished(AIEnemy))
+	if (MontageHasFinished(Avidd))
 	{
-		AIEnemy->BasicAttack_Public();
-		AIEnemy->TurnCharacterToLocation(Player->GetActorLocation());
+		Avidd->Farm();
 	}
 	
 	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	return EBTNodeResult::Type();
 }
 
-bool UOPBTTask_MeleeAttack::MontageHasFinished(AOPAIEnemy* const Enemy)
+bool UOPBTTask_MeleeAttack::MontageHasFinished(AOPAvidd* const Avidd)
 {
-	return Enemy->GetMesh()->GetAnimInstance()->Montage_GetIsStopped(Enemy->GetBasicAttackAnimMontage());
+	return Avidd->GetMesh()->GetAnimInstance()->Montage_GetIsStopped(Avidd->GetNasus_Q_AnimMontage());
 }

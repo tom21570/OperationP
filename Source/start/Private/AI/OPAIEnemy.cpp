@@ -3,6 +3,7 @@
 
 #include "AI/OPAIEnemy.h"
 #include "Animation/OPAnimInstance.h"
+#include "BehaviorTree/BehaviorTree.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
 #include "Kismet/GameplayStatics.h"
 #include "Perception/AIPerceptionStimuliSourceComponent.h"
@@ -20,6 +21,10 @@ void AOPAIEnemy::BeginPlay()
 	Super::BeginPlay();
 
 	ACharacter* Player = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0.f);
+
+	if (Tree)
+	{
+	}
 }
 
 void AOPAIEnemy::Tick(float DeltaSeconds)

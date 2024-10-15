@@ -7,6 +7,7 @@
 #include "OPBTTask_MeleeAttack.generated.h"
 
 class AOPAIEnemy;
+class AOPAvidd;
 /**
  * 
  */
@@ -20,5 +21,5 @@ public:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 private:
-	bool MontageHasFinished(AOPAIEnemy* const Enemy);
+	bool MontageHasFinished(AOPAvidd* const Avidd);
 };

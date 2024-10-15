@@ -7,6 +7,7 @@
 #include "OPAvidd.generated.h"
 
 class AOPPykeHarpoon;
+class UBehaviorTree;
 
 UENUM(BlueprintType, Blueprintable)
 enum class EAviddType : uint8
@@ -45,6 +46,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Avidd Type", meta = (AllowPrivateAccess = "true"))
 	EAviddType AviddType = EAviddType::EAT_None;
 
+	//AI
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UBehaviorTree> Tree;
+
 	// Pyke
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Pyke", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UStaticMeshComponent> PykeHarpoonMeshComponent;
@@ -73,4 +78,11 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Amumu", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UAnimMontage> Amumu_W_AnimMontage;
+
+public:
+	FORCEINLINE TObjectPtr<UBehaviorTree> GetBehaviorTree() const { return Tree; }
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void Farm();
+	TObjectPtr<UAnimMontage> GetNasus_Q_AnimMontage() const { return Nasus_Q_AnimMontage; }
 };
