@@ -18,21 +18,21 @@ UOPBTTask_MeleeAttack::UOPBTTask_MeleeAttack()
 
 EBTNodeResult::Type UOPBTTask_MeleeAttack::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	auto const OutOfRange = !OwnerComp.GetBlackboardComponent()->GetValueAsBool(GetSelectedBlackboardKey());
-	if (OutOfRange)
-	{
-		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-		return EBTNodeResult::Succeeded;
-	}
+	// auto const OutOfRange = !OwnerComp.GetBlackboardComponent()->GetValueAsBool(GetSelectedBlackboardKey());
+	// if (OutOfRange)
+	// {
+	// 	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+	// 	return EBTNodeResult::Succeeded;
+	// }
 
 	auto const* const Controller = OwnerComp.GetAIOwner();
 	const auto* const Player  = UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 	auto* const Avidd = Cast<AOPAvidd>(Controller->GetPawn());
 
-	if (MontageHasFinished(Avidd))
-	{
+	// if (MontageHasFinished(Avidd))
+	// {
 		Avidd->Farm();
-	}
+	// }
 	
 	FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	return EBTNodeResult::Type();
